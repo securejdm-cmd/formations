@@ -238,10 +238,7 @@ func _combat_tick() -> void:
 				continue
 			if attacker.get_state() == Unit.State.ROUTING:
 				continue
-			if (
-				CombatResolver.is_head_on_pair(attacker, defender)
-				and CombatResolver.units_have_front_contact(attacker, defender)
-			):
+			if CombatResolver.is_head_on_pair(attacker, defender):
 				continue
 
 			var contact := EdgeContact.classify_contact(attacker, defender)
@@ -498,15 +495,14 @@ func _pair_key(unit_a: Unit, unit_b: Unit) -> String:
 
 
 func _assert_no_overlaps() -> void:
-	# All unit pairs including allies — enemy head-on uses center-gap penetration;
-	# all other pairs (allied or angled) use oriented-box overlap.
+	# Non-routing pairs only (allied and enemy). Routing units are formless fugitives.
 	for i in _units.size():
 		var unit_a := _units[i]
-		if unit_a.get_state() == Unit.State.REMOVED:
+		if unit_a.get_state() == Unit.State.REMOVED or unit_a.get_state() == Unit.State.ROUTING:
 			continue
 		for j in range(i + 1, _units.size()):
 			var unit_b := _units[j]
-			if unit_b.get_state() == Unit.State.REMOVED:
+			if unit_b.get_state() == Unit.State.REMOVED or unit_b.get_state() == Unit.State.ROUTING:
 				continue
 			if not CombatResolver.units_overlap(unit_a, unit_b):
 				continue

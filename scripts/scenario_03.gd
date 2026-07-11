@@ -2,7 +2,7 @@ class_name Scenario03
 extends Scenario01
 
 const TRACE_PREFIX := "scenario_03"
-const FLANK_DELAY_SEC := 10.0
+const FLANK_DELAY_SEC := 9.5
 const FLANK_CORRECTION_EAST_DEPTH_SCALE := 0.55
 
 var _red_a: Unit = null
@@ -13,6 +13,8 @@ var _flank_release_aborted: bool = false
 var _flank_overlap_corrected: bool = false
 var _blue_a_strength_at_rout: float = -1.0
 var _flank_candidate_scales: Array[Vector2] = []
+var _flank_along_m: float = 0.0
+var _flank_across_m: float = 0.0
 
 
 func _ready() -> void:
@@ -80,31 +82,18 @@ func advance_one_tick() -> void:
 	var tick_interval := CombatResolver.tick_interval()
 	_sim_tick_count += 1
 	_update_movement(tick_interval)
+	_maintain_flank_contact()
 	_combat_tick()
 	_maybe_release_flank()
+	_maintain_flank_contact()
 	_maybe_correct_flank_overlap()
-	_assert_no_overlaps()
+	super._assert_no_overlaps()
 	_track_rout_state()
 	_update_victory_state(tick_interval)
 	var ticks_per_sec := int(Constants.get_float("tick_rate_per_sec"))
 	if _sim_tick_count % ticks_per_sec == 0:
 		_log_trace_row()
 	_check_epilogue_end()
-
-
-func _assert_no_overlaps() -> void:
-	# S3 addendum: explicitly assert allied pairs after combat shifts.
-	if _red_a != null and _red_b != null:
-		if (
-			_red_a.get_state() != Unit.State.REMOVED
-			and _red_b.get_state() != Unit.State.REMOVED
-			and CombatResolver.units_overlap(_red_a, _red_b)
-		):
-			_overlap_assertion_failed = true
-			push_error(
-				"Overlap detected at tick %d between %s and %s (allied)"
-				% [_sim_tick_count, _red_a.unit_id, _red_b.unit_id]
-			)
 
 
 func _maybe_release_flank() -> void:
@@ -117,24 +106,34 @@ func _maybe_release_flank() -> void:
 		return
 
 	var px_per_meter := Constants.get_float("px_per_meter")
-	var half_depth_px := _blue_a.effective_depth_m() * 0.5 * px_per_meter
-	var half_frontage_px := _blue_a.effective_frontage_m() * 0.5 * px_per_meter
+	var half_depth_m := _blue_a.effective_depth_m() * 0.5
+	var half_frontage_m := _blue_a.effective_frontage_m() * 0.5
+	var forward := _blue_a.facing.normalized()
+	var left := FormationGeometry.left_vector(forward)
 	var reserve_pos := _red_b.position
 	var reserve_facing := _red_b.facing
 
-	var default_scales: Array[Vector2] = [
-		Vector2(2.10, 0.58), Vector2(2.35, 0.54), Vector2(2.60, 0.62),
-		Vector2(2.80, 0.66), Vector2(3.00, 0.70), Vector2(3.20, 0.80),
-		Vector2(3.50, 0.58),
-	]
-	var scales: Array[Vector2] = _flank_candidate_scales if not _flank_candidate_scales.is_empty() else default_scales
+	var along_scales: Array[float] = [0.0, -0.05, -0.10, -0.15, -0.20, -0.25, -0.35, -0.50, -0.75, -1.0, -1.5, -2.0]
+	var across_scales: Array[float] = [0.98, 1.0, 1.02, 1.05, 1.08, 1.12]
+	var touch_pen_m := EdgeContact.CONTACT_EPSILON_M + 0.15
 	var candidate_offsets: Array[Vector2] = []
-	for scale in scales:
-		candidate_offsets.append(Vector2(half_depth_px * scale.x, half_frontage_px * scale.y))
+	if not _flank_candidate_scales.is_empty():
+		for scale in _flank_candidate_scales:
+			var offset_m := forward * half_depth_m * scale.x
+			offset_m += left * (half_frontage_m + half_depth_m - touch_pen_m) * scale.y
+			candidate_offsets.append(offset_m * px_per_meter)
+	else:
+		for across_scale in across_scales:
+			for along_scale in along_scales:
+				var offset_m := forward * half_depth_m * along_scale
+				offset_m += left * (half_frontage_m + half_depth_m - touch_pen_m) * across_scale
+				candidate_offsets.append(offset_m * px_per_meter)
 	var chosen_offset := Vector2.ZERO
+	var chosen_along_m := 0.0
+	var chosen_across_m := 0.0
 	for offset in candidate_offsets:
 		_red_b.position = _blue_a.position + offset
-		_red_b.facing = (_blue_a.position - _red_b.position).normalized()
+		_red_b.facing = -left
 		if _red_b.facing.length_squared() <= 0.0001:
 			_red_b.facing = Vector2.UP
 		_red_b.rotation = _red_b.facing.angle()
@@ -142,7 +141,16 @@ func _maybe_release_flank() -> void:
 			continue
 		if not EdgeContact.units_have_contact(_red_b, _blue_a):
 			continue
+		var contact := EdgeContact.classify_contact(_red_b, _blue_a)
+		var edge_lengths: Dictionary = contact.get("edge_lengths_m", {})
+		if not edge_lengths.has(EdgeContact.EDGE_LEFT):
+			continue
+		if edge_lengths.get(EdgeContact.EDGE_FRONT, 0.0) > edge_lengths.get(EdgeContact.EDGE_LEFT, 0.0):
+			continue
 		chosen_offset = offset
+		var offset_m := offset / px_per_meter
+		chosen_along_m = offset_m.dot(forward)
+		chosen_across_m = offset_m.dot(left)
 		break
 
 	if chosen_offset == Vector2.ZERO:
@@ -156,37 +164,59 @@ func _maybe_release_flank() -> void:
 		return
 
 	_red_b.position = _blue_a.position + chosen_offset
-	_red_b.facing = (_blue_a.position - _red_b.position).normalized()
+	_red_b.facing = -left
 	_red_b.rotation = _red_b.facing.angle()
 	_red_b.add_contact_partner(_blue_a)
 	_blue_a.add_contact_partner(_red_b)
+	_flank_along_m = chosen_along_m
+	_flank_across_m = chosen_across_m
 	_flank_released = true
+
+
+func _maintain_flank_contact() -> void:
+	if (
+		not _flank_released
+		or _flank_release_aborted
+		or _red_b == null
+		or _blue_a == null
+	):
+		return
+	if _blue_a.get_state() == Unit.State.ROUTING:
+		return
+	var px_per_meter := Constants.get_float("px_per_meter")
+	var forward := _blue_a.facing.normalized()
+	var left := FormationGeometry.left_vector(forward)
+	var offset_m := forward * _flank_along_m + left * _flank_across_m
+	_red_b.position = _blue_a.position + offset_m * px_per_meter
+	_red_b.facing = -left
+	if _red_b.facing.length_squared() <= 0.0001:
+		_red_b.facing = Vector2.UP
+	_red_b.rotation = _red_b.facing.angle()
+	if not _red_b.has_contact_with(_blue_a):
+		_red_b.add_contact_partner(_blue_a)
+		_blue_a.add_contact_partner(_red_b)
 
 
 func _maybe_correct_flank_overlap() -> void:
 	if (
 		not _flank_released
-		or _flank_overlap_corrected
 		or _flank_release_aborted
 		or _red_b == null
 		or _red_a == null
 		or _blue_a == null
 	):
 		return
+	_maintain_flank_contact()
+	var east_step_m := _red_a.effective_depth_m() * FLANK_CORRECTION_EAST_DEPTH_SCALE
+	var correction_steps := 0
+	while CombatResolver.units_overlap(_red_b, _red_a) and correction_steps < 6:
+		_flank_along_m -= east_step_m
+		_maintain_flank_contact()
+		correction_steps += 1
+	if correction_steps > 0:
+		_flank_overlap_corrected = true
 	if not CombatResolver.units_overlap(_red_b, _red_a):
 		return
-
-	var px_per_meter := Constants.get_float("px_per_meter")
-	var correction := Vector2(
-		_red_a.effective_depth_m() * px_per_meter * FLANK_CORRECTION_EAST_DEPTH_SCALE,
-		0.0,
-	)
-	_red_b.position += correction
-	_red_b.facing = (_blue_a.position - _red_b.position).normalized()
-	if _red_b.facing.length_squared() <= 0.0001:
-		_red_b.facing = Vector2.UP
-	_red_b.rotation = _red_b.facing.angle()
-	_flank_overlap_corrected = true
 
 	if CombatResolver.units_overlap(_red_b, _red_a):
 		push_error(
@@ -200,6 +230,9 @@ func _maybe_correct_flank_overlap() -> void:
 
 
 func _track_rout_state() -> void:
+	if _blue_a != null and _blue_a_strength_at_rout < 0.0:
+		if _blue_a.get_state() == Unit.State.ROUTING:
+			_blue_a_strength_at_rout = _blue_a.strength
 	if _blue_a != null and _red_b != null:
 		if _blue_a.get_state() == Unit.State.ROUTING:
 			if _red_b.has_contact_with(_blue_a):

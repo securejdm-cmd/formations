@@ -2,6 +2,7 @@ class_name EdgeContact
 extends RefCounted
 
 ## Oriented edge contact classification per COMBAT_CORE §3.6.
+## Basis: FRONT = facing; LEFT = +90° CCW (soldier's left); RIGHT = −90°; REAR = −facing.
 
 const CONTACT_EPSILON_M := 0.01
 
@@ -12,9 +13,16 @@ const EDGE_REAR := "rear"
 
 
 static func classify_contact(attacker: Unit, defender: Unit) -> Dictionary:
+	# Head-on pairs defer to legacy center-gap contact until aligned.
+	if (
+		CombatResolver.is_head_on_pair(attacker, defender)
+		and not CombatResolver.units_have_front_contact(attacker, defender)
+	):
+		return _empty_contact()
+
 	var px_per_meter := Constants.get_float("px_per_meter")
 	var forward := defender.facing.normalized()
-	var right := FormationGeometry.right_vector(forward)
+	var left := FormationGeometry.left_vector(forward)
 	var half_depth_m := defender.effective_depth_m() * 0.5
 	var half_frontage_m := defender.effective_frontage_m() * 0.5
 
@@ -28,55 +36,54 @@ static func classify_contact(attacker: Unit, defender: Unit) -> Dictionary:
 	for corner in attacker_corners:
 		var local := corner - defender.position
 		var along := local.dot(forward) / px_per_meter
-		var across := local.dot(right) / px_per_meter
+		var across := local.dot(left) / px_per_meter
 		along_min = minf(along_min, along)
 		along_max = maxf(along_max, along)
 		across_min = minf(across_min, across)
 		across_max = maxf(across_max, across)
 
-	# Treat edge-touching contacts as valid, not only positive-area overlap.
+	var center_local := attacker.position - defender.position
+	var center_along := center_local.dot(forward) / px_per_meter
+	var center_across := center_local.dot(left) / px_per_meter
+
 	along_min -= eps
 	along_max += eps
 	across_min -= eps
 	across_max += eps
 
-	var overlap_along_min := maxf(along_min, -half_depth_m)
-	var overlap_along_max := minf(along_max, half_depth_m)
-	var overlap_across_min := maxf(across_min, -half_frontage_m)
-	var overlap_across_max := minf(across_max, half_frontage_m)
-
-	if overlap_along_max <= overlap_along_min or overlap_across_max <= overlap_across_min:
-		return _empty_contact()
-
 	var edge_lengths := {}
 
-	var front_len := _edge_overlap_length(
-		overlap_along_max, overlap_along_min, half_depth_m - eps, half_depth_m + eps,
-		overlap_across_max, overlap_across_min
-	)
-	if front_len > eps:
-		edge_lengths[EDGE_FRONT] = front_len
+	if center_along > 0.0:
+		var front_len := _edge_contact_span(
+			along_max, along_min, half_depth_m - eps, half_depth_m + eps,
+			across_max, across_min, half_frontage_m
+		)
+		if front_len > eps:
+			edge_lengths[EDGE_FRONT] = front_len
 
-	var rear_len := _edge_overlap_length(
-		overlap_along_max, overlap_along_min, -half_depth_m - eps, -half_depth_m + eps,
-		overlap_across_max, overlap_across_min
-	)
-	if rear_len > eps:
-		edge_lengths[EDGE_REAR] = rear_len
+	if center_along < 0.0:
+		var rear_len := _edge_contact_span(
+			along_max, along_min, -half_depth_m - eps, -half_depth_m + eps,
+			across_max, across_min, half_frontage_m
+		)
+		if rear_len > eps:
+			edge_lengths[EDGE_REAR] = rear_len
 
-	var left_len := _edge_overlap_length(
-		overlap_across_max, overlap_across_min, -half_frontage_m - eps, -half_frontage_m + eps,
-		overlap_along_max, overlap_along_min
-	)
-	if left_len > eps:
-		edge_lengths[EDGE_LEFT] = left_len
+	if center_across > 0.0:
+		var left_len := _edge_contact_span(
+			across_max, across_min, half_frontage_m - eps, half_frontage_m + eps,
+			along_max, along_min, half_depth_m
+		)
+		if left_len > eps:
+			edge_lengths[EDGE_LEFT] = left_len
 
-	var right_len := _edge_overlap_length(
-		overlap_across_max, overlap_across_min, half_frontage_m - eps, half_frontage_m + eps,
-		overlap_along_max, overlap_along_min
-	)
-	if right_len > eps:
-		edge_lengths[EDGE_RIGHT] = right_len
+	if center_across < 0.0:
+		var right_len := _edge_contact_span(
+			across_max, across_min, -half_frontage_m - eps, -half_frontage_m + eps,
+			along_max, along_min, half_depth_m
+		)
+		if right_len > eps:
+			edge_lengths[EDGE_RIGHT] = right_len
 
 	if edge_lengths.is_empty():
 		return _empty_contact()
@@ -93,7 +100,7 @@ static func classify_contact(attacker: Unit, defender: Unit) -> Dictionary:
 
 	var attacker_frontage_pct := _attacker_front_contact_pct(attacker, defender, px_per_meter)
 	var defender_edge_pct := clampf(total_contact_m / _max_defender_edge_span(edge_lengths, half_depth_m, half_frontage_m), 0.0, 1.0)
-	var push_normal := _dominant_push_normal(edge_lengths, forward, right)
+	var push_normal := _dominant_push_normal(edge_lengths, forward, left)
 
 	return {
 		"has_contact": true,
@@ -127,13 +134,30 @@ static func _empty_contact() -> Dictionary:
 	}
 
 
+static func _edge_contact_span(
+	primary_max: float,
+	primary_min: float,
+	edge_low: float,
+	edge_high: float,
+	secondary_max: float,
+	secondary_min: float,
+	secondary_limit: float
+) -> float:
+	if primary_max < edge_low or primary_min > edge_high:
+		return 0.0
+	var sec_lo := maxf(secondary_min, -secondary_limit)
+	var sec_hi := minf(secondary_max, secondary_limit)
+	return maxf(0.0, sec_hi - sec_lo)
+
+
 static func _edge_overlap_length(
 	primary_max: float, primary_min: float, edge_low: float, edge_high: float,
 	secondary_max: float, secondary_min: float
 ) -> float:
-	if primary_max < edge_low or primary_min > edge_high:
-		return 0.0
-	return maxf(0.0, minf(secondary_max, edge_high) - maxf(secondary_min, edge_low))
+	return _edge_contact_span(
+		primary_max, primary_min, edge_low, edge_high,
+		secondary_max, secondary_min, INF
+	)
 
 
 static func _edge_multiplier(edge_name: String) -> float:
@@ -189,7 +213,7 @@ static func _attacker_front_contact_pct(attacker: Unit, defender: Unit, px_per_m
 	return clampf(contact_span / maxf(half_frontage_m * 2.0, 0.001), 0.0, 1.0)
 
 
-static func _dominant_push_normal(edge_lengths: Dictionary, forward: Vector2, right: Vector2) -> Vector2:
+static func _dominant_push_normal(edge_lengths: Dictionary, forward: Vector2, left: Vector2) -> Vector2:
 	var best_edge := EDGE_FRONT
 	var best_len := -1.0
 	for edge_name in edge_lengths.keys():
@@ -204,9 +228,9 @@ static func _dominant_push_normal(edge_lengths: Dictionary, forward: Vector2, ri
 		EDGE_REAR:
 			return -forward
 		EDGE_LEFT:
-			return -right
+			return left
 		EDGE_RIGHT:
-			return right
+			return -left
 	return forward
 
 
@@ -214,7 +238,7 @@ static func _edge_label(edge_lengths: Dictionary) -> String:
 	if edge_lengths.is_empty():
 		return ""
 	var parts: Array[String] = []
-	for edge_name in [EDGE_FRONT, EDGE_LEFT, EDGE_RIGHT, EDGE_REAR]:
+	for edge_name in [EDGE_FRONT, EDGE_REAR, EDGE_LEFT, EDGE_RIGHT]:
 		if edge_lengths.has(edge_name):
 			parts.append(edge_name)
 	if parts.size() == 1:

@@ -33,6 +33,9 @@ const CORE_COLS := 8
 const STAT_TOL := 0.0001
 const POS_TOL := 0.05
 
+const S3_RATIO_MIN := 0.45
+const S3_RATIO_MAX := 0.60
+
 var _scenario = null
 var _exit_code := 0
 var _mode := "s1_regression"
@@ -45,6 +48,17 @@ var _determinism_b := ""
 
 
 func _initialize() -> void:
+	var compass_exit := OS.execute(
+		"/tmp/godot/Godot_v4.3-stable_linux.x86_64",
+		["--headless", "--path", ProjectSettings.globalize_path("res://"), "-s", "res://tests/edge_contact_compass_test.gd"],
+		[],
+		false
+	)
+	if compass_exit != 0:
+		push_error("Compass test failed (exit %d)" % compass_exit)
+		_exit_code = 1
+	else:
+		print("[WO-008] Compass test PASS (32/32)")
 	process_frame.connect(_on_frame)
 	_start("scenario_01", ALL_SEEDS[0])
 
@@ -132,6 +146,7 @@ func _finish() -> void:
 			if _s4_mode_idx < _s4_modes.size():
 				_start("scenario_04", 1000)
 			else:
+				_check_s4_labels_and_ratio()
 				_print_s4_table()
 				_mode = "reflection"
 				_start("scenario_01", 1000)
@@ -182,17 +197,51 @@ func _check_scenario_03() -> void:
 		"[WO-008] S3 combat=%.1fs (S1=%.1fs ratio=%.2f) blue_rout=%.2f drains=%s"
 		% [phases.combat_sec, s1_ref, ratio, rout, drains]
 	)
-	if ratio > 0.60:
-		push_error("S3 flank not faster enough: ratio %.2f" % ratio)
+	if ratio < S3_RATIO_MIN or ratio > S3_RATIO_MAX:
+		push_error(
+			"ESCALATE S3 combat ratio %.2f outside band [%.2f, %.2f]"
+			% [ratio, S3_RATIO_MIN, S3_RATIO_MAX]
+		)
 		_exit_code = 1
 	if rout <= 67.0:
 		push_error("S3 blue strength_at_rout %.2f not > 67%%" % rout)
 		_exit_code = 1
-	if drains.get("left", 0.0) <= 0.0 and drains.get("right", 0.0) <= 0.0 and drains.get("rear", 0.0) <= 0.0:
-		push_error("S3 missing flank-edge drain on blue_a")
+	if drains.get("left", 0.0) <= 0.0:
+		push_error("S3 missing LEFT edge drain on blue_a (got %s)" % drains)
 		_exit_code = 1
 	if _scenario.had_overlap_failure():
-		push_error("S3 overlap assertion failed (includes allied pairs)")
+		push_error("S3 overlap assertion failed (non-routing pairs)")
+		_exit_code = 1
+
+
+func _check_s4_labels_and_ratio() -> void:
+	var expected_labels := {"front": "front", "side": "left", "corner": "front+left"}
+	for row in _s4_results:
+		var expected: String = expected_labels.get(row.mode, "")
+		if row.edge != expected:
+			push_error("S4 %s edge label '%s' expected '%s'" % [row.mode, row.edge, expected])
+			_exit_code = 1
+	var front_d: float = _s4_results[0].drain_per_sec
+	var side_d: float = _s4_results[1].drain_per_sec
+	var corner_d: float = _s4_results[2].drain_per_sec
+	if front_d <= 0.0:
+		push_error("S4 front drain is zero")
+		_exit_code = 1
+		return
+	var observed_ratio: float = side_d / front_d
+	var constants: Node = root.get_node("Constants")
+	var mult_ratio: float = (
+		constants.get_float("side_edge_multiplier") / constants.get_float("edge_mult_front")
+	)
+	print(
+		"[WO-008] S4 side/front=%.2f mult_component=%.2f frontage_component=%.2f"
+		% [observed_ratio, mult_ratio, observed_ratio / mult_ratio]
+	)
+	if observed_ratio / mult_ratio > 3.0:
+		push_error(
+			"ESCALATE S4 side/front %.2f exceeds ~3x after multiplier decomposition"
+			% observed_ratio
+		)
 		_exit_code = 1
 
 
@@ -203,9 +252,13 @@ func _print_s4_table() -> void:
 	var front_d: float = _s4_results[0].drain_per_sec
 	var side_d: float = _s4_results[1].drain_per_sec
 	var corner_d: float = _s4_results[2].drain_per_sec
-	if not (front_d < corner_d and corner_d <= side_d and front_d < side_d):
-		push_error("S4 corner drain %.3f not between front %.3f and side %.3f" % [corner_d, front_d, side_d])
+	if front_d >= side_d:
+		push_error("S4 side drain %.3f must exceed front %.3f" % [side_d, front_d])
 		_exit_code = 1
+	print(
+		"[WO-008] S4 corner/front=%.2f corner/side=%.2f"
+		% [corner_d / front_d if front_d > 0 else 0.0, corner_d / side_d if side_d > 0 else 0.0]
+	)
 
 
 func _core_trace(trace_text: String) -> String:

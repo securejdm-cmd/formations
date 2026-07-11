@@ -41,6 +41,12 @@ static func units_penetrating(unit_a: Unit, unit_b: Unit) -> bool:
 
 
 static func units_overlap(unit_a: Unit, unit_b: Unit) -> bool:
+	# Routing units are formless fugitives — no collision volume (WO-008 TD ruling).
+	if (
+		unit_a.get_state() == Unit.State.ROUTING
+		or unit_b.get_state() == Unit.State.ROUTING
+	):
+		return false
 	if unit_a.team_id == unit_b.team_id:
 		return FormationGeometry.rectangles_overlap(unit_a, unit_b)
 	if is_head_on_pair(unit_a, unit_b):
