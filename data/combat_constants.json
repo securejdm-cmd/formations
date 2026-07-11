@@ -23,5 +23,12 @@
   "px_per_meter": 2,
   "battlefield_width_m": 600,
   "battlefield_height_m": 400,
-  "default_infantry_block_frontage_m": 40
+  "default_infantry_block_frontage_m": 40,
+  "default_infantry_block_depth_m": 15,
+  "strength_max": 100,
+  "cohesion_max": 100,
+  "speed_stat_meters_per_10s": 1,
+  "push_ground_shift_max_m_per_tick": 0.1,
+  "scenario_01_start_distance_m": 200,
+  "scenario_01_battle_seed": 12345
 }

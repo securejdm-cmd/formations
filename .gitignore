@@ -17,3 +17,6 @@ builds/
 *.apk
 *.aab
 *.ipa
+
+# Generated battle traces (produced by scenario runs)
+tests/traces/*.csv
