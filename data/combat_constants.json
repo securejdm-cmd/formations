@@ -33,6 +33,9 @@
   "bump_period_s": 2.0,
   "men_per_full_unit": 1000,
   "victory_delay_s": 2.5,
+  "crack_fissure_max_count": 12,
+  "crack_fissure_length_m": 0.4,
+  "crack_fissure_flicker_s": 0.35,
   "scenario_01_start_distance_m": 200,
   "scenario_01_battle_seed": 12345
 }
