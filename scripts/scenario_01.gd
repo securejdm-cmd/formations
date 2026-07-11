@@ -4,6 +4,8 @@ extends Node2D
 const UNIT_SCENE := preload("res://scenes/unit.tscn")
 const TRACE_DIR := "res://tests/traces/"
 
+enum BattlePhase { ACTIVE, VICTORY_PENDING, VICTORY_EPILOGUE, FINISHED }
+
 @export var auto_run: bool = true
 @export var headless_mode: bool = false
 
@@ -13,6 +15,10 @@ var _sim_tick_count: int = 0
 var _battle_seed: int = 0
 var _seed_override: int = -1
 var _battle_over: bool = false
+var _battle_phase: BattlePhase = BattlePhase.ACTIVE
+var _victory_team: String = ""
+var _victory_delay_accum: float = 0.0
+var _watch_epilogue: bool = false
 var _trace_lines: PackedStringArray = PackedStringArray()
 var _winner: Unit = null
 var _battle_start_time_msec: int = 0
@@ -23,6 +29,8 @@ var _overlap_assertion_failed: bool = false
 @onready var _camera: Camera2D = $Camera2D
 @onready var _ground: ColorRect = $Ground
 @onready var _debug_overlay: CanvasLayer = $DebugOverlay
+@onready var _stat_card = $StatCardLayer/UnitStatCard
+@onready var _results_overlay = $ResultsOverlay
 
 
 func set_battle_seed(seed_value: int) -> void:
@@ -36,7 +44,13 @@ func _ready() -> void:
 	print("[Scenario 01] Battle seed: %d" % _battle_seed)
 
 	_spawn_units()
-	_debug_overlay.setup_for_scenario(_units, _camera)
+	_debug_overlay.setup_for_scenario(_units, _camera, _stat_card)
+	_stat_card.setup(_camera)
+	if not headless_mode:
+		_results_overlay.skip_pressed.connect(_on_skip_epilogue)
+		_results_overlay.watch_pressed.connect(_on_watch_epilogue)
+	else:
+		_results_overlay.hide_all()
 
 	if auto_run:
 		_battle_start_time_msec = Time.get_ticks_msec()
@@ -47,6 +61,11 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if _battle_over:
 		return
+
+	if not headless_mode and _battle_phase == BattlePhase.VICTORY_PENDING:
+		_victory_delay_accum += delta
+		if _victory_delay_accum >= Constants.get_float("victory_delay_s"):
+			_declare_victory()
 
 	_tick_accumulator += delta
 	var tick_interval := CombatResolver.tick_interval()
@@ -67,10 +86,11 @@ func advance_one_tick() -> void:
 	_assert_no_overlaps()
 	_combat_tick()
 	_track_rout_state()
+	_update_victory_state(tick_interval)
 	var ticks_per_sec := int(Constants.get_float("tick_rate_per_sec"))
 	if _sim_tick_count % ticks_per_sec == 0:
 		_log_trace_row()
-	_check_battle_end()
+	_check_epilogue_end()
 
 
 func _setup_ground() -> void:
@@ -184,21 +204,169 @@ func _combat_tick() -> void:
 		CombatResolver.apply_ground_shift(unit, result.shift_a_m)
 		CombatResolver.apply_ground_shift(partner, result.shift_b_m)
 
-		CombatResolver.apply_strength_loss(unit, result.damage_a)
-		CombatResolver.apply_strength_loss(partner, result.damage_b)
+		var applied_to_unit := CombatResolver.apply_strength_loss(unit, result.damage_a)
+		partner.record_damage_dealt(applied_to_unit)
+		var applied_to_partner := CombatResolver.apply_strength_loss(partner, result.damage_b)
+		unit.record_damage_dealt(applied_to_partner)
+
+		if (
+			unit.get_state() != Unit.State.ROUTING
+			and partner.get_state() != Unit.State.ROUTING
+		):
+			CombatResolver.snap_pair_to_contact(unit, partner)
 
 		unit.set_bump_state(result.gap_ratio, result.a_is_winner)
 		partner.set_bump_state(result.gap_ratio, not result.a_is_winner)
 
 		if unit.get_state() == Unit.State.ROUTING or partner.get_state() == Unit.State.ROUTING:
 			_on_first_rout()
+			_try_start_victory_delay(unit if unit.get_state() == Unit.State.ROUTING else partner)
 
 
 func _track_rout_state() -> void:
 	for unit in _units:
 		if unit.get_state() == Unit.State.ROUTING:
 			_on_first_rout()
+			_try_start_victory_delay(unit)
 			return
+
+
+func _try_start_victory_delay(routing_unit: Unit) -> void:
+	if _battle_phase != BattlePhase.ACTIVE:
+		return
+	if not _team_fully_routing(routing_unit.team_id):
+		return
+
+	_victory_team = _opponent_team(routing_unit.team_id)
+	_battle_phase = BattlePhase.VICTORY_PENDING
+	_victory_delay_accum = 0.0
+	for unit in _units:
+		if unit.team_id == _victory_team:
+			_winner = unit
+
+
+func _team_fully_routing(team_id: String) -> bool:
+	var has_active := false
+	for unit in _units:
+		if unit.team_id != team_id:
+			continue
+		if unit.get_state() == Unit.State.REMOVED:
+			continue
+		if unit.get_state() != Unit.State.ROUTING:
+			return false
+		has_active = true
+	return has_active
+
+
+func _opponent_team(team_id: String) -> String:
+	return "blue" if team_id == "red" else "red"
+
+
+func _update_victory_state(tick_interval: float) -> void:
+	if not headless_mode or _battle_phase != BattlePhase.VICTORY_PENDING:
+		return
+
+	_victory_delay_accum += tick_interval
+	if _victory_delay_accum >= Constants.get_float("victory_delay_s"):
+		_battle_phase = BattlePhase.VICTORY_EPILOGUE
+		_watch_epilogue = true
+
+
+func _declare_victory() -> void:
+	_battle_phase = BattlePhase.VICTORY_EPILOGUE
+	if headless_mode:
+		_watch_epilogue = true
+		return
+	_results_overlay.show_victory(_victory_team)
+
+
+func _on_skip_epilogue() -> void:
+	_finish_battle()
+
+
+func _on_watch_epilogue() -> void:
+	_watch_epilogue = true
+
+
+func _check_epilogue_end() -> void:
+	if _battle_phase == BattlePhase.ACTIVE:
+		_check_legacy_battle_end()
+		return
+	if _battle_phase != BattlePhase.VICTORY_EPILOGUE or not _watch_epilogue:
+		return
+	if _any_routing_units():
+		return
+	_finish_battle()
+
+
+func _any_routing_units() -> bool:
+	for unit in _units:
+		if unit.get_state() == Unit.State.ROUTING:
+			return true
+	return false
+
+
+func _check_legacy_battle_end() -> void:
+	var active_units: Array[Unit] = []
+	for unit in _units:
+		if unit.get_state() != Unit.State.REMOVED:
+			active_units.append(unit)
+	if active_units.size() > 1:
+		return
+	if active_units.size() == 1:
+		_winner = active_units[0]
+	_finish_battle()
+
+
+func _finish_battle() -> void:
+	if _battle_over:
+		return
+
+	_battle_phase = BattlePhase.FINISHED
+	_battle_over = true
+	if _winner == null:
+		for unit in _units:
+			if unit.get_state() != Unit.State.REMOVED and unit.get_state() != Unit.State.ROUTING:
+				_winner = unit
+				break
+
+	_log_trace_row()
+	_write_trace_file()
+	_print_summary()
+	_show_results_if_needed()
+
+
+func _show_results_if_needed() -> void:
+	if headless_mode:
+		return
+
+	var rows := _build_results_rows()
+	var phases := _phase_durations_sec()
+	var summary := "march %.1fs · combat %.1fs · flee %.1fs" % [
+		phases.march_sec,
+		phases.combat_sec,
+		phases.flee_sec,
+	]
+	_results_overlay.show_results(rows, summary)
+
+
+func _build_results_rows() -> Array[Dictionary]:
+	var rows: Array[Dictionary] = []
+	for unit in _units:
+		rows.append({
+			"name": unit.get_display_name(),
+			"side": unit.team_id,
+			"state": unit.get_results_state_label(),
+			"kills": unit.soldiers_defeated(),
+			"top": false,
+		})
+
+	rows.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		return int(a.kills) > int(b.kills)
+	)
+	if not rows.is_empty():
+		rows[0].top = true
+	return rows
 
 
 func _pair_key(unit_a: Unit, unit_b: Unit) -> String:
@@ -224,29 +392,9 @@ func _assert_no_overlaps() -> void:
 				)
 
 
-func _check_battle_end() -> void:
-	var active_units: Array[Unit] = []
-	for unit in _units:
-		if unit.get_state() != Unit.State.REMOVED:
-			active_units.append(unit)
-
-	if active_units.size() > 1:
-		return
-
-	_battle_over = true
-	if active_units.size() == 1:
-		_winner = active_units[0]
-	else:
-		_winner = null
-
-	_log_trace_row()
-	_write_trace_file()
-	_print_summary()
-
-
 func _write_trace_header() -> void:
 	_trace_lines.append(
-		"time_sec,unit_id,strength,cohesion,pos_x,pos_y,state"
+		"time_sec,unit_id,strength,cohesion,kills,pos_x,pos_y,state"
 	)
 
 
@@ -254,12 +402,13 @@ func _log_trace_row() -> void:
 	var time_sec := _sim_tick_count * CombatResolver.tick_interval()
 	for unit in _units:
 		_trace_lines.append(
-			"%.1f,%s,%.4f,%.4f,%.2f,%.2f,%s"
+			"%.1f,%s,%.4f,%.4f,%d,%.2f,%.2f,%s"
 			% [
 				time_sec,
 				unit.unit_id,
 				unit.strength,
 				unit.cohesion,
+				unit.soldiers_defeated(),
 				unit.position.x,
 				unit.position.y,
 				unit.get_state_name(),
@@ -321,9 +470,6 @@ func _print_summary() -> void:
 		]
 	)
 
-	if headless_mode:
-		get_tree().quit(0)
-
 
 func get_trace_text() -> String:
 	return "\n".join(_trace_lines) + "\n"
@@ -345,3 +491,10 @@ func had_overlap_failure() -> bool:
 
 func is_battle_over() -> bool:
 	return _battle_over
+
+
+func get_unit_kill_totals() -> Dictionary:
+	var totals := {}
+	for unit in _units:
+		totals[unit.unit_id] = unit.soldiers_defeated()
+	return totals

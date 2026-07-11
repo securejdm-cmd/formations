@@ -7,11 +7,13 @@ extends CanvasLayer
 var _camera: Camera2D
 var _units: Array[Unit] = []
 var _selected_unit: Unit = null
+var _stat_card = null
 
 
-func setup_for_scenario(units: Array[Unit], camera: Camera2D) -> void:
+func setup_for_scenario(units: Array[Unit], camera: Camera2D, stat_card) -> void:
 	_units = units
 	_camera = camera
+	_stat_card = stat_card
 	for unit in _units:
 		if not unit.selected.is_connected(_on_unit_selected):
 			unit.selected.connect(_on_unit_selected)
@@ -40,6 +42,9 @@ func _input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 			return
 
+	_dismiss_selection()
+	get_viewport().set_input_as_handled()
+
 
 func _screen_to_world(screen_pos: Vector2) -> Vector2:
 	var canvas_transform := get_viewport().get_canvas_transform()
@@ -65,12 +70,15 @@ func _update_unit_panel() -> void:
 		return
 
 	_unit_panel.text = (
-		"Unit: %s (%s)\nStrength: %.1f\nCohesion: %.1f\nState: %s\nPos: %s\nFacing: %s"
+		"Unit: %s (%s)\nStrength: %.1f (%.0f%%)\nCohesion: %.1f (%.0f%%)\nSoldiers defeated: %d\nState: %s\nPos: %s\nFacing: %s"
 		% [
 			_selected_unit.unit_id,
 			_selected_unit.team_id,
 			_selected_unit.strength,
+			_selected_unit.strength_percent(),
 			_selected_unit.cohesion,
+			_selected_unit.cohesion_percent(),
+			_selected_unit.soldiers_defeated(),
 			_selected_unit.get_state_name(),
 			str(_selected_unit.position.round()),
 			str(_selected_unit.facing.round()),
@@ -80,6 +88,14 @@ func _update_unit_panel() -> void:
 
 func _on_unit_selected(unit: Unit) -> void:
 	_selected_unit = unit
+	if _stat_card != null:
+		_stat_card.show_for_unit(unit)
+
+
+func _dismiss_selection() -> void:
+	_selected_unit = null
+	if _stat_card != null:
+		_stat_card.dismiss()
 
 
 func _on_rng_test_button_pressed() -> void:

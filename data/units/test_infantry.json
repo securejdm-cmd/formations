@@ -1,5 +1,6 @@
 {
   "id": "test_infantry",
+  "display_name": "Test Infantry",
   "formation_frontage_m": 40,
   "formation_depth_m": 15,
   "close_damage": 10,

@@ -20,11 +20,13 @@ var engaged_partner: Unit = null
 
 var pushing_power: float = 0.0
 var speed_stat: float = 0.0
+var damage_dealt: float = 0.0
 
 var _state: State = State.HOLD
 var _base_team_color: Color = Color.RED
 var _flicker_time: float = 0.0
 var _bump_time: float = 0.0
+var _bump_phase_offset: float = 0.0
 var _bump_gap_ratio: float = 0.0
 var _bump_is_winner: bool = false
 
@@ -55,6 +57,8 @@ func configure(id: String, team: String, profile_data: Dictionary, spawn_positio
 
 	_base_team_color = Color(0.85, 0.2, 0.2) if team_id == "red" else Color(0.2, 0.35, 0.85)
 	_body.color = _base_team_color
+	var period := Constants.get_float("bump_period_s")
+	_bump_phase_offset = float(absi(unit_id.hash()) % 1000) / 1000.0 * period
 	_update_dimensions()
 	_update_collision()
 	_set_state(State.HOLD)
@@ -95,6 +99,60 @@ func effective_depth_m() -> float:
 
 func effective_frontage_m() -> float:
 	return float(profile.get("formation_frontage_m", Constants.get_float("default_infantry_block_frontage_m")))
+
+
+func full_depth_m() -> float:
+	return float(profile.get("formation_depth_m", Constants.get_float("default_infantry_block_depth_m")))
+
+
+func strength_percent() -> float:
+	return strength / Constants.get_float("strength_max") * 100.0
+
+
+func cohesion_percent() -> float:
+	return cohesion / Constants.get_float("cohesion_max") * 100.0
+
+
+func soldiers_defeated() -> int:
+	var men_per_strength := (
+		Constants.get_float("men_per_full_unit") / Constants.get_float("strength_max")
+	)
+	return int(round(damage_dealt * men_per_strength))
+
+
+func record_damage_dealt(strength_damage: float) -> void:
+	if strength_damage > 0.0:
+		damage_dealt += strength_damage
+
+
+func get_display_name() -> String:
+	return str(profile.get("display_name", unit_id))
+
+
+func get_results_state_label() -> String:
+	match _state:
+		State.ROUTING:
+			return "routed"
+		State.REMOVED:
+			if strength <= 0.0:
+				return "destroyed"
+			return "routed"
+		State.ENGAGED, State.WAVERING, State.MARCHING, State.HOLD:
+			return "fighting"
+	return "fighting"
+
+
+func apply_rear_anchored_depth_from_strength(old_strength: float, new_strength: float) -> void:
+	var strength_max := Constants.get_float("strength_max")
+	var full_depth := full_depth_m()
+	var old_depth := full_depth * (old_strength / strength_max)
+	var new_depth := full_depth * (new_strength / strength_max)
+	var delta_depth_m := old_depth - new_depth
+	if delta_depth_m <= 0.0001:
+		return
+
+	var px_per_meter := Constants.get_float("px_per_meter")
+	position -= facing.normalized() * delta_depth_m * 0.5 * px_per_meter
 
 
 func speed_m_per_sec() -> float:
@@ -250,6 +308,7 @@ func _update_dimensions() -> void:
 	var frontage_px := effective_frontage_m() * px_per_meter
 
 	# Local X = depth (short axis, along facing). Local Y = frontage (long front edge).
+	# Rear-anchored: center sits halfway between rear (fixed line) and front face.
 	_body.size = Vector2(depth_px, frontage_px)
 	_body.position = Vector2(-depth_px * 0.5, -frontage_px * 0.5)
 
@@ -282,10 +341,10 @@ func _update_bump_visual(delta: float) -> void:
 		return
 
 	_bump_time += delta
-	var period := Constants.get_float("bump_period_sec")
-	var wave := sin((_bump_time / period) * TAU)
+	var period := Constants.get_float("bump_period_s")
+	var wave := sin(((_bump_time + _bump_phase_offset) / period) * TAU)
 	var amp_px := (
-		Constants.get_float("bump_amplitude_max_m")
+		Constants.get_float("bump_amplitude_m")
 		* _bump_gap_ratio
 		* Constants.get_float("px_per_meter")
 	)
