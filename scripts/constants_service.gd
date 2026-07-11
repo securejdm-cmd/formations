@@ -48,3 +48,11 @@ func has_constant(key: StringName) -> bool:
 
 func get_all_constants() -> Dictionary:
 	return _constants.duplicate(true)
+
+
+func set_constant(key: StringName, value: Variant) -> void:
+	_constants[key] = value
+
+
+func reload_from_file() -> void:
+	_load_constants()

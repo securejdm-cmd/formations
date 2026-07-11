@@ -412,8 +412,7 @@ func _update_waver_flicker(delta: float) -> void:
 
 
 func _flee_direction() -> Vector2:
-	# Each team flees toward its own map edge; avoids flip-flop at the boundary.
-	return Vector2.LEFT if team_id == "red" else Vector2.RIGHT
+	return -facing.normalized()
 
 
 func _check_edge_removal() -> void:
