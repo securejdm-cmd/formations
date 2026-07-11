@@ -22,6 +22,9 @@ If a work order is ambiguous, incomplete, contradictory, or requires a change no
 7. Anything makes you think "I'll just assume…" — that thought IS the trigger.
 
 ## Escalation Report Format
+
+Write the full report to `/docs/reports/WO-XXX_escalation.md` using this structure:
+
 ESCALATION REPORT
 - Work order: [ID/description]
 - Blocker: [plain-English explanation a non-programmer can understand]
@@ -33,7 +36,19 @@ ESCALATION REPORT
 
 Then WAIT. Only proceed when the next message contains an explicit decision (e.g., "GREEN LIGHT: Option A").
 
+## Report of Record (required — governance amendment)
+
+Every Completion Report and Escalation Report must be written as a **markdown file in the repo** at `/docs/reports/`, named:
+
+- `WO-XXX_completion.md` — for finished work orders
+- `WO-XXX_escalation.md` — for blocked work orders awaiting green light
+
+The `.md` file is the **report of record** and must be **committed with the work**. Chat output may summarize, but the committed file is authoritative.
+
 ## Completion Report Format (required at the end of every work order)
+
+Write the full report to `/docs/reports/WO-XXX_completion.md` using this structure:
+
 COMPLETION REPORT
 - Work order: [ID/description]
 - Built: [plain-English summary]
@@ -41,6 +56,8 @@ COMPLETION REPORT
 - Tests: [each acceptance criterion → PASS/FAIL, with numbers where relevant]
 - Assumptions made: NONE (anything else belongs in an escalation)
 - Known issues: [list or "none"]
+
+Include outcome tables, duration splits, and assertion results as specified in the work order.
 
 ## Coding Standards
 - Godot 4.x, GDScript. Prefer clarity over cleverness — this code will be reviewed by a non-programmer relaying it to an external reviewer.
