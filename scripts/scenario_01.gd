@@ -498,6 +498,8 @@ func _pair_key(unit_a: Unit, unit_b: Unit) -> String:
 
 
 func _assert_no_overlaps() -> void:
+	# All unit pairs including allies — enemy head-on uses center-gap penetration;
+	# all other pairs (allied or angled) use oriented-box overlap.
 	for i in _units.size():
 		var unit_a := _units[i]
 		if unit_a.get_state() == Unit.State.REMOVED:
@@ -506,12 +508,14 @@ func _assert_no_overlaps() -> void:
 			var unit_b := _units[j]
 			if unit_b.get_state() == Unit.State.REMOVED:
 				continue
-			if CombatResolver.units_penetrating(unit_a, unit_b):
-				_overlap_assertion_failed = true
-				push_error(
-					"Overlap detected at tick %d between %s and %s"
-					% [_sim_tick_count, unit_a.unit_id, unit_b.unit_id]
-				)
+			if not CombatResolver.units_overlap(unit_a, unit_b):
+				continue
+			_overlap_assertion_failed = true
+			var relation := "allied" if unit_a.team_id == unit_b.team_id else "enemy"
+			push_error(
+				"Overlap detected at tick %d between %s and %s (%s)"
+				% [_sim_tick_count, unit_a.unit_id, unit_b.unit_id, relation]
+			)
 
 
 func _write_trace_header() -> void:

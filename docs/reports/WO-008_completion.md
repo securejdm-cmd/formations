@@ -37,7 +37,25 @@ Trace CSV adds `contact_edges` column (empty for pure head-on S1/S2).
 | Blue `strength_at_rout` | **81.91%** | PASS (> 67%) |
 | Blue edge drains | front=11.7, **rear=52.1**, left=0, right=0 | Morale flank drain present |
 
-**Design note:** Red B arrives via scripted placement at tick 717 (~10s after first contact). For a west-facing defender, the geometric south approach is classified as **REAR** (not LEFT) by the oriented-edge projector — drains still use side/rear multipliers (morale-only), producing rapid rout with higher strength preserved. Multi-unit overlaps (red_a/red_b, blue_a/red_b) occur late in rout; logged but not blocking.
+**Design note:** Red B arrives via scripted placement at tick 717 (~10s after first contact). For a west-facing defender, the geometric south approach is classified as **REAR** (not LEFT) by the oriented-edge projector — drains still use side/rear multipliers (morale-only), producing rapid rout with higher strength preserved.
+
+### WO-008 Addendum — Allied overlap assertion (2026-07-11)
+
+| Change | Detail |
+|--------|--------|
+| `CombatResolver.units_overlap()` | **Allies** always use oriented-box overlap; **enemies** keep head-on gap penetration / edge-contact exemptions |
+| `Scenario01._assert_no_overlaps()` | Comment + error labels identify `allied` vs `enemy` pairs |
+| `Scenario03` | Allied-only overlap assertion after combat; scripted flank release after combat; one-time east correction if post-shift allied overlap; `red_b` reserve west/south of march lane; return to reserve on blue rout |
+| Autotest S3 | `had_overlap_failure()` gate includes allied pairs |
+
+| Metric (seed 1000, post-addendum) | Value | Acceptance |
+|-----------------------------------|-------|------------|
+| S3 combat | **14.3s** | PASS (ratio **0.21**) |
+| Blue `strength_at_rout` | **83.05%** | PASS (> 67%) |
+| Blue edge drains | front=12.9, **rear=59.7** | PASS |
+| Allied overlap (red_a/red_b) | **0 failures** | PASS |
+
+**Scripted reposition (no pathfinding/steering):** `red_b` holds off-map west/south until release; candidate offsets validated for allied clearance; one-time east correction after first post-release combat shift; reserve teleport on blue rout. Active ally-avoidance steering deferred to movement/orders WOs.
 
 ---
 
@@ -87,5 +105,4 @@ Trace CSV adds `contact_edges` column (empty for pure head-on S1/S2).
 ## Known issues / escalation candidates
 
 1. **LEFT vs REAR classification** for south-flank on west-facing units: geometric “soldier’s left” does not always map to `EDGE_LEFT` in the projector; consider TD review of edge basis for Scenario 3 trace semantics.
-2. **S3 overlap violations** between red_a/red_b and blue_a/red_b during late rout — may need segment shift clamping or rout-separation pass (WO-009+).
-3. **Scenario 4 side drain** varies with placement; harness uses tuned scripted positions — not a general deployment API.
+2. **Scenario 4 side drain** varies with placement; harness uses tuned scripted positions — not a general deployment API.

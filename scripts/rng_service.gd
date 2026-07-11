@@ -16,6 +16,14 @@ func get_seed() -> int:
 	return _current_seed
 
 
+func capture_state() -> int:
+	return _rng.state
+
+
+func restore_state(state: int) -> void:
+	_rng.state = state
+
+
 func randf_wobble(pct: float) -> float:
 	return 1.0 + _rng.randf_range(-pct, pct)
 

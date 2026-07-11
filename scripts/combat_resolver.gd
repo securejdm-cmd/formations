@@ -40,6 +40,19 @@ static func units_penetrating(unit_a: Unit, unit_b: Unit) -> bool:
 	return _raw_center_gap_m(unit_a, unit_b) < -CONTACT_EPSILON_M
 
 
+static func units_overlap(unit_a: Unit, unit_b: Unit) -> bool:
+	if unit_a.team_id == unit_b.team_id:
+		return FormationGeometry.rectangles_overlap(unit_a, unit_b)
+	if is_head_on_pair(unit_a, unit_b):
+		return units_penetrating(unit_a, unit_b)
+	if (
+		EdgeContact.units_have_contact(unit_a, unit_b)
+		or EdgeContact.units_have_contact(unit_b, unit_a)
+	):
+		return false
+	return FormationGeometry.rectangles_overlap(unit_a, unit_b)
+
+
 static func _raw_center_gap_m(unit_a: Unit, unit_b: Unit) -> float:
 	var to_b := unit_b.position - unit_a.position
 	var to_a := unit_a.position - unit_b.position

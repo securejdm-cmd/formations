@@ -191,6 +191,9 @@ func _check_scenario_03() -> void:
 	if drains.get("left", 0.0) <= 0.0 and drains.get("right", 0.0) <= 0.0 and drains.get("rear", 0.0) <= 0.0:
 		push_error("S3 missing flank-edge drain on blue_a")
 		_exit_code = 1
+	if _scenario.had_overlap_failure():
+		push_error("S3 overlap assertion failed (includes allied pairs)")
+		_exit_code = 1
 
 
 func _print_s4_table() -> void:
