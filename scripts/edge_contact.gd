@@ -98,8 +98,10 @@ static func classify_contact(attacker: Unit, defender: Unit) -> Dictionary:
 		weighted_mult += length_m * _edge_multiplier(edge_name)
 	weighted_mult /= total_contact_m
 
-	var attacker_frontage_pct := _attacker_front_contact_pct(attacker, defender, px_per_meter)
-	var defender_edge_pct := clampf(total_contact_m / _max_defender_edge_span(edge_lengths, half_depth_m, half_frontage_m), 0.0, 1.0)
+	var attacker_frontage_pct := _attacker_contact_frontage_pct(
+		attacker, defender, edge_lengths, total_contact_m, px_per_meter
+	)
+	var defender_edge_pct := _defender_engagement_pct(edge_lengths, total_contact_m, half_depth_m, half_frontage_m)
 	var push_normal := _dominant_push_normal(edge_lengths, forward, left)
 
 	return {
@@ -120,6 +122,32 @@ static func units_have_contact(attacker: Unit, defender: Unit) -> bool:
 static func is_front_only_contact(contact: Dictionary) -> bool:
 	var edges: Dictionary = contact.get("edge_lengths_m", {})
 	return edges.size() == 1 and edges.has(EDGE_FRONT)
+
+
+## Pick one segment orientation per pair (flank/rear contact beats spurious reverse front).
+static func pick_segment_orientation(unit_a: Unit, unit_b: Unit) -> Dictionary:
+	var contact_ab := classify_contact(unit_a, unit_b)
+	var contact_ba := classify_contact(unit_b, unit_a)
+	var priority_ab := _segment_orientation_priority(contact_ab)
+	var priority_ba := _segment_orientation_priority(contact_ba)
+	if priority_ba > priority_ab:
+		return {"attacker": unit_b, "defender": unit_a, "contact": contact_ba}
+	return {"attacker": unit_a, "defender": unit_b, "contact": contact_ab}
+
+
+static func has_non_front_segment_contact(unit_a: Unit, unit_b: Unit) -> bool:
+	var orientation := pick_segment_orientation(unit_a, unit_b)
+	var contact: Dictionary = orientation.get("contact", {})
+	if not contact.get("has_contact", false):
+		return false
+	if is_front_only_contact(contact):
+		return false
+	var edges: Dictionary = contact.get("edge_lengths_m", {})
+	const MIN_FLANK_EDGE_M := 5.0
+	for edge_name in [EDGE_LEFT, EDGE_RIGHT, EDGE_REAR]:
+		if edges.get(edge_name, 0.0) >= MIN_FLANK_EDGE_M:
+			return true
+	return false
 
 
 static func _empty_contact() -> Dictionary:
@@ -182,7 +210,85 @@ static func _max_defender_edge_span(edge_lengths: Dictionary, half_depth_m: floa
 	return maxf(max_span, 0.001)
 
 
-static func _attacker_front_contact_pct(attacker: Unit, defender: Unit, px_per_meter: float) -> float:
+static func _segment_orientation_priority(contact: Dictionary) -> float:
+	if not contact.get("has_contact", false):
+		return -1.0
+	var edges: Dictionary = contact.get("edge_lengths_m", {})
+	if edges.is_empty():
+		return -1.0
+	var score := 0.0
+	for length_m in edges.values():
+		score += length_m
+	if edges.has(EDGE_LEFT) or edges.has(EDGE_RIGHT):
+		score += 1000.0
+	if edges.has(EDGE_REAR):
+		score += 500.0
+	if is_front_only_contact(contact):
+		score -= 100.0
+	return score
+
+
+static func _attacker_contact_frontage_pct(
+	attacker: Unit,
+	defender: Unit,
+	edge_lengths: Dictionary,
+	total_contact_m: float,
+	px_per_meter: float
+) -> float:
+	var front_pct := _attacker_front_face_contact_pct(attacker, defender, px_per_meter)
+	if front_pct > 0.001 and edge_lengths.has(EDGE_FRONT) and edge_lengths.size() == 1:
+		return front_pct
+	if edge_lengths.is_empty() or total_contact_m <= 0.0:
+		return 0.0
+	var flank_only := (
+		not edge_lengths.has(EDGE_FRONT)
+		and not edge_lengths.has(EDGE_REAR)
+		and (edge_lengths.has(EDGE_LEFT) or edge_lengths.has(EDGE_RIGHT))
+	)
+	if flank_only:
+		# Side approach: full depth ranks engage along the contact line.
+		return clampf(total_contact_m / maxf(attacker.effective_depth_m(), 0.001), 0.0, 1.0)
+	if edge_lengths.size() > 1:
+		# Corner / multi-edge: at least one full-rank push can press the weak corner.
+		return clampf(
+			maxf(front_pct, total_contact_m / maxf(attacker.effective_depth_m(), 0.001)),
+			0.0,
+			1.0,
+		)
+	# Front/rear fallback: contact span along the attacker's front edge.
+	return clampf(total_contact_m / maxf(attacker.effective_frontage_m(), 0.001), 0.0, 1.0)
+
+
+static func _defender_engagement_pct(
+	edge_lengths: Dictionary,
+	total_contact_m: float,
+	half_depth_m: float,
+	half_frontage_m: float
+) -> float:
+	if total_contact_m <= 0.0:
+		return 0.0
+	var frontage_span := maxf(half_frontage_m * 2.0, 0.001)
+	var weighted := 0.0
+	var min_engagement := 1.0
+	for edge_name in edge_lengths.keys():
+		var length_m: float = edge_lengths[edge_name]
+		var edge_engagement := clampf(length_m / frontage_span, 0.0, 1.0)
+		min_engagement = minf(min_engagement, edge_engagement)
+		weighted += length_m * edge_engagement
+	var blended := clampf(weighted / total_contact_m, 0.0, 1.0)
+	var flank_only := (
+		not edge_lengths.has(EDGE_FRONT)
+		and not edge_lengths.has(EDGE_REAR)
+		and (edge_lengths.has(EDGE_LEFT) or edge_lengths.has(EDGE_RIGHT))
+	)
+	if flank_only:
+		return clampf(blended * 0.9, 0.0, 1.0)
+	if edge_lengths.size() > 1:
+		return min_engagement
+	return blended
+
+
+static func _attacker_front_face_contact_pct(attacker: Unit, defender: Unit, px_per_meter: float) -> float:
 	var forward := attacker.facing.normalized()
 	var right := FormationGeometry.right_vector(forward)
 	var half_depth_m := attacker.effective_depth_m() * 0.5

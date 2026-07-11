@@ -367,13 +367,16 @@ func _refresh_morale_state() -> void:
 func _apply_state_visuals() -> void:
 	match _state:
 		State.ROUTING:
-			_body.color = _base_team_color.lerp(Color(0.85, 0.85, 0.85), 0.65)
+			_body.color = _base_team_color.lerp(Color(0.92, 0.92, 0.92), 0.8)
+			_body.modulate = Color(1.0, 1.0, 1.0, 0.38)
 			_border.visible = false
 		State.REMOVED:
 			_body.color = _base_team_color
+			_body.modulate = Color.WHITE
 			_border.visible = false
 		_:
 			_body.color = _base_team_color
+			_body.modulate = Color.WHITE
 			_border.visible = cohesion < Constants.get_float("waver_threshold")
 
 
@@ -382,11 +385,18 @@ func _update_dimensions() -> void:
 	var full_depth_px := full_depth_m() * px_per_meter
 	var depth_px := effective_depth_m() * px_per_meter
 	var frontage_px := effective_frontage_m() * px_per_meter
+	var front_face_x := full_depth_px * 0.5
+
+	if _state == State.ROUTING:
+		# Formless fugitive: pale, softened footprint (collision already dropped in sim).
+		depth_px *= 0.55
+		frontage_px *= 1.2
+		front_face_x = full_depth_px * 0.5
 
 	# Simulation footprint stays centered on the unit origin (WO-003 geometry).
-	# Render-only rear anchor: visual rear holds, front face recedes as depth thins.
+	# Visual front face anchored at the sim contact edge; depth loss thins toward the rear.
 	_body.size = Vector2(depth_px, frontage_px)
-	_body.position = Vector2(-full_depth_px * 0.5, -frontage_px * 0.5)
+	_body.position = Vector2(front_face_x - depth_px, -frontage_px * 0.5)
 
 	var border_pad := 4.0
 	_border.size = _body.size + Vector2(border_pad, border_pad)
@@ -436,7 +446,6 @@ func _update_crack_fissures(delta: float) -> void:
 	if _state != State.ENGAGED and _state != State.WAVERING:
 		_crack_overlay.queue_redraw()
 		return
-
 	_crack_flicker_time += delta
 	_crack_overlay.queue_redraw()
 
@@ -451,7 +460,7 @@ func _draw_crack_fissures(canvas: Node2D) -> void:
 	var full_depth_px := full_depth_m() * px_per_meter
 	var depth_px := effective_depth_m() * px_per_meter
 	var frontage_px := effective_frontage_m() * px_per_meter
-	var front_x := -full_depth_px * 0.5 + depth_px
+	var front_x := full_depth_px * 0.5
 	var max_count := int(Constants.get_float("crack_fissure_max_count"))
 	var line_count := int(ceil(_crack_intensity * float(max_count)))
 	line_count = clampi(line_count, 0, max_count)

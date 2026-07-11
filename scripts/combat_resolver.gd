@@ -215,6 +215,11 @@ static func units_have_any_contact(unit_a: Unit, unit_b: Unit) -> bool:
 
 
 static func resolve_contact_segment(attacker: Unit, defender: Unit, contact: Dictionary) -> Dictionary:
+	# Worked per-tick example (SIDE flank, constants from combat_constants.json):
+	#   contact left=15m → attacker_frontage_pct=15/40=0.375, defender_edge_pct=15/40=0.375
+	#   push_attacker ≈ 49×0.375=18.4, push_defender ≈ 49×0.375=18.4 (wobble may pick winner)
+	#   If attacker wins: shift≈0.06m → shift_drain=0.06×0.8×2.0(left mult)=0.096 morale-only
+	#   casualty_drain from k_dmg×push — edge mult does NOT apply (shift morale only per WO-008).
 	var frontage_pct: float = contact.get("attacker_frontage_pct", 1.0)
 	var defender_edge_pct: float = contact.get("defender_edge_pct", 1.0)
 	var edge_lengths: Dictionary = contact.get("edge_lengths_m", {})
@@ -308,11 +313,34 @@ static func apply_strength_loss_with_edge(
 		unit.add_crack_intensity_from_damage(applied)
 		var pct_lost := applied / strength_max * 100.0
 		var cohesion_drain := pct_lost * Constants.get_float("drain_per_strength_pct_lost")
-		_apply_morale_drain_by_edges(unit, cohesion_drain, edge_lengths)
+		# Casualty cohesion drain is not edge-multiplied (morale mult applies to shift loss only).
+		_attribute_cohesion_drain_by_edges(unit, cohesion_drain, edge_lengths)
 
 	return applied
 
 
+## Length-weighted edge attribution without edge multiplier (casualty cohesion drain).
+static func _attribute_cohesion_drain_by_edges(unit: Unit, amount: float, edge_lengths: Dictionary) -> void:
+	if amount <= 0.0:
+		return
+	if edge_lengths.is_empty():
+		unit.apply_cohesion_drain(amount)
+		return
+
+	var total_length := 0.0
+	for length_m in edge_lengths.values():
+		total_length += length_m
+	if total_length <= 0.0:
+		unit.apply_cohesion_drain(amount)
+		return
+
+	for edge_name in edge_lengths.keys():
+		var length_m: float = edge_lengths[edge_name]
+		var portion := amount * length_m / total_length
+		unit.apply_cohesion_drain(portion, edge_name)
+
+
+## Length-weighted edge morale drain with edge multiplier (ground-lost drain only).
 static func _apply_morale_drain_by_edges(unit: Unit, amount: float, edge_lengths: Dictionary) -> void:
 	if amount <= 0.0:
 		return

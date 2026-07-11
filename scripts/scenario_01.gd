@@ -186,6 +186,7 @@ func _combat_tick() -> void:
 	var processed_segments: Array[String] = []
 	var defender_shifts: Dictionary = {}
 	var bump_winners: Dictionary = {}
+	var contact_edge_labels: Dictionary = {}  # Unit -> Array[String]
 
 	for unit in _units:
 		if unit.get_state() == Unit.State.REMOVED:
@@ -231,60 +232,87 @@ func _combat_tick() -> void:
 		if defender.get_state() != Unit.State.ENGAGED and defender.get_state() != Unit.State.WAVERING:
 			continue
 
-		var edge_labels: Array[String] = []
-
 		for attacker in defender.get_contact_partners():
 			if attacker == null or attacker.get_state() == Unit.State.REMOVED:
 				continue
 			if attacker.get_state() == Unit.State.ROUTING:
 				continue
 			if CombatResolver.is_head_on_pair(attacker, defender):
-				continue
+				if not EdgeContact.has_non_front_segment_contact(attacker, defender):
+					continue
 
-			var contact := EdgeContact.classify_contact(attacker, defender)
+			var pair_key := _pair_key(attacker, defender)
+			if pair_key in processed_segments:
+				continue
+			processed_segments.append(pair_key)
+
+			var orientation := EdgeContact.pick_segment_orientation(attacker, defender)
+			var seg_attacker: Unit = orientation.get("attacker")
+			var seg_defender: Unit = orientation.get("defender")
+			var contact: Dictionary = orientation.get("contact", {})
 			if not contact.get("has_contact", false):
 				continue
 
-			var segment_key := attacker.unit_id + ">" + defender.unit_id
-			if segment_key in processed_segments:
-				continue
-			processed_segments.append(segment_key)
-
 			var edge_label: String = contact.get("edge_label", "")
 			if not edge_label.is_empty():
-				edge_labels.append(edge_label)
+				if not contact_edge_labels.has(seg_defender):
+					contact_edge_labels[seg_defender] = [] as Array[String]
+				(contact_edge_labels[seg_defender] as Array[String]).append(edge_label)
 
-			var segment := CombatResolver.resolve_contact_segment(attacker, defender, contact)
+			var segment := CombatResolver.resolve_contact_segment(seg_attacker, seg_defender, contact)
 			var edge_lengths: Dictionary = segment.get("edge_lengths_m", {})
-			var push_normal: Vector2 = segment.get("push_normal", defender.facing)
+			var push_normal: Vector2 = segment.get("push_normal", seg_defender.facing)
 
-			if segment.attacker_wins:
-				_accumulate_directed_shift(defender_shifts, defender, push_normal, segment.defender_shift_m)
-				CombatResolver.apply_shift_morale_drain(defender, segment.defender_shift_m, edge_lengths)
-				var applied := CombatResolver.apply_strength_loss_with_edge(
-					defender, segment.defender_damage, edge_lengths
+			if is_equal_approx(segment.attacker_push, segment.defender_push):
+				var dmg_attacker := CombatResolver.apply_strength_loss_with_edge(
+					seg_attacker, segment.attacker_damage, edge_lengths
 				)
-				attacker.record_damage_dealt(applied)
+				var dmg_defender := CombatResolver.apply_strength_loss_with_edge(
+					seg_defender, segment.defender_damage, edge_lengths
+				)
+				seg_defender.record_damage_dealt(dmg_attacker)
+				seg_attacker.record_damage_dealt(dmg_defender)
+			elif segment.attacker_wins:
+				_accumulate_directed_shift(defender_shifts, seg_defender, push_normal, segment.defender_shift_m)
+				CombatResolver.apply_shift_morale_drain(seg_defender, segment.defender_shift_m, edge_lengths)
+				var applied_defender := CombatResolver.apply_strength_loss_with_edge(
+					seg_defender, segment.defender_damage, edge_lengths
+				)
+				var applied_attacker := CombatResolver.apply_strength_loss_with_edge(
+					seg_attacker, segment.attacker_damage, edge_lengths
+				)
+				seg_attacker.record_damage_dealt(applied_defender)
+				seg_defender.record_damage_dealt(applied_attacker)
 			else:
-				_accumulate_directed_shift(defender_shifts, attacker, -push_normal, segment.attacker_shift_m)
-				CombatResolver.apply_shift_morale_drain(attacker, segment.attacker_shift_m, edge_lengths)
-				var applied := CombatResolver.apply_strength_loss_with_edge(
-					attacker, segment.attacker_damage, edge_lengths
+				_accumulate_directed_shift(defender_shifts, seg_attacker, -push_normal, segment.attacker_shift_m)
+				CombatResolver.apply_shift_morale_drain(seg_attacker, segment.attacker_shift_m, edge_lengths)
+				var applied_attacker := CombatResolver.apply_strength_loss_with_edge(
+					seg_attacker, segment.attacker_damage, edge_lengths
 				)
-				defender.record_damage_dealt(applied)
+				var applied_defender := CombatResolver.apply_strength_loss_with_edge(
+					seg_defender, segment.defender_damage, edge_lengths
+				)
+				seg_defender.record_damage_dealt(applied_attacker)
+				seg_attacker.record_damage_dealt(applied_defender)
 
 			var gap_ratio: float = segment.get("gap_ratio", 0.0)
-			bump_winners[attacker] = segment.attacker_wins
-			attacker.set_bump_state(gap_ratio, segment.attacker_wins)
-			defender.set_bump_state(gap_ratio, not segment.attacker_wins)
+			bump_winners[seg_attacker] = segment.attacker_wins
+			seg_attacker.set_bump_state(gap_ratio, segment.attacker_wins)
+			seg_defender.set_bump_state(gap_ratio, not segment.attacker_wins)
 
-			if attacker.get_state() == Unit.State.ROUTING or defender.get_state() == Unit.State.ROUTING:
+			if seg_attacker.get_state() == Unit.State.ROUTING or seg_defender.get_state() == Unit.State.ROUTING:
 				_on_first_rout()
 				_try_start_victory_delay(
-					attacker if attacker.get_state() == Unit.State.ROUTING else defender
+					seg_attacker if seg_attacker.get_state() == Unit.State.ROUTING else seg_defender
 				)
 
-		defender.set_active_contact_edges(_join_edge_labels(edge_labels))
+		defender.set_active_contact_edges("")
+
+	for unit in _units:
+		if unit.get_state() == Unit.State.REMOVED:
+			continue
+		var labels: Array[String] = contact_edge_labels.get(unit, [] as Array[String])
+		unit.set_active_contact_edges(_join_edge_labels(labels))
 
 	for defender in defender_shifts.keys():
 		var shift_info: Dictionary = defender_shifts[defender]

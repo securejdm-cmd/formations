@@ -13,6 +13,8 @@ var _drain_total: float = 0.0
 var _spawn_edge_label: String = ""
 var _spawn_offset_m: Vector2 = Vector2.ZERO
 var _spawn_facing: Vector2 = Vector2.LEFT
+var _defender_spawn_pos: Vector2 = Vector2.ZERO
+var _defender_spawn_facing: Vector2 = Vector2.RIGHT
 
 
 func _spawn_units() -> void:
@@ -27,6 +29,8 @@ func _spawn_units() -> void:
 	add_child(_defender)
 	_defender.configure("defender", "blue", profile, Vector2.ZERO, Vector2.RIGHT)
 	_units.append(_defender)
+	_defender_spawn_pos = _defender.position
+	_defender_spawn_facing = _defender.facing
 
 	var attacker_pos := Vector2(half_depth_px * 2.0, 0.0)
 	var attacker_facing := Vector2.LEFT
@@ -77,12 +81,17 @@ func _spawn_units() -> void:
 func _maintain_spawn_contact() -> void:
 	if _defender == null or _attacker == null:
 		return
+	_defender.position = _defender_spawn_pos
+	_defender.facing = _defender_spawn_facing
+	_defender.rotation = _defender.facing.angle()
 	var px_per_meter := Constants.get_float("px_per_meter")
 	var forward := _defender.facing.normalized()
 	var left := FormationGeometry.left_vector(forward)
 	_attacker.position = _defender.position + (forward * _spawn_offset_m.x + left * _spawn_offset_m.y) * px_per_meter
 	_attacker.facing = _spawn_facing
 	_attacker.rotation = _attacker.facing.angle()
+	if CombatResolver.is_head_on_pair(_attacker, _defender):
+		CombatResolver.snap_pair_to_contact(_attacker, _defender)
 	if not _attacker.has_contact_with(_defender):
 		_attacker.add_contact_partner(_defender)
 		_defender.add_contact_partner(_attacker)
