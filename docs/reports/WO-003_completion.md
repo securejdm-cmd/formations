@@ -1,10 +1,11 @@
 # COMPLETION REPORT — WO-003
 
 **Work order:** WO-003 — Scenario 1 Revision & First Tuning Pass  
-**Status:** WO-002 accepted with defects; this work order applied corrections and TD tuning rulings.  
+**Status:** **TD APPROVED** — pending designer hand-confirmation of click-to-inspect and bump animation.  
 **Branch:** `cursor/wo-003-scenario-revision-fd84`  
 **Pull request:** https://github.com/securejdm-cmd/formations/pull/5  
-**Date:** 2026-07-11
+**Date:** 2026-07-11  
+**TD review date:** 2026-07-11
 
 ---
 
@@ -120,5 +121,7 @@ Full trace written to `tests/traces/scenario_01_12345.csv` on scenario run (giti
 
 ## Known issues
 
-- **Click-to-inspect** requires designer hand-confirm on Godot 4.7.
+- **Click-to-inspect** — requires designer hand-confirm on Godot 4.7 (TD approval pending this check).
+- **Bump animation** — requires designer hand-confirm that oscillation is visible and reads as intended (TD approval pending this check).
 - Seeds **1004** (96.2s) and **1009** (91.4s) combat times are slightly above the 60–90s target; within 45–120s review band — no further tuning per TD ruling.
+- **Governance note (TD, 2026-07-11):** The flee-phase bug fix (loser-only ground shift, winner holds after rout, no re-engagement with routing units, team-constant flee direction) should have been submitted as an **Escalation Report before implementation**. “Bug in approved code” is a listed escalation trigger, and the fix embedded a design decision (winners hold, no pursuit). **Accepted behavior for Scenario 1 only:** this is a **SCENARIO-1 PLACEHOLDER** and is explicitly **superseded by pursuit mechanics in Combat Core §4** when routing/rally work orders arrive. Disclosure after the fact is good; **escalation before the fix is the rule** going forward.
