@@ -97,6 +97,15 @@ static func clamp_march_distance(unit: Unit, enemy: Unit, move_px: float) -> flo
 	if move_px <= 0.0:
 		return 0.0
 
+	if (
+		EdgeContact.units_have_contact(unit, enemy)
+		or EdgeContact.units_have_contact(enemy, unit)
+	):
+		return 0.0
+
+	if not is_head_on_pair(unit, enemy):
+		return move_px
+
 	var to_enemy := enemy.position - unit.position
 	if to_enemy.dot(unit.facing) <= 0.0:
 		return move_px
@@ -171,6 +180,150 @@ static func _calc_strength_loss(opponent_push_score: float, is_push_loser: bool)
 	if is_push_loser:
 		loss *= Constants.get_float("push_loser_damage_factor")
 	return loss
+
+
+static func is_head_on_pair(unit_a: Unit, unit_b: Unit) -> bool:
+	var to_b := unit_b.position - unit_a.position
+	var to_a := unit_a.position - unit_b.position
+	return to_b.dot(unit_a.facing) > 0.0 and to_a.dot(unit_b.facing) > 0.0
+
+
+static func units_have_any_contact(unit_a: Unit, unit_b: Unit) -> bool:
+	return (
+		EdgeContact.units_have_contact(unit_a, unit_b)
+		or EdgeContact.units_have_contact(unit_b, unit_a)
+	)
+
+
+static func resolve_contact_segment(attacker: Unit, defender: Unit, contact: Dictionary) -> Dictionary:
+	var frontage_pct: float = contact.get("attacker_frontage_pct", 1.0)
+	var defender_edge_pct: float = contact.get("defender_edge_pct", 1.0)
+	var edge_lengths: Dictionary = contact.get("edge_lengths_m", {})
+	var push_normal: Vector2 = contact.get("push_normal", defender.facing)
+
+	var push_attacker := calc_push_score(attacker, frontage_pct)
+	var push_defender := calc_push_score(defender, defender_edge_pct)
+
+	var result := {
+		"attacker_push": push_attacker,
+		"defender_push": push_defender,
+		"attacker_shift_m": 0.0,
+		"defender_shift_m": 0.0,
+		"attacker_damage": 0.0,
+		"defender_damage": 0.0,
+		"gap_ratio": 0.0,
+		"attacker_wins": false,
+		"edge_lengths_m": edge_lengths,
+		"push_normal": push_normal,
+	}
+
+	if is_equal_approx(push_attacker, push_defender):
+		result.attacker_damage = _calc_strength_loss(push_defender, false)
+		result.defender_damage = _calc_strength_loss(push_attacker, false)
+		return result
+
+	var attacker_wins := push_attacker > push_defender
+	var winner_push := push_attacker if attacker_wins else push_defender
+	var loser_push := push_defender if attacker_wins else push_attacker
+	var shift_m := _calc_ground_shift_m(winner_push, loser_push)
+	result.gap_ratio = clampf((winner_push - loser_push) / winner_push, 0.0, 1.0)
+	result.attacker_wins = attacker_wins
+
+	if attacker_wins:
+		result.defender_shift_m = shift_m
+		result.attacker_damage = _calc_strength_loss(push_defender, false)
+		result.defender_damage = _calc_strength_loss(push_attacker, true)
+	else:
+		result.attacker_shift_m = shift_m
+		result.attacker_damage = _calc_strength_loss(push_defender, true)
+		result.defender_damage = _calc_strength_loss(push_attacker, false)
+
+	return result
+
+
+static func apply_directed_ground_shift(
+	loser: Unit,
+	shift_m: float,
+	normal: Vector2,
+	edge_lengths: Dictionary = {}
+) -> void:
+	apply_directed_position_shift(loser, shift_m, normal)
+	var cohesion_drain := shift_m * Constants.get_float("drain_per_meter_lost")
+	_apply_morale_drain_by_edges(loser, cohesion_drain, edge_lengths)
+
+
+static func apply_directed_position_shift(loser: Unit, shift_m: float, normal: Vector2) -> void:
+	if shift_m <= 0.0:
+		return
+
+	var px_per_meter := Constants.get_float("px_per_meter")
+	var direction := normal.normalized()
+	if direction.length_squared() <= 0.0001:
+		direction = loser.facing.normalized()
+	loser.position -= direction * shift_m * px_per_meter
+
+
+static func apply_shift_morale_drain(
+	unit: Unit,
+	shift_m: float,
+	edge_lengths: Dictionary = {}
+) -> void:
+	var cohesion_drain := shift_m * Constants.get_float("drain_per_meter_lost")
+	_apply_morale_drain_by_edges(unit, cohesion_drain, edge_lengths)
+
+
+static func apply_strength_loss_with_edge(
+	unit: Unit,
+	loss: float,
+	edge_lengths: Dictionary = {}
+) -> float:
+	if loss <= 0.0:
+		return 0.0
+
+	var strength_max := Constants.get_float("strength_max")
+	var old_strength := unit.strength
+	unit.strength = maxf(unit.strength - loss, 0.0)
+	var applied := old_strength - unit.strength
+
+	if applied > 0.0:
+		unit.add_crack_intensity_from_damage(applied)
+		var pct_lost := applied / strength_max * 100.0
+		var cohesion_drain := pct_lost * Constants.get_float("drain_per_strength_pct_lost")
+		_apply_morale_drain_by_edges(unit, cohesion_drain, edge_lengths)
+
+	return applied
+
+
+static func _apply_morale_drain_by_edges(unit: Unit, amount: float, edge_lengths: Dictionary) -> void:
+	if amount <= 0.0:
+		return
+	if edge_lengths.is_empty():
+		unit.apply_cohesion_drain(amount)
+		return
+
+	var total_length := 0.0
+	for length_m in edge_lengths.values():
+		total_length += length_m
+	if total_length <= 0.0:
+		unit.apply_cohesion_drain(amount)
+		return
+
+	for edge_name in edge_lengths.keys():
+		var length_m: float = edge_lengths[edge_name]
+		var portion := amount * length_m / total_length
+		var edge_mult := _edge_multiplier_for_name(edge_name)
+		unit.apply_cohesion_drain(portion * edge_mult, edge_name)
+
+
+static func _edge_multiplier_for_name(edge_name: String) -> float:
+	match edge_name:
+		EdgeContact.EDGE_FRONT:
+			return Constants.get_float("edge_mult_front")
+		EdgeContact.EDGE_LEFT, EdgeContact.EDGE_RIGHT:
+			return Constants.get_float("side_edge_multiplier")
+		EdgeContact.EDGE_REAR:
+			return Constants.get_float("rear_edge_multiplier")
+	return Constants.get_float("edge_mult_front")
 
 
 static func apply_strength_loss(unit: Unit, loss: float) -> float:

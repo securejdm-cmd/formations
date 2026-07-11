@@ -17,6 +17,14 @@ var facing: Vector2 = Vector2.RIGHT
 var current_order: Order = Order.HOLD
 var march_target: Vector2 = Vector2.ZERO
 var engaged_partner: Unit = null
+var _contact_partners: Array[Unit] = []
+var _active_contact_edges: String = ""
+var _edge_cohesion_drain_totals: Dictionary = {
+	"front": 0.0,
+	"left": 0.0,
+	"right": 0.0,
+	"rear": 0.0,
+}
 
 var pushing_power: float = 0.0
 var speed_stat: float = 0.0
@@ -71,7 +79,7 @@ func configure(id: String, team: String, profile_data: Dictionary, spawn_positio
 func set_march_to(target: Vector2) -> void:
 	march_target = target
 	current_order = Order.MARCH_TO
-	engaged_partner = null
+	_clear_contact_partners()
 	_set_state(State.MARCHING)
 
 
@@ -179,11 +187,13 @@ func clear_bump_state() -> void:
 		_visual_root.position = Vector2.ZERO
 
 
-func apply_cohesion_drain(amount: float) -> void:
+func apply_cohesion_drain(amount: float, edge_name: String = "") -> void:
 	if amount <= 0.0 or _state == State.REMOVED:
 		return
 
 	cohesion = maxf(cohesion - amount, 0.0)
+	if not edge_name.is_empty() and _edge_cohesion_drain_totals.has(edge_name):
+		_edge_cohesion_drain_totals[edge_name] += amount
 	_refresh_morale_state()
 
 
@@ -196,10 +206,16 @@ func update_marching(delta: float, enemies: Array[Unit] = []) -> void:
 	var move_px := speed_px * delta
 	if to_target.length() <= move_px:
 		position = march_target
-		_set_state(State.HOLD)
+		if enemies.is_empty():
+			_set_state(State.HOLD)
 		return
 
 	for enemy in enemies:
+		if (
+			EdgeContact.units_have_contact(self, enemy)
+			or EdgeContact.units_have_contact(enemy, self)
+		):
+			return
 		move_px = CombatResolver.clamp_march_distance(self, enemy, move_px)
 		if move_px <= 0.0:
 			return
@@ -223,30 +239,88 @@ func update_routing(delta: float) -> void:
 
 
 func begin_engagement(partner: Unit) -> void:
-	engaged_partner = partner
+	add_contact_partner(partner)
 	CombatResolver.snap_pair_to_contact(self, partner)
 	_set_state(State.ENGAGED)
 
 
-func break_engagement() -> void:
+func add_contact_partner(partner: Unit) -> void:
+	if partner == null or partner == self:
+		return
+	if partner in _contact_partners:
+		_sync_primary_partner()
+		return
+	_contact_partners.append(partner)
+	_sync_primary_partner()
+	if _state != State.ROUTING and _state != State.REMOVED:
+		_set_state(State.ENGAGED)
+
+
+func remove_contact_partner(partner: Unit) -> void:
+	if partner == null:
+		return
+	_contact_partners.erase(partner)
+	_sync_primary_partner()
+	if _contact_partners.is_empty():
+		clear_bump_state()
+		if _state == State.ENGAGED or _state == State.WAVERING:
+			if current_order == Order.MARCH_TO:
+				_set_state(State.MARCHING)
+			else:
+				_set_state(State.HOLD)
+
+
+func break_engagement(partner: Unit = null) -> void:
+	if partner == null:
+		var partners := _contact_partners.duplicate()
+		for contact_partner in partners:
+			remove_contact_partner(contact_partner)
+		return
+	remove_contact_partner(partner)
+
+
+func has_contact_with(other: Unit) -> bool:
+	return other in _contact_partners
+
+
+func get_contact_partners() -> Array[Unit]:
+	return _contact_partners.duplicate()
+
+
+func set_active_contact_edges(label: String) -> void:
+	_active_contact_edges = label
+
+
+func get_active_contact_edges() -> String:
+	return _active_contact_edges
+
+
+func get_edge_cohesion_drain_totals() -> Dictionary:
+	return _edge_cohesion_drain_totals.duplicate()
+
+
+func _clear_contact_partners() -> void:
+	_contact_partners.clear()
 	engaged_partner = null
-	clear_bump_state()
-	if _state == State.ENGAGED or _state == State.WAVERING:
-		if current_order == Order.MARCH_TO:
-			_set_state(State.MARCHING)
-		else:
-			_set_state(State.HOLD)
+	_active_contact_edges = ""
+
+
+func _sync_primary_partner() -> void:
+	engaged_partner = _contact_partners[0] if not _contact_partners.is_empty() else null
 
 
 func enter_rout() -> void:
-	if engaged_partner != null:
-		var partner := engaged_partner
-		engaged_partner = null
-		partner.engaged_partner = null
+	var partners := _contact_partners.duplicate()
+	_clear_contact_partners()
+	for partner in partners:
+		if partner == null:
+			continue
+		partner.remove_contact_partner(self)
 		partner.clear_bump_state()
 		if partner.get_state() == State.ENGAGED or partner.get_state() == State.WAVERING:
-			partner.current_order = Order.HOLD
-			partner._set_state(State.HOLD)
+			if partner.get_contact_partners().is_empty():
+				partner.current_order = Order.HOLD
+				partner._set_state(State.HOLD)
 
 	clear_bump_state()
 	_set_state(State.ROUTING)

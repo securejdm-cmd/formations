@@ -157,11 +157,14 @@ func _try_begin_engagement(unit: Unit) -> void:
 			continue
 		if other.team_id == unit.team_id:
 			continue
-		if CombatResolver.units_have_front_contact(unit, other):
-			unit.begin_engagement(other)
-			other.begin_engagement(unit)
-			_on_first_contact()
-			return
+		if not CombatResolver.units_have_any_contact(unit, other):
+			continue
+
+		unit.add_contact_partner(other)
+		other.add_contact_partner(unit)
+		if CombatResolver.is_head_on_pair(unit, other):
+			CombatResolver.snap_pair_to_contact(unit, other)
+		_on_first_contact()
 
 
 func _on_first_contact() -> void:
@@ -177,7 +180,12 @@ func _on_first_rout() -> void:
 
 
 func _combat_tick() -> void:
-	var processed: Array[String] = []
+	_prune_broken_contacts()
+
+	var processed_head_on: Array[String] = []
+	var processed_segments: Array[String] = []
+	var defender_shifts: Dictionary = {}
+	var bump_winners: Dictionary = {}
 
 	for unit in _units:
 		if unit.get_state() == Unit.State.REMOVED:
@@ -185,36 +193,156 @@ func _combat_tick() -> void:
 		if unit.get_state() != Unit.State.ENGAGED and unit.get_state() != Unit.State.WAVERING:
 			continue
 
-		var partner := unit.engaged_partner
-		if partner == null or partner.get_state() == Unit.State.REMOVED:
-			unit.break_engagement()
+		for partner in unit.get_contact_partners():
+			if partner == null or partner.get_state() == Unit.State.REMOVED:
+				continue
+			if partner.get_state() == Unit.State.ROUTING:
+				continue
+
+			if not CombatResolver.is_head_on_pair(unit, partner):
+				continue
+			if not CombatResolver.units_have_front_contact(unit, partner):
+				continue
+
+			var pair_key := _pair_key(unit, partner)
+			if pair_key in processed_head_on:
+				continue
+			processed_head_on.append(pair_key)
+
+			var result := CombatResolver.resolve_engagement(unit, partner)
+			CombatResolver.apply_ground_shift(unit, result.shift_a_m)
+			CombatResolver.apply_ground_shift(partner, result.shift_b_m)
+
+			var applied_to_unit := CombatResolver.apply_strength_loss(unit, result.damage_a)
+			partner.record_damage_dealt(applied_to_unit)
+			var applied_to_partner := CombatResolver.apply_strength_loss(partner, result.damage_b)
+			unit.record_damage_dealt(applied_to_partner)
+
+			unit.set_bump_state(result.gap_ratio, result.a_is_winner)
+			partner.set_bump_state(result.gap_ratio, not result.a_is_winner)
+
+			if unit.get_state() == Unit.State.ROUTING or partner.get_state() == Unit.State.ROUTING:
+				_on_first_rout()
+				_try_start_victory_delay(unit if unit.get_state() == Unit.State.ROUTING else partner)
+
+	for defender in _units:
+		if defender.get_state() == Unit.State.REMOVED:
+			continue
+		if defender.get_state() != Unit.State.ENGAGED and defender.get_state() != Unit.State.WAVERING:
 			continue
 
-		var pair_key := _pair_key(unit, partner)
-		if pair_key in processed:
+		var edge_labels: Array[String] = []
+
+		for attacker in defender.get_contact_partners():
+			if attacker == null or attacker.get_state() == Unit.State.REMOVED:
+				continue
+			if attacker.get_state() == Unit.State.ROUTING:
+				continue
+			if (
+				CombatResolver.is_head_on_pair(attacker, defender)
+				and CombatResolver.units_have_front_contact(attacker, defender)
+			):
+				continue
+
+			var contact := EdgeContact.classify_contact(attacker, defender)
+			if not contact.get("has_contact", false):
+				continue
+
+			var segment_key := attacker.unit_id + ">" + defender.unit_id
+			if segment_key in processed_segments:
+				continue
+			processed_segments.append(segment_key)
+
+			var edge_label: String = contact.get("edge_label", "")
+			if not edge_label.is_empty():
+				edge_labels.append(edge_label)
+
+			var segment := CombatResolver.resolve_contact_segment(attacker, defender, contact)
+			var edge_lengths: Dictionary = segment.get("edge_lengths_m", {})
+			var push_normal: Vector2 = segment.get("push_normal", defender.facing)
+
+			if segment.attacker_wins:
+				_accumulate_directed_shift(defender_shifts, defender, push_normal, segment.defender_shift_m)
+				CombatResolver.apply_shift_morale_drain(defender, segment.defender_shift_m, edge_lengths)
+				var applied := CombatResolver.apply_strength_loss_with_edge(
+					defender, segment.defender_damage, edge_lengths
+				)
+				attacker.record_damage_dealt(applied)
+			else:
+				_accumulate_directed_shift(defender_shifts, attacker, -push_normal, segment.attacker_shift_m)
+				CombatResolver.apply_shift_morale_drain(attacker, segment.attacker_shift_m, edge_lengths)
+				var applied := CombatResolver.apply_strength_loss_with_edge(
+					attacker, segment.attacker_damage, edge_lengths
+				)
+				defender.record_damage_dealt(applied)
+
+			var gap_ratio: float = segment.get("gap_ratio", 0.0)
+			bump_winners[attacker] = segment.attacker_wins
+			attacker.set_bump_state(gap_ratio, segment.attacker_wins)
+			defender.set_bump_state(gap_ratio, not segment.attacker_wins)
+
+			if attacker.get_state() == Unit.State.ROUTING or defender.get_state() == Unit.State.ROUTING:
+				_on_first_rout()
+				_try_start_victory_delay(
+					attacker if attacker.get_state() == Unit.State.ROUTING else defender
+				)
+
+		defender.set_active_contact_edges(_join_edge_labels(edge_labels))
+
+	for defender in defender_shifts.keys():
+		var shift_info: Dictionary = defender_shifts[defender]
+		var shift_vector: Vector2 = shift_info.vector
+		var shift_m := shift_vector.length() / Constants.get_float("px_per_meter")
+		if shift_m > 0.0:
+			CombatResolver.apply_directed_position_shift(
+				defender,
+				shift_m,
+				shift_vector.normalized(),
+			)
+
+	for unit in bump_winners.keys():
+		if unit.get_state() == Unit.State.ROUTING:
+			unit.clear_bump_state()
+
+
+func _prune_broken_contacts() -> void:
+	for unit in _units:
+		if unit.get_state() == Unit.State.REMOVED or unit.get_state() == Unit.State.ROUTING:
 			continue
-		processed.append(pair_key)
+		for partner in unit.get_contact_partners().duplicate():
+			if partner == null or partner.get_state() == Unit.State.REMOVED:
+				unit.remove_contact_partner(partner)
+				continue
+			if partner.get_state() == Unit.State.ROUTING:
+				unit.remove_contact_partner(partner)
+				continue
+			if not CombatResolver.units_have_any_contact(unit, partner):
+				unit.remove_contact_partner(partner)
 
-		if not CombatResolver.units_have_front_contact(unit, partner):
-			unit.break_engagement()
-			partner.break_engagement()
-			continue
 
-		var result := CombatResolver.resolve_engagement(unit, partner)
-		CombatResolver.apply_ground_shift(unit, result.shift_a_m)
-		CombatResolver.apply_ground_shift(partner, result.shift_b_m)
+func _accumulate_directed_shift(
+	shift_map: Dictionary,
+	unit: Unit,
+	normal: Vector2,
+	shift_m: float
+) -> void:
+	if shift_m <= 0.0:
+		return
+	var px_per_meter := Constants.get_float("px_per_meter")
+	if not shift_map.has(unit):
+		shift_map[unit] = {"vector": Vector2.ZERO, "edge_lengths": {}}
+	var entry: Dictionary = shift_map[unit]
+	entry.vector += normal.normalized() * shift_m * px_per_meter
 
-		var applied_to_unit := CombatResolver.apply_strength_loss(unit, result.damage_a)
-		partner.record_damage_dealt(applied_to_unit)
-		var applied_to_partner := CombatResolver.apply_strength_loss(partner, result.damage_b)
-		unit.record_damage_dealt(applied_to_partner)
 
-		unit.set_bump_state(result.gap_ratio, result.a_is_winner)
-		partner.set_bump_state(result.gap_ratio, not result.a_is_winner)
-
-		if unit.get_state() == Unit.State.ROUTING or partner.get_state() == Unit.State.ROUTING:
-			_on_first_rout()
-			_try_start_victory_delay(unit if unit.get_state() == Unit.State.ROUTING else partner)
+func _join_edge_labels(labels: Array[String]) -> String:
+	if labels.is_empty():
+		return ""
+	var unique: Array[String] = []
+	for label in labels:
+		if label not in unique:
+			unique.append(label)
+	return ";".join(unique)
 
 
 func _track_rout_state() -> void:
@@ -388,7 +516,7 @@ func _assert_no_overlaps() -> void:
 
 func _write_trace_header() -> void:
 	_trace_lines.append(
-		"time_sec,unit_id,strength,cohesion,kills,pos_x,pos_y,state"
+		"time_sec,unit_id,strength,cohesion,kills,pos_x,pos_y,state,contact_edges"
 	)
 
 
@@ -396,7 +524,7 @@ func _log_trace_row() -> void:
 	var time_sec := _sim_tick_count * CombatResolver.tick_interval()
 	for unit in _units:
 		_trace_lines.append(
-			"%.1f,%s,%.4f,%.4f,%d,%.2f,%.2f,%s"
+			"%.1f,%s,%.4f,%.4f,%d,%.2f,%.2f,%s,%s"
 			% [
 				time_sec,
 				unit.unit_id,
@@ -406,6 +534,7 @@ func _log_trace_row() -> void:
 				unit.position.x,
 				unit.position.y,
 				unit.get_state_name(),
+				unit.get_active_contact_edges(),
 			]
 		)
 

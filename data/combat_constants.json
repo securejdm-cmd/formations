@@ -8,6 +8,7 @@
   "push_loser_damage_factor": 1.25,
   "drain_per_strength_pct_lost": 2.5,
   "drain_per_meter_lost": 0.8,
+  "edge_mult_front": 1.0,
   "side_edge_multiplier": 2.0,
   "rear_edge_multiplier": 3.0,
   "neighbor_rout_shock": 15,
