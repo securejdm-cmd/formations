@@ -13,12 +13,42 @@ func setup_for_scenario(units: Array[Unit], camera: Camera2D) -> void:
 	_units = units
 	_camera = camera
 	for unit in _units:
-		unit.selected.connect(_on_unit_selected)
+		if not unit.selected.is_connected(_on_unit_selected):
+			unit.selected.connect(_on_unit_selected)
+
+
+func _input(event: InputEvent) -> void:
+	var screen_pos: Vector2 = Vector2.ZERO
+	var is_press := false
+
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		screen_pos = event.position
+		is_press = true
+	elif event is InputEventScreenTouch and event.pressed:
+		screen_pos = event.position
+		is_press = true
+
+	if not is_press:
+		return
+
+	var world_pos := _screen_to_world(screen_pos)
+	for unit in _units:
+		if unit.get_state() == Unit.State.REMOVED:
+			continue
+		if unit.contains_world_point(world_pos):
+			_on_unit_selected(unit)
+			get_viewport().set_input_as_handled()
+			return
+
+
+func _screen_to_world(screen_pos: Vector2) -> Vector2:
+	var canvas_transform := get_viewport().get_canvas_transform()
+	return canvas_transform.affine_inverse() * screen_pos
 
 
 func _process(_delta: float) -> void:
 	_stats_label.text = (
-		"FPS: %d\nCamera: %s\nZoom: %.2f\nRNG Seed: %d"
+		"FPS: %d\nCamera: %s\nZoom: %.2f\nRNG Seed: %d\nClick a block to inspect"
 		% [
 			Engine.get_frames_per_second(),
 			str(_camera.position.round()),
