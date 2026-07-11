@@ -82,4 +82,6 @@ Keep WO-004 readability features (stat card, results, bump) but return centered 
 
 ## AWAITING GREEN LIGHT
 
-No further combat-geometry or constant changes until TD selects A, B, or C (or issues a revised ruling).
+**Resolved 2026-07-11:** TD issued GREEN LIGHT — Modified Option C. See [`docs/reports/WO-005_completion.md`](WO-005_completion.md).
+
+No further combat-geometry or constant changes pending.

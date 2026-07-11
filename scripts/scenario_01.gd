@@ -209,12 +209,6 @@ func _combat_tick() -> void:
 		var applied_to_partner := CombatResolver.apply_strength_loss(partner, result.damage_b)
 		unit.record_damage_dealt(applied_to_partner)
 
-		if (
-			unit.get_state() != Unit.State.ROUTING
-			and partner.get_state() != Unit.State.ROUTING
-		):
-			CombatResolver.snap_pair_to_contact(unit, partner)
-
 		unit.set_bump_state(result.gap_ratio, result.a_is_winner)
 		partner.set_bump_state(result.gap_ratio, not result.a_is_winner)
 

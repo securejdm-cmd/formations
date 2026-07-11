@@ -146,19 +146,6 @@ func get_results_state_label() -> String:
 	return "fighting"
 
 
-func apply_rear_anchored_depth_from_strength(old_strength: float, new_strength: float) -> void:
-	var strength_max := Constants.get_float("strength_max")
-	var full_depth := full_depth_m()
-	var old_depth := full_depth * (old_strength / strength_max)
-	var new_depth := full_depth * (new_strength / strength_max)
-	var delta_depth_m := old_depth - new_depth
-	if delta_depth_m <= 0.0001:
-		return
-
-	var px_per_meter := Constants.get_float("px_per_meter")
-	position -= facing.normalized() * delta_depth_m * 0.5 * px_per_meter
-
-
 func add_crack_intensity_from_damage(strength_damage: float) -> void:
 	var strength_max := Constants.get_float("strength_max")
 	_crack_intensity = clampf(
@@ -318,19 +305,21 @@ func _apply_state_visuals() -> void:
 
 func _update_dimensions() -> void:
 	var px_per_meter := Constants.get_float("px_per_meter")
+	var full_depth_px := full_depth_m() * px_per_meter
 	var depth_px := effective_depth_m() * px_per_meter
 	var frontage_px := effective_frontage_m() * px_per_meter
 
-	# Local X = depth (short axis, along facing). Local Y = frontage (long front edge).
-	# Rear-anchored: center sits halfway between rear (fixed line) and front face.
+	# Simulation footprint stays centered on the unit origin (WO-003 geometry).
+	# Render-only rear anchor: visual rear holds, front face recedes as depth thins.
 	_body.size = Vector2(depth_px, frontage_px)
-	_body.position = Vector2(-depth_px * 0.5, -frontage_px * 0.5)
+	_body.position = Vector2(-full_depth_px * 0.5, -frontage_px * 0.5)
 
 	var border_pad := 4.0
 	_border.size = _body.size + Vector2(border_pad, border_pad)
 	_border.position = _body.position - Vector2(border_pad * 0.5, border_pad * 0.5)
 
 	rotation = facing.angle()
+	_update_collision()
 
 
 func _update_collision() -> void:
@@ -385,9 +374,10 @@ func _draw_crack_fissures(canvas: Node2D) -> void:
 		return
 
 	var px_per_meter := Constants.get_float("px_per_meter")
+	var full_depth_px := full_depth_m() * px_per_meter
 	var depth_px := effective_depth_m() * px_per_meter
 	var frontage_px := effective_frontage_m() * px_per_meter
-	var front_x := depth_px * 0.5
+	var front_x := -full_depth_px * 0.5 + depth_px
 	var max_count := int(Constants.get_float("crack_fissure_max_count"))
 	var line_count := int(ceil(_crack_intensity * float(max_count)))
 	line_count = clampi(line_count, 0, max_count)
