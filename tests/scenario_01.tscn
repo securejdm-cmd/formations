@@ -1,0 +1,74 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/scenario_01.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battlefield_camera.gd" id="2_camera"]
+[ext_resource type="Script" path="res://scripts/scenario_debug_overlay.gd" id="3_debug"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button"]
+bg_color = Color(0.15, 0.15, 0.15, 0.85)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="Scenario01" type="Node2D"]
+script = ExtResource("1_scenario")
+
+[node name="Ground" type="ColorRect" parent="."]
+color = Color(0.45, 0.55, 0.35, 1)
+
+[node name="Camera2D" type="Camera2D" parent="."]
+script = ExtResource("2_camera")
+
+[node name="DebugOverlay" type="CanvasLayer" parent="."]
+script = ExtResource("3_debug")
+
+[node name="MarginContainer" type="MarginContainer" parent="DebugOverlay"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="VBoxContainer" type="VBoxContainer" parent="DebugOverlay/MarginContainer"]
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
+theme_override_constants/separation = 8
+
+[node name="StatsLabel" type="Label" parent="DebugOverlay/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+text = "FPS: --"
+
+[node name="UnitPanel" type="Label" parent="DebugOverlay/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+text = "Unit: (click a block)"
+
+[node name="RngTestButton" type="Button" parent="DebugOverlay/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_button")
+text = "Test RNG (same seed)"
+
+[node name="RngResultLabel" type="Label" parent="DebugOverlay/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+text = "RNG test: not run yet"
+
+[connection signal="pressed" from="DebugOverlay/MarginContainer/VBoxContainer/RngTestButton" to="DebugOverlay" method="_on_rng_test_button_pressed"]
