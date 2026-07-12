@@ -1,6 +1,6 @@
 extends SceneTree
 
-## WO-010b: tick subsystem breakdown at 4/20/40 units (profile BEFORE optimize).
+## WO-010c: tick subsystem breakdown at 4/20/40 units (gameplay path, overlap assert off).
 
 const TickProfilerClass := preload("res://scripts/tick_profiler.gd")
 
@@ -24,7 +24,7 @@ func _initialize() -> void:
 			if units >= 40
 			else "res://tests/scenario_perf_scale.tscn"
 		)
-		var scenario: Scenario01 = runner.instantiate_scenario(scene_path, 1000, true)
+		var scenario: Scenario01 = runner.instantiate_scenario(scene_path, 1000, false)
 		if scene_path.ends_with("scenario_perf_scale.tscn"):
 			scenario.set("unit_pairs", pairs)
 		root.add_child(scenario)
@@ -38,12 +38,12 @@ func _initialize() -> void:
 		reports.append(TickProfilerClass.get_report(units))
 		scenario.free()
 
-	_print_reports(reports, "AFTER")
+	_print_reports(reports, "WO-010c")
 	quit(0)
 
 
 func _print_reports(reports: Array[Dictionary], label: String) -> void:
-	print("[WO-010b] Tick breakdown %s (warmup=%d profile=%d ticks)" % [label, WARMUP_TICKS, PROFILE_TICKS])
+	print("[WO-010c] Tick breakdown %s (warmup=%d profile=%d ticks, gameplay path)" % [label, WARMUP_TICKS, PROFILE_TICKS])
 	for row in reports:
 		var sections: Dictionary = row.get("sections_ms", {})
 		print(

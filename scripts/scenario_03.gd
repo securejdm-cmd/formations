@@ -82,14 +82,14 @@ func advance_one_tick() -> void:
 
 	var tick_interval := CombatResolver.tick_interval()
 	_sim_tick_count += 1
-	EdgeContact.begin_tick(_sim_tick_count)
+	_begin_sim_tick(tick_interval)
 	_rebuild_spatial_grid()
 	_update_movement(tick_interval)
 	_resolve_allied_overlaps()
 	_maybe_release_flank()
 	_process_rout_events()
 	_apply_contact_adhesion()
-	_assert_no_overlaps()
+	_run_overlap_assert_if_enabled()
 	_combat_tick()
 	_pursuit_tick()
 	_apply_contact_adhesion()
@@ -182,7 +182,6 @@ func _maybe_release_flank() -> void:
 
 func _assert_no_overlaps() -> void:
 	super._assert_no_overlaps()
-
 
 func _track_rout_state() -> void:
 	if _blue_a != null and _blue_a_strength_at_rout < 0.0:

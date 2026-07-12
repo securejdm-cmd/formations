@@ -31,6 +31,8 @@ var _overlap_assertion_failed: bool = false
 var _adhesion_invariant_failed: bool = false
 var _grid_cell_size_px: float = 1.0
 var _grid_cells: Dictionary = {}
+var _current_tick_interval: float = 0.1
+var _tick_start_positions: Dictionary = {}
 
 @onready var _camera: Camera2D = $Camera2D
 @onready var _ground: ColorRect = $Ground
@@ -102,12 +104,38 @@ func advance_one_tick() -> void:
 
 	var tick_interval := CombatResolver.tick_interval()
 	_sim_tick_count += 1
-	EdgeContact.begin_tick(_sim_tick_count)
+	_begin_sim_tick(tick_interval)
 
 	if _TickProfiler.enabled:
 		_advance_one_tick_profiled(tick_interval)
 	else:
 		_advance_one_tick_fast(tick_interval)
+
+
+func _begin_sim_tick(tick_interval: float) -> void:
+	_current_tick_interval = tick_interval
+	EdgeContact.begin_tick(_sim_tick_count)
+	_capture_tick_start_positions()
+
+
+func _overlap_assert_enabled() -> bool:
+	# Verification equipment: autotest and fast-mode only — not realtime gameplay.
+	return headless_mode and fast_sim_mode
+
+
+func _capture_tick_start_positions() -> void:
+	_tick_start_positions.clear()
+	for unit in _units:
+		if unit == null:
+			continue
+		_tick_start_positions[unit.unit_id] = unit.position
+
+
+func _unit_moved_this_tick(unit: Unit) -> bool:
+	if unit == null or not _tick_start_positions.has(unit.unit_id):
+		return true
+	var start: Vector2 = _tick_start_positions[unit.unit_id]
+	return start.distance_squared_to(unit.position) > 0.0001
 
 
 func _advance_one_tick_fast(tick_interval: float) -> void:
@@ -117,7 +145,7 @@ func _advance_one_tick_fast(tick_interval: float) -> void:
 	_resolve_allied_overlaps()
 	_try_passive_engagement()
 	_apply_contact_adhesion()
-	_assert_no_overlaps()
+	_run_overlap_assert_if_enabled()
 	_combat_tick()
 	_pursuit_tick()
 	_apply_contact_adhesion()
@@ -149,7 +177,7 @@ func _advance_one_tick_profiled(tick_interval: float) -> void:
 	_TickProfiler.end_section("adhesion", t0)
 
 	t0 = _TickProfiler.begin_section("overlap_assert")
-	_assert_no_overlaps()
+	_run_overlap_assert_if_enabled()
 	_TickProfiler.end_section("overlap_assert", t0)
 
 	t0 = _TickProfiler.begin_section("combat")
@@ -278,10 +306,75 @@ func _spatial_neighbors_sorted(unit: Unit) -> Array:
 	return neighbors
 
 
+func _max_closing_speed_m() -> float:
+	var max_speed := 0.0
+	for unit in _units:
+		if unit == null or unit.get_state() == Unit.State.REMOVED:
+			continue
+		max_speed = maxf(max_speed, unit.speed_m_per_sec())
+	return max_speed * 2.0
+
+
+func _max_unit_dimension_m() -> float:
+	var max_dim := 0.0
+	for unit in _units:
+		if unit == null or unit.get_state() == Unit.State.REMOVED:
+			continue
+		var dim := unit.effective_depth_m() + unit.effective_frontage_m()
+		max_dim = maxf(max_dim, dim)
+	return max_dim
+
+
+func _march_enemy_query_radius_px() -> float:
+	var px_per_meter := Constants.get_float("px_per_meter")
+	var radius_m := (
+		_max_closing_speed_m() * _current_tick_interval
+		+ _max_unit_dimension_m()
+	)
+	return radius_m * px_per_meter
+
+
+func _grid_units_within_radius_sorted(unit: Unit, radius_px: float) -> Array:
+	if _grid_cells.is_empty():
+		_rebuild_spatial_grid()
+	var origin: Vector2i = _grid_cell_key(unit.position)
+	var ring := maxi(int(ceil(radius_px / _grid_cell_size_px)), 1)
+	var found: Array = []
+	var seen: Dictionary = {}
+	for dx in range(-ring, ring + 1):
+		for dy in range(-ring, ring + 1):
+			var key := Vector2i(origin.x + dx, origin.y + dy)
+			if not _grid_cells.has(key):
+				continue
+			for other in _grid_cells[key]:
+				if other == unit or other == null or seen.has(other.unit_id):
+					continue
+				if unit.position.distance_to(other.position) > radius_px:
+					continue
+				seen[other.unit_id] = true
+				found.append(other)
+	found.sort_custom(func(a: Unit, b: Unit) -> bool:
+		return a.unit_id < b.unit_id
+	)
+	return found
+
+
+func _uses_march_grid_enemies(unit: Unit) -> bool:
+	if unit.get_state() == Unit.State.MARCHING:
+		return true
+	return (
+		unit.get_state() == Unit.State.HOLD
+		and unit.current_order == Unit.Order.MARCH_TO
+		and not unit.is_rallied_hold()
+	)
+
+
 func _enemies_for(unit: Unit) -> Array[Unit]:
 	var enemies: Array[Unit] = []
 	var candidates: Array = _units
-	if unit.get_state() in [Unit.State.ENGAGED, Unit.State.WAVERING, Unit.State.ROUTING, Unit.State.RALLYING]:
+	if _uses_march_grid_enemies(unit):
+		candidates = _grid_units_within_radius_sorted(unit, _march_enemy_query_radius_px())
+	elif unit.get_state() in [Unit.State.ENGAGED, Unit.State.WAVERING, Unit.State.ROUTING, Unit.State.RALLYING]:
 		candidates = _spatial_neighbors_sorted(unit)
 	for other in candidates:
 		if other == unit or other.get_state() == Unit.State.REMOVED:
@@ -827,6 +920,8 @@ func _resolve_allied_overlaps() -> void:
 		var unit_b: Unit = pair[1]
 		if unit_a.team_id != unit_b.team_id:
 			continue
+		if not _unit_moved_this_tick(unit_a) and not _unit_moved_this_tick(unit_b):
+			continue
 		if not FormationGeometry.bounds_may_overlap(unit_a, unit_b):
 			continue
 		CombatResolver.separate_allied_overlap(unit_a, unit_b)
@@ -836,6 +931,12 @@ func _pair_key(unit_a: Unit, unit_b: Unit) -> String:
 	if unit_a.unit_id < unit_b.unit_id:
 		return unit_a.unit_id + ":" + unit_b.unit_id
 	return unit_b.unit_id + ":" + unit_a.unit_id
+
+
+func _run_overlap_assert_if_enabled() -> void:
+	if not _overlap_assert_enabled():
+		return
+	_assert_no_overlaps()
 
 
 func _assert_no_overlaps() -> void:

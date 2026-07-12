@@ -14,7 +14,7 @@ func _initialize() -> void:
 		var scenario: Scenario01 = runner.instantiate_scenario(
 			"res://tests/scenario_40_perf.tscn" if counts[i] >= 40 else "res://tests/scenario_perf_scale.tscn",
 			1000,
-			true,
+			false,
 		)
 		if counts[i] < 40:
 			scenario.set("unit_pairs", pairs[i])
@@ -31,7 +31,7 @@ func _initialize() -> void:
 		var sum := 0.0
 		for t in times:
 			sum += t
-		print("[WO-010b] wall_clock units=%d avg_tick_ms=%.3f" % [counts[i], sum / float(times.size())])
+		print("[WO-010c] wall_clock units=%d avg_tick_ms=%.3f" % [counts[i], sum / float(times.size())])
 		scenario.free()
 	quit(0)
 

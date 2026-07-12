@@ -100,10 +100,11 @@ func advance_one_tick() -> void:
 		return
 	var tick_interval := CombatResolver.tick_interval()
 	_sim_tick_count += 1
+	_begin_sim_tick(tick_interval)
 	_rebuild_spatial_grid()
 	_maintain_spawn_contact()
 	_combat_tick()
-	_assert_no_overlaps()
+	_run_overlap_assert_if_enabled()
 	var ticks_per_sec := int(Constants.get_float("tick_rate_per_sec"))
 	if _sim_tick_count % ticks_per_sec == 0:
 		_log_trace_row()
