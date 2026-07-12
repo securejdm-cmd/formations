@@ -8,6 +8,8 @@ enum BattlePhase { ACTIVE, VICTORY_PENDING, VICTORY_EPILOGUE, FINISHED }
 
 @export var auto_run: bool = true
 @export var headless_mode: bool = false
+## When true (with headless_mode), autotest harness drives ticks via SimHarness — no _process loop.
+@export var fast_sim_mode: bool = false
 
 var _units: Array[Unit] = []
 var _tick_accumulator: float = 0.0
@@ -56,16 +58,28 @@ func _ready() -> void:
 		_battle_start_time_msec = Time.get_ticks_msec()
 		_write_trace_header()
 		_log_trace_row()
+	if headless_mode:
+		set_process(false)
+
+
+func simulate_realtime_step(delta: float = -1.0) -> void:
+	var step := delta if delta > 0.0 else CombatResolver.tick_interval()
+	_process(step)
+
+
+func run_simulation_fast(extra_ticks: int = 0) -> void:
+	var harness: Script = load("res://scripts/sim_harness.gd")
+	harness.run_to_completion(self, harness.RunMode.FAST, extra_ticks)
 
 
 func _process(delta: float) -> void:
 	if _battle_over:
 		return
-
 	if not headless_mode and _battle_phase == BattlePhase.VICTORY_PENDING:
 		_victory_delay_accum += delta
 		if _victory_delay_accum >= Constants.get_float("victory_delay_s"):
 			_declare_victory()
+		return
 
 	_tick_accumulator += delta
 	var tick_interval := CombatResolver.tick_interval()
@@ -83,6 +97,7 @@ func advance_one_tick() -> void:
 	var tick_interval := CombatResolver.tick_interval()
 	_sim_tick_count += 1
 	_update_movement(tick_interval)
+	_resolve_allied_overlaps()
 	_assert_no_overlaps()
 	_combat_tick()
 	_track_rout_state()
@@ -162,8 +177,7 @@ func _try_begin_engagement(unit: Unit) -> void:
 
 		unit.add_contact_partner(other)
 		other.add_contact_partner(unit)
-		if CombatResolver.is_head_on_pair(unit, other):
-			CombatResolver.snap_pair_to_contact(unit, other)
+		CombatResolver.snap_pair_to_contact(unit, other)
 		_on_first_contact()
 
 
@@ -516,6 +530,20 @@ func _build_results_rows() -> Array[Dictionary]:
 	if not rows.is_empty():
 		rows[0].top = true
 	return rows
+
+
+func _resolve_allied_overlaps() -> void:
+	for i in _units.size():
+		var unit_a := _units[i]
+		if unit_a.get_state() == Unit.State.REMOVED or unit_a.get_state() == Unit.State.ROUTING:
+			continue
+		for j in range(i + 1, _units.size()):
+			var unit_b := _units[j]
+			if unit_b.get_state() == Unit.State.REMOVED or unit_b.get_state() == Unit.State.ROUTING:
+				continue
+			if unit_a.team_id != unit_b.team_id:
+				continue
+			CombatResolver.separate_allied_overlap(unit_a, unit_b)
 
 
 func _pair_key(unit_a: Unit, unit_b: Unit) -> String:

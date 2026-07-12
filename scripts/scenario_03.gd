@@ -12,7 +12,6 @@ var _flank_release_aborted: bool = false
 var _flank_contact_established: bool = false
 var _blue_a_strength_at_rout: float = -1.0
 var _flank_candidate_scales: Array[Vector2] = []
-var _flank_overlap_escalated: bool = false
 var _flank_along_m: float = 0.0
 var _flank_across_m: float = 0.0
 
@@ -36,6 +35,8 @@ func _ready() -> void:
 		_battle_start_time_msec = Time.get_ticks_msec()
 		_write_trace_header()
 		_log_trace_row()
+	if headless_mode:
+		set_process(false)
 
 
 func _spawn_units() -> void:
@@ -84,6 +85,7 @@ func advance_one_tick() -> void:
 	_update_movement(tick_interval)
 	_combat_tick()
 	_maybe_release_flank()
+	_resolve_allied_overlaps()
 	_assert_no_overlaps()
 	_track_rout_state()
 	_update_victory_state(tick_interval)
@@ -172,22 +174,6 @@ func _maybe_release_flank() -> void:
 
 
 func _assert_no_overlaps() -> void:
-	if (
-		_flank_contact_established
-		and not _flank_release_aborted
-		and _red_b != null
-		and _red_a != null
-		and _red_b.get_state() != Unit.State.ROUTING
-		and _red_a.get_state() != Unit.State.ROUTING
-		and CombatResolver.units_overlap(_red_b, _red_a)
-	):
-		if not _flank_overlap_escalated:
-			_flank_overlap_escalated = true
-			push_error(
-				"ESCALATE WO-008 S3: non-routing allied overlap red_a/red_b at tick %d (no position clamp; trace ticks 803-1157)"
-				% _sim_tick_count
-			)
-		return
 	super._assert_no_overlaps()
 
 

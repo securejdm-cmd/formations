@@ -112,6 +112,28 @@ static func snap_pair_to_contact(unit_a: Unit, unit_b: Unit) -> void:
 		unit_b.position += dir * correction_px
 
 
+## Push apart allied rectangles that overlap (sim collision, non-routing only).
+static func separate_allied_overlap(unit_a: Unit, unit_b: Unit) -> void:
+	if unit_a.get_state() == Unit.State.ROUTING or unit_b.get_state() == Unit.State.ROUTING:
+		return
+	if unit_a.team_id != unit_b.team_id:
+		return
+	if not FormationGeometry.rectangles_overlap(unit_a, unit_b):
+		return
+
+	var delta := unit_b.position - unit_a.position
+	if delta.length_squared() <= 0.0001:
+		delta = Vector2(0.0, -Constants.get_float("px_per_meter"))
+	var dir := delta.normalized()
+	var px_per_meter := Constants.get_float("px_per_meter")
+	var step_px := maxf(px_per_meter * 0.25, 1.0)
+	for _attempt in 24:
+		if not FormationGeometry.rectangles_overlap(unit_a, unit_b):
+			return
+		unit_a.position -= dir * step_px * 0.5
+		unit_b.position += dir * step_px * 0.5
+
+
 static func clamp_march_distance(unit: Unit, enemy: Unit, move_px: float) -> float:
 	if move_px <= 0.0:
 		return 0.0

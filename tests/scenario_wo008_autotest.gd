@@ -30,8 +30,7 @@ const WO007B_S2 := {
 }
 
 const CORE_COLS := 8
-const STAT_TOL := 0.0001
-const POS_TOL := 0.05
+const CERT_SEED := 12345
 
 const S3_RATIO_TD_BASELINE := 0.32
 const S3_RATIO_MIN := 0.28
@@ -41,13 +40,17 @@ const S4_CONTACT_BALANCE_MAX_M := 6.0
 
 var _scenario = null
 var _exit_code := 0
-var _mode := "s1_regression"
+var _mode := "fast_cert"
 var _seed_idx := 0
 var _s4_mode_idx := 0
 var _s4_modes := ["front", "side", "corner"]
 var _s4_results: Array[Dictionary] = []
 var _determinism_a := ""
 var _determinism_b := ""
+var _cert_realtime_trace := ""
+var _pending_ready := false
+var _sim_harness: Script
+var _sim_runner: Script
 
 
 func _initialize() -> void:
@@ -62,35 +65,71 @@ func _initialize() -> void:
 		_exit_code = 1
 	else:
 		print("[WO-008] Compass test PASS (32/32)")
-	process_frame.connect(_on_frame)
-	_start("scenario_01", ALL_SEEDS[0])
+	call_deferred("_kickoff")
 
 
-func _on_frame() -> void:
-	if _scenario == null or not _scenario.is_node_ready():
-		return
-	while not _scenario.is_battle_over() and _mode != "s4_drain":
-		_scenario.advance_one_tick()
-	if _mode == "s4_drain":
-		for _i in 50:
-			_scenario.advance_one_tick()
-	_finish()
+func _kickoff() -> void:
+	_sim_harness = load("res://scripts/sim_harness.gd")
+	_sim_runner = load("res://tests/sim_harness_runner.gd")
+	match _mode:
+		"fast_cert":
+			_run_fast_certification()
+		_:
+			_spawn_and_run()
 
 
-func _start(scene: String, seed_value: int) -> void:
+func _run_fast_certification() -> void:
+	var realtime: Scenario01 = _sim_runner.instantiate_scenario("res://tests/scenario_01.tscn", CERT_SEED, false)
+	_sim_runner.attach_and_wait_ready(self, realtime)
+	_sim_harness.run_to_completion(realtime, _sim_harness.RunMode.REALTIME)
+	_cert_realtime_trace = realtime.get_trace_text()
+	realtime.free()
+
+	var fast: Scenario01 = _sim_runner.instantiate_scenario("res://tests/scenario_01.tscn", CERT_SEED, true)
+	_sim_runner.attach_and_wait_ready(self, fast)
+	_sim_harness.run_to_completion(fast, _sim_harness.RunMode.FAST)
+	var fast_trace: String = fast.get_trace_text()
+	fast.free()
+
+	if _cert_realtime_trace != fast_trace:
+		push_error("Fast-mode certification failed: realtime vs fast trace differ (seed %d)" % CERT_SEED)
+		_exit_code = 1
+	else:
+		print("[WO-008] Fast-mode certification PASS (seed %d trace byte-identical)" % CERT_SEED)
+
+	_mode = "s1_regression"
+	_seed_idx = 0
+	_spawn_and_run()
+
+
+func _spawn_and_run() -> void:
+	var scene := "scenario_01"
+	var seed_value: int = CERT_SEED
+	match _mode:
+		"s1_regression":
+			seed_value = ALL_SEEDS[_seed_idx]
+		"s2_regression":
+			scene = "scenario_02"
+			seed_value = ALL_SEEDS[_seed_idx]
+		"determinism_a", "determinism_b":
+			seed_value = CERT_SEED
+			scene = "scenario_01"
+		"scenario_03":
+			scene = "scenario_03"
+			seed_value = 1000
+		"s4_drain":
+			scene = "scenario_04"
+			seed_value = 1000
+		"reflection":
+			scene = "scenario_01"
+			seed_value = 1000
+
 	if _scenario != null:
 		_scenario.free()
-	var path := "res://tests/scenario_01.tscn"
-	match scene:
-		"scenario_02":
-			path = "res://tests/scenario_02.tscn"
-		"scenario_03":
-			path = "res://tests/scenario_03.tscn"
-		"scenario_04":
-			path = "res://tests/scenario_04.tscn"
-	_scenario = load(path).instantiate()
-	_scenario.headless_mode = true
-	_scenario.set_battle_seed(seed_value)
+		_scenario = null
+
+	var path := "res://tests/%s.tscn" % scene
+	_scenario = _sim_runner.instantiate_scenario(path, seed_value, true)
 	if scene == "scenario_04":
 		match _s4_modes[_s4_mode_idx]:
 			"front":
@@ -99,7 +138,22 @@ func _start(scene: String, seed_value: int) -> void:
 				_scenario.contact_mode = _scenario.ContactMode.SIDE
 			"corner":
 				_scenario.contact_mode = _scenario.ContactMode.CORNER
+
 	root.add_child(_scenario)
+	_pending_ready = true
+	call_deferred("_run_when_ready")
+
+
+func _run_when_ready() -> void:
+	if _scenario == null or not _scenario.is_node_ready():
+		call_deferred("_run_when_ready")
+		return
+	_pending_ready = false
+	if _mode == "s4_drain":
+		_sim_harness.run_ticks(_scenario, 50)
+	else:
+		_sim_harness.run_to_completion(_scenario, _sim_harness.RunMode.FAST)
+	_finish()
 
 
 func _finish() -> void:
@@ -108,23 +162,23 @@ func _finish() -> void:
 			_check_s1_regression(ALL_SEEDS[_seed_idx])
 			_seed_idx += 1
 			if _seed_idx < ALL_SEEDS.size():
-				_start("scenario_01", ALL_SEEDS[_seed_idx])
+				_spawn_and_run()
 			else:
 				_mode = "s2_regression"
 				_seed_idx = 0
-				_start("scenario_02", ALL_SEEDS[0])
+				_spawn_and_run()
 		"s2_regression":
 			_check_s2_regression(ALL_SEEDS[_seed_idx])
 			_seed_idx += 1
 			if _seed_idx < ALL_SEEDS.size():
-				_start("scenario_02", ALL_SEEDS[_seed_idx])
+				_spawn_and_run()
 			else:
 				_mode = "determinism_a"
-				_start("scenario_01", 12345)
+				_spawn_and_run()
 		"determinism_a":
 			_determinism_a = _core_trace(_scenario.get_trace_text())
 			_mode = "determinism_b"
-			_start("scenario_01", 12345)
+			_spawn_and_run()
 		"determinism_b":
 			_determinism_b = _core_trace(_scenario.get_trace_text())
 			if _determinism_a != _determinism_b:
@@ -133,12 +187,12 @@ func _finish() -> void:
 			else:
 				print("[WO-008] Determinism PASS")
 			_mode = "scenario_03"
-			_start("scenario_03", 1000)
+			_spawn_and_run()
 		"scenario_03":
 			_check_scenario_03()
 			_mode = "s4_drain"
 			_s4_mode_idx = 0
-			_start("scenario_04", 1000)
+			_spawn_and_run()
 		"s4_drain":
 			var spawn_contact: Dictionary = _scenario.get_spawn_contact_sample()
 			var edge_lengths: Dictionary = spawn_contact.get("edge_lengths_m", {})
@@ -153,16 +207,16 @@ func _finish() -> void:
 			})
 			_s4_mode_idx += 1
 			if _s4_mode_idx < _s4_modes.size():
-				_start("scenario_04", 1000)
+				_spawn_and_run()
 			else:
 				_check_s4_labels_and_ratio()
 				_print_s4_table()
 				_mode = "reflection"
-				_start("scenario_01", 1000)
+				_spawn_and_run()
 		"reflection":
 			_check_reflection_pair(1000)
-			process_frame.disconnect(_on_frame)
-			_scenario.free()
+			if _scenario != null:
+				_scenario.free()
 			quit(_exit_code)
 
 
@@ -207,23 +261,21 @@ func _check_scenario_03() -> void:
 		% [phases.combat_sec, s1_ref, ratio, rout, drains]
 	)
 	print(
-		"[WO-008] S3 TD baseline ratio=%.2f accepted band [%.2f, %.2f] (two-attacker compounds beyond edge mults)"
+		"[WO-008] S3 TD baseline ratio=%.2f accepted band [%.2f, %.2f]"
 		% [S3_RATIO_TD_BASELINE, S3_RATIO_MIN, S3_RATIO_MAX]
 	)
-	if S3_RATIO_TD_BASELINE >= S3_RATIO_MIN and S3_RATIO_TD_BASELINE <= S3_RATIO_MAX:
-		print("[WO-008] S3 TD baseline ratio PASS within band")
 	if ratio < S3_RATIO_MIN or ratio > S3_RATIO_MAX:
-		print(
-			"[WO-008] ESCALATE S3: post-maintenance-release ratio %.2f outside band (ticks 803-1157 overlap trace in scenario_03_1000.csv)"
-			% ratio
-		)
+		push_error("S3 ratio %.2f outside band [%.2f, %.2f]" % [ratio, S3_RATIO_MIN, S3_RATIO_MAX])
+		_exit_code = 1
 	if rout <= 67.0:
 		push_error("S3 blue strength_at_rout %.2f not > 67%%" % rout)
 		_exit_code = 1
 	if drains.get("left", 0.0) <= 0.0:
-		print("[WO-008] ESCALATE S3: missing LEFT edge drain post-release (got %s)" % drains)
+		push_error("S3 missing LEFT edge drain on blue_a (got %s)" % drains)
+		_exit_code = 1
 	if _scenario.had_overlap_failure():
-		print("[WO-008] ESCALATE S3: allied overlap ticks 803-1157 without position clamp (see trace)")
+		push_error("S3 overlap assertion failed (non-routing pairs)")
+		_exit_code = 1
 
 
 func _check_s4_labels_and_ratio() -> void:
@@ -255,10 +307,6 @@ func _check_s4_labels_and_ratio() -> void:
 		"[WO-008] S4 side/front=%.2f shift_mult=%.2f casualty_mult=%.2f"
 		% [observed_ratio, shift_mult, casualty_mult]
 	)
-	print(
-		"[WO-008] S4 shift_component=%.2f casualty_component=%.2f (actual ÷ spec mult)"
-		% [observed_ratio / shift_mult if shift_mult > 0 else 0.0, observed_ratio / casualty_mult if casualty_mult > 0 else 0.0]
-	)
 	_report_s4_corner_instrumentation(corner_row)
 	if not (front_d < corner_d and corner_d < side_d):
 		push_error(
@@ -268,8 +316,6 @@ func _check_s4_labels_and_ratio() -> void:
 		_exit_code = 1
 	var shift_blend: float = corner_row.shift_blend
 	var casualty_blend: float = corner_row.casualty_blend
-	var front_pct: float = front_row.get("defender_edge_pct", 1.0)
-	var corner_pct: float = corner_row.get("defender_edge_pct", 1.0)
 	var shift_weight: float = observed_ratio / shift_mult if shift_mult > 0 else 0.5
 	var casualty_weight: float = observed_ratio / casualty_mult if casualty_mult > 0 else 0.5
 	var weight_sum: float = shift_weight + casualty_weight
@@ -281,10 +327,9 @@ func _check_s4_labels_and_ratio() -> void:
 	casualty_weight /= weight_sum
 	var blend_ratio: float = shift_blend * shift_weight + casualty_blend * casualty_weight
 	var measured_corner_ratio: float = corner_d / front_d
-	var expected_corner_drain: float = front_d * blend_ratio
 	print(
-		"[WO-008] S4 corner blend check: measured_ratio=%.3f blend=%.3f drain=%.3f expected_drain=%.3f (shift=%.3f casualty=%.3f pct=%.3f/%.3f)"
-		% [measured_corner_ratio, blend_ratio, corner_d, expected_corner_drain, shift_blend, casualty_blend, corner_pct, front_pct]
+		"[WO-008] S4 corner blend check: measured_ratio=%.3f blend=%.3f"
+		% [measured_corner_ratio, blend_ratio]
 	)
 	if absf(measured_corner_ratio - blend_ratio) > S4_BLEND_TOLERANCE:
 		push_error(
@@ -320,13 +365,6 @@ func _print_s4_table() -> void:
 	print("[WO-008] Scenario 4 drain comparison:")
 	for row in _s4_results:
 		print("  %s | drain/s=%.3f | edges=%s" % [row.mode, row.drain_per_sec, row.edge])
-	var front_d: float = _s4_results[0].drain_per_sec
-	var side_d: float = _s4_results[1].drain_per_sec
-	var corner_d: float = _s4_results[2].drain_per_sec
-	print(
-		"[WO-008] S4 corner/front=%.2f corner/side=%.2f (actuals for TD band re-derive)"
-		% [corner_d / front_d if front_d > 0 else 0.0, corner_d / side_d if side_d > 0 else 0.0]
-	)
 
 
 func _core_trace(trace_text: String) -> String:
@@ -342,7 +380,6 @@ func _core_trace(trace_text: String) -> String:
 
 
 func _check_reflection_pair(seed_value: int) -> void:
-	# Reflection covered by WO-007 harness; spot-check overlap on normal run.
 	if _scenario.had_overlap_failure():
 		push_error("Overlap on seed %d" % seed_value)
 		_exit_code = 1

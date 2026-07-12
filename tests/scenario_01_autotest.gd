@@ -39,10 +39,12 @@ var _determinism_b: String = ""
 var _ten_seed_results: Array[Dictionary] = []
 var _ten_seed_index: int = 0
 var _test_mode: String = ""
+var _sim_harness: Script
 
 
 func _initialize() -> void:
 	_constants = root.get_node("Constants")
+	_sim_harness = load("res://scripts/sim_harness.gd")
 	process_frame.connect(_on_process_frame)
 	_begin_determinism_test()
 
@@ -55,8 +57,7 @@ func _on_process_frame() -> void:
 		return
 
 	if _phase == "simulate":
-		while not _scenario.is_battle_over():
-			_scenario.advance_one_tick()
+		_sim_harness.run_to_completion(_scenario, _sim_harness.RunMode.FAST)
 		_finish_current_scenario()
 
 
@@ -76,6 +77,7 @@ func _start_scenario(seed_value: int) -> void:
 	var packed: PackedScene = load("res://tests/scenario_01.tscn")
 	_scenario = packed.instantiate()
 	_scenario.headless_mode = true
+	_scenario.fast_sim_mode = true
 	_scenario.set_battle_seed(seed_value)
 	root.add_child(_scenario)
 	_phase = "simulate"
