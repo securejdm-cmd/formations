@@ -24,15 +24,20 @@ var speed_stat: float = 0.0
 var _state: State = State.HOLD
 var _base_team_color: Color = Color.RED
 var _flicker_time: float = 0.0
+var _bump_time: float = 0.0
+var _bump_gap_ratio: float = 0.0
+var _bump_is_winner: bool = false
 
-@onready var _body: ColorRect = $Body
-@onready var _border: ColorRect = $Border
+@onready var _visual_root: Node2D = $VisualRoot
+@onready var _body: ColorRect = $VisualRoot/Body
+@onready var _border: ColorRect = $VisualRoot/Border
 @onready var _collision: CollisionShape2D = $CollisionShape2D
 
 
 func _ready() -> void:
+	input_pickable = true
+	monitorable = true
 	input_event.connect(_on_input_event)
-	mouse_entered.connect(_on_mouse_entered)
 
 
 func configure(id: String, team: String, profile_data: Dictionary, spawn_position: Vector2, face_direction: Vector2) -> void:
@@ -100,6 +105,22 @@ func speed_m_per_sec() -> float:
 	)
 
 
+func contains_world_point(world_point: Vector2) -> bool:
+	return FormationGeometry.contains_world_point(self, world_point)
+
+
+func set_bump_state(gap_ratio: float, is_winner: bool) -> void:
+	_bump_gap_ratio = gap_ratio
+	_bump_is_winner = is_winner
+
+
+func clear_bump_state() -> void:
+	_bump_gap_ratio = 0.0
+	_bump_is_winner = false
+	if _visual_root != null:
+		_visual_root.position = Vector2.ZERO
+
+
 func apply_cohesion_drain(amount: float) -> void:
 	if amount <= 0.0 or _state == State.REMOVED:
 		return
@@ -108,24 +129,31 @@ func apply_cohesion_drain(amount: float) -> void:
 	_refresh_morale_state()
 
 
-func update_marching(delta: float) -> void:
+func update_marching(delta: float, enemies: Array[Unit] = []) -> void:
 	if _state != State.MARCHING:
 		return
 
 	var speed_px := speed_m_per_sec() * Constants.get_float("px_per_meter")
 	var to_target := march_target - position
-	if to_target.length() <= speed_px * delta:
+	var move_px := speed_px * delta
+	if to_target.length() <= move_px:
 		position = march_target
 		_set_state(State.HOLD)
 		return
 
-	position += to_target.normalized() * speed_px * delta
+	for enemy in enemies:
+		move_px = CombatResolver.clamp_march_distance(self, enemy, move_px)
+		if move_px <= 0.0:
+			return
+
+	position += to_target.normalized() * move_px
 
 
 func update_routing(delta: float) -> void:
 	if _state != State.ROUTING:
 		return
 
+	clear_bump_state()
 	var flee_direction := _flee_direction()
 	var speed_px := (
 		speed_m_per_sec()
@@ -138,11 +166,13 @@ func update_routing(delta: float) -> void:
 
 func begin_engagement(partner: Unit) -> void:
 	engaged_partner = partner
+	CombatResolver.snap_pair_to_contact(self, partner)
 	_set_state(State.ENGAGED)
 
 
 func break_engagement() -> void:
 	engaged_partner = null
+	clear_bump_state()
 	if _state == State.ENGAGED or _state == State.WAVERING:
 		if current_order == Order.MARCH_TO:
 			_set_state(State.MARCHING)
@@ -155,9 +185,12 @@ func enter_rout() -> void:
 		var partner := engaged_partner
 		engaged_partner = null
 		partner.engaged_partner = null
+		partner.clear_bump_state()
 		if partner.get_state() == State.ENGAGED or partner.get_state() == State.WAVERING:
+			partner.current_order = Order.HOLD
 			partner._set_state(State.HOLD)
 
+	clear_bump_state()
 	_set_state(State.ROUTING)
 
 
@@ -166,11 +199,13 @@ func mark_removed() -> void:
 	visible = false
 	monitoring = false
 	monitorable = false
+	input_pickable = false
 
 
 func _process(delta: float) -> void:
 	_update_dimensions()
 	_update_waver_flicker(delta)
+	_update_bump_visual(delta)
 
 
 func _set_state(new_state: State) -> void:
@@ -211,11 +246,12 @@ func _apply_state_visuals() -> void:
 
 func _update_dimensions() -> void:
 	var px_per_meter := Constants.get_float("px_per_meter")
-	var width_px := effective_frontage_m() * px_per_meter
 	var depth_px := effective_depth_m() * px_per_meter
+	var frontage_px := effective_frontage_m() * px_per_meter
 
-	_body.size = Vector2(width_px, depth_px)
-	_body.position = Vector2(-width_px * 0.5, -depth_px * 0.5)
+	# Local X = depth (short axis, along facing). Local Y = frontage (long front edge).
+	_body.size = Vector2(depth_px, frontage_px)
+	_body.position = Vector2(-depth_px * 0.5, -frontage_px * 0.5)
 
 	var border_pad := 4.0
 	_border.size = _body.size + Vector2(border_pad, border_pad)
@@ -232,9 +268,29 @@ func _update_collision() -> void:
 
 	var px_per_meter := Constants.get_float("px_per_meter")
 	shape.size = Vector2(
-		effective_frontage_m() * px_per_meter,
 		effective_depth_m() * px_per_meter,
+		effective_frontage_m() * px_per_meter,
 	)
+
+
+func _update_bump_visual(delta: float) -> void:
+	if _visual_root == null:
+		return
+
+	if _state != State.ENGAGED and _state != State.WAVERING:
+		_visual_root.position = Vector2.ZERO
+		return
+
+	_bump_time += delta
+	var period := Constants.get_float("bump_period_sec")
+	var wave := sin((_bump_time / period) * TAU)
+	var amp_px := (
+		Constants.get_float("bump_amplitude_max_m")
+		* _bump_gap_ratio
+		* Constants.get_float("px_per_meter")
+	)
+	var direction := 1.0 if _bump_is_winner else -1.0
+	_visual_root.position = facing.normalized() * wave * amp_px * direction
 
 
 func _update_waver_flicker(delta: float) -> void:
@@ -249,10 +305,8 @@ func _update_waver_flicker(delta: float) -> void:
 
 
 func _flee_direction() -> Vector2:
-	var half_width_px := Constants.get_float("battlefield_width_m") * Constants.get_float("px_per_meter") * 0.5
-	if team_id == "red":
-		return Vector2.LEFT if position.x > -half_width_px else Vector2.RIGHT
-	return Vector2.RIGHT if position.x < half_width_px else Vector2.LEFT
+	# Each team flees toward its own map edge; avoids flip-flop at the boundary.
+	return Vector2.LEFT if team_id == "red" else Vector2.RIGHT
 
 
 func _check_edge_removal() -> void:
@@ -266,17 +320,15 @@ func _check_edge_removal() -> void:
 func _on_input_event(_viewport: Node, event: InputEvent, _shape_idx: int) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		selected.emit(self)
-
-
-func _on_mouse_entered() -> void:
-	pass
+		get_viewport().set_input_as_handled()
 
 
 func _ensure_nodes() -> void:
-	if _body == null:
-		_body = $Body
-	if _border == null:
-		_border = $Border
+	if _visual_root == null:
+		_visual_root = get_node_or_null("VisualRoot")
+	if _body == null and _visual_root != null:
+		_body = _visual_root.get_node("Body")
+	if _border == null and _visual_root != null:
+		_border = _visual_root.get_node("Border")
 	if _collision == null:
 		_collision = $CollisionShape2D
-

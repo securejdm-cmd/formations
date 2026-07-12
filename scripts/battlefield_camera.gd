@@ -4,6 +4,8 @@ const MIN_ZOOM := 0.5
 const MAX_ZOOM := 3.0
 const ZOOM_STEP := 0.1
 
+@export var enable_left_drag_pan: bool = true
+
 var _drag_active := false
 var _drag_touch_index := -1
 var _last_pointer := Vector2.ZERO
@@ -25,6 +27,13 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _handle_mouse_button(event: InputEventMouseButton) -> void:
 	if event.button_index == MOUSE_BUTTON_LEFT:
+		if not enable_left_drag_pan:
+			return
+		_drag_active = event.pressed
+		_last_pointer = event.position
+		return
+
+	if event.button_index == MOUSE_BUTTON_RIGHT and not enable_left_drag_pan:
 		_drag_active = event.pressed
 		_last_pointer = event.position
 		return
@@ -53,6 +62,8 @@ func _handle_screen_touch(event: InputEventScreenTouch) -> void:
 		_touch_positions.erase(event.index)
 
 	if _touch_positions.size() == 1:
+		if not enable_left_drag_pan:
+			return
 		var only_index: int = _touch_positions.keys()[0]
 		_drag_touch_index = only_index
 		_last_pointer = _touch_positions[only_index]
@@ -72,6 +83,8 @@ func _handle_screen_drag(event: InputEventScreenDrag) -> void:
 	if _touch_positions.size() >= 2:
 		_update_pinch_zoom()
 	elif event.index == _drag_touch_index:
+		if not enable_left_drag_pan:
+			return
 		_pan_by_screen_delta(event.position - _last_pointer)
 		_last_pointer = event.position
 

@@ -3,24 +3,27 @@
 [ext_resource type="Script" path="res://scripts/unit.gd" id="1_unit"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_unit"]
-size = Vector2(80, 30)
+size = Vector2(30, 80)
 
 [node name="Unit" type="Area2D"]
+input_pickable = true
 script = ExtResource("1_unit")
 
-[node name="Border" type="ColorRect" parent="."]
+[node name="VisualRoot" type="Node2D" parent="."]
+
+[node name="Border" type="ColorRect" parent="VisualRoot"]
 visible = false
-offset_left = -42.0
-offset_top = -17.0
-offset_right = 42.0
-offset_bottom = 17.0
+offset_left = -17.0
+offset_top = -42.0
+offset_right = 17.0
+offset_bottom = 42.0
 color = Color(1, 1, 0.4, 0.9)
 
-[node name="Body" type="ColorRect" parent="."]
-offset_left = -40.0
-offset_top = -15.0
-offset_right = 40.0
-offset_bottom = 15.0
+[node name="Body" type="ColorRect" parent="VisualRoot"]
+offset_left = -15.0
+offset_top = -40.0
+offset_right = 15.0
+offset_bottom = 40.0
 color = Color(0.85, 0.2, 0.2, 1)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]

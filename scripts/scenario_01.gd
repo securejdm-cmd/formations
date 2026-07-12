@@ -14,9 +14,11 @@ var _battle_seed: int = 0
 var _seed_override: int = -1
 var _battle_over: bool = false
 var _trace_lines: PackedStringArray = PackedStringArray()
-var _trace_header_written: bool = false
 var _winner: Unit = null
 var _battle_start_time_msec: int = 0
+var _first_contact_tick: int = -1
+var _first_rout_tick: int = -1
+var _overlap_assertion_failed: bool = false
 
 @onready var _camera: Camera2D = $Camera2D
 @onready var _ground: ColorRect = $Ground
@@ -62,7 +64,9 @@ func advance_one_tick() -> void:
 	var tick_interval := CombatResolver.tick_interval()
 	_sim_tick_count += 1
 	_update_movement(tick_interval)
+	_assert_no_overlaps()
 	_combat_tick()
+	_track_rout_state()
 	var ticks_per_sec := int(Constants.get_float("tick_rate_per_sec"))
 	if _sim_tick_count % ticks_per_sec == 0:
 		_log_trace_row()
@@ -94,12 +98,23 @@ func _spawn_units() -> void:
 	_units.append(blue)
 
 
+func _enemies_for(unit: Unit) -> Array[Unit]:
+	var enemies: Array[Unit] = []
+	for other in _units:
+		if other == unit or other.get_state() == Unit.State.REMOVED:
+			continue
+		if other.team_id == unit.team_id:
+			continue
+		enemies.append(other)
+	return enemies
+
+
 func _update_movement(delta: float) -> void:
 	for unit in _units:
 		if unit.get_state() == Unit.State.REMOVED:
 			continue
 		if unit.get_state() == Unit.State.MARCHING:
-			unit.update_marching(delta)
+			unit.update_marching(delta, _enemies_for(unit))
 			_try_begin_engagement(unit)
 		elif unit.get_state() == Unit.State.ROUTING:
 			unit.update_routing(delta)
@@ -107,20 +122,38 @@ func _update_movement(delta: float) -> void:
 			unit.get_state() == Unit.State.HOLD
 			and unit.current_order == Unit.Order.MARCH_TO
 		):
-			unit.update_marching(delta)
+			unit.update_marching(delta, _enemies_for(unit))
 			_try_begin_engagement(unit)
 
 
 func _try_begin_engagement(unit: Unit) -> void:
+	if unit.get_state() == Unit.State.ROUTING:
+		return
+
 	for other in _units:
 		if other == unit or other.get_state() == Unit.State.REMOVED:
+			continue
+		if other.get_state() == Unit.State.ROUTING:
 			continue
 		if other.team_id == unit.team_id:
 			continue
 		if CombatResolver.units_have_front_contact(unit, other):
 			unit.begin_engagement(other)
 			other.begin_engagement(unit)
+			_on_first_contact()
 			return
+
+
+func _on_first_contact() -> void:
+	if _first_contact_tick >= 0:
+		return
+	_first_contact_tick = _sim_tick_count
+
+
+func _on_first_rout() -> void:
+	if _first_rout_tick >= 0:
+		return
+	_first_rout_tick = _sim_tick_count
 
 
 func _combat_tick() -> void:
@@ -148,16 +181,47 @@ func _combat_tick() -> void:
 			continue
 
 		var result := CombatResolver.resolve_engagement(unit, partner)
-		CombatResolver.apply_ground_loss(unit, result.shift_a_m)
-		CombatResolver.apply_ground_loss(partner, result.shift_b_m)
+		CombatResolver.apply_ground_shift(unit, result.shift_a_m)
+		CombatResolver.apply_ground_shift(partner, result.shift_b_m)
+
 		CombatResolver.apply_strength_loss(unit, result.damage_a)
 		CombatResolver.apply_strength_loss(partner, result.damage_b)
+
+		unit.set_bump_state(result.gap_ratio, result.a_is_winner)
+		partner.set_bump_state(result.gap_ratio, not result.a_is_winner)
+
+		if unit.get_state() == Unit.State.ROUTING or partner.get_state() == Unit.State.ROUTING:
+			_on_first_rout()
+
+
+func _track_rout_state() -> void:
+	for unit in _units:
+		if unit.get_state() == Unit.State.ROUTING:
+			_on_first_rout()
+			return
 
 
 func _pair_key(unit_a: Unit, unit_b: Unit) -> String:
 	if unit_a.unit_id < unit_b.unit_id:
 		return unit_a.unit_id + ":" + unit_b.unit_id
 	return unit_b.unit_id + ":" + unit_a.unit_id
+
+
+func _assert_no_overlaps() -> void:
+	for i in _units.size():
+		var unit_a := _units[i]
+		if unit_a.get_state() == Unit.State.REMOVED:
+			continue
+		for j in range(i + 1, _units.size()):
+			var unit_b := _units[j]
+			if unit_b.get_state() == Unit.State.REMOVED:
+				continue
+			if CombatResolver.units_penetrating(unit_a, unit_b):
+				_overlap_assertion_failed = true
+				push_error(
+					"Overlap detected at tick %d between %s and %s"
+					% [_sim_tick_count, unit_a.unit_id, unit_b.unit_id]
+				)
 
 
 func _check_battle_end() -> void:
@@ -184,7 +248,6 @@ func _write_trace_header() -> void:
 	_trace_lines.append(
 		"time_sec,unit_id,strength,cohesion,pos_x,pos_y,state"
 	)
-	_trace_header_written = true
 
 
 func _log_trace_row() -> void:
@@ -225,20 +288,34 @@ func _write_trace_file() -> void:
 	print("[Scenario 01] Trace written: %s" % file_path)
 
 
+func _phase_durations_sec() -> Dictionary:
+	var tick_interval := CombatResolver.tick_interval()
+	var contact_tick := _first_contact_tick if _first_contact_tick >= 0 else _sim_tick_count
+	var rout_tick := _first_rout_tick if _first_rout_tick >= 0 else _sim_tick_count
+
+	return {
+		"march_sec": contact_tick * tick_interval,
+		"combat_sec": maxf((rout_tick - contact_tick) * tick_interval, 0.0),
+		"flee_sec": maxf((_sim_tick_count - rout_tick) * tick_interval, 0.0),
+	}
+
+
 func _print_summary() -> void:
-	var duration_sec := (Time.get_ticks_msec() - _battle_start_time_msec) / 1000.0
+	var phases := _phase_durations_sec()
 	if _winner == null:
 		print(
-			"[Scenario 01] SUMMARY | winner=none | duration=%.1fs"
-			% duration_sec
+			"[Scenario 01] SUMMARY | winner=none | march=%.1fs | combat=%.1fs | flee=%.1fs"
+			% [phases.march_sec, phases.combat_sec, phases.flee_sec]
 		)
 		return
 
 	print(
-		"[Scenario 01] SUMMARY | winner=%s | duration=%.1fs | winner_strength=%.2f | winner_cohesion=%.2f"
+		"[Scenario 01] SUMMARY | winner=%s | march=%.1fs | combat=%.1fs | flee=%.1fs | winner_strength=%.2f | winner_cohesion=%.2f"
 		% [
 			_winner.unit_id,
-			duration_sec,
+			phases.march_sec,
+			phases.combat_sec,
+			phases.flee_sec,
 			_winner.strength,
 			_winner.cohesion,
 		]
@@ -256,6 +333,14 @@ func get_winner_id() -> String:
 	if _winner == null:
 		return "none"
 	return _winner.unit_id
+
+
+func get_phase_durations_sec() -> Dictionary:
+	return _phase_durations_sec()
+
+
+func had_overlap_failure() -> bool:
+	return _overlap_assertion_failed
 
 
 func is_battle_over() -> bool:
