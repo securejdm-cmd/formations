@@ -73,3 +73,12 @@ Include outcome tables, duration splits, and assertion results as specified in t
 - Changing file structure, renaming, or deleting files
 - Changing any balance number outside the work order's scope
 - Placeholder art beyond flat colored rectangles
+
+## Merge Discipline (governance amendment)
+
+When the Technical Director approves a work order, its pull request must be marked **ready for review** and **merged to `main`** before the next work order begins.
+
+- **One WO = one merged PR.** Each approved work order lands on `main` as a single merged pull request; do not start a subsequent work order on a branch that has not yet been integrated.
+- **Merge order:** When catching up retroactively or merging dependent work, merge in work-order sequence (WO-003, WO-004, …). Resolve conflicts in favor of the **latest approved state** for that work order.
+- **Gate on `main`:** After merges, `main` must pass the full fast-mode regression suite: compass, fast certification (seed 12345), S1/S2 eleven-seed regression, determinism, and overlap assertion.
+- **Report:** Completion reports for merge batches must list the merge sequence and final regression result.

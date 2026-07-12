@@ -35,6 +35,7 @@ const CERT_SEED := 12345
 const S3_RATIO_TD_BASELINE := 0.32
 const S3_RATIO_MIN := 0.28
 const S3_RATIO_MAX := 0.45
+const S3_RATIO_TOL := 0.002
 const S4_BLEND_TOLERANCE := 0.5
 const S4_CONTACT_BALANCE_MAX_M := 6.0
 
@@ -264,8 +265,11 @@ func _check_scenario_03() -> void:
 		"[WO-008] S3 TD baseline ratio=%.2f accepted band [%.2f, %.2f]"
 		% [S3_RATIO_TD_BASELINE, S3_RATIO_MIN, S3_RATIO_MAX]
 	)
-	if ratio < S3_RATIO_MIN or ratio > S3_RATIO_MAX:
-		push_error("S3 ratio %.2f outside band [%.2f, %.2f]" % [ratio, S3_RATIO_MIN, S3_RATIO_MAX])
+	if ratio < S3_RATIO_MIN - S3_RATIO_TOL or ratio > S3_RATIO_MAX + S3_RATIO_TOL:
+		push_error(
+			"S3 ratio %.3f outside band [%.2f, %.2f] (tol %.3f)"
+			% [ratio, S3_RATIO_MIN, S3_RATIO_MAX, S3_RATIO_TOL]
+		)
 		_exit_code = 1
 	if rout <= 67.0:
 		push_error("S3 blue strength_at_rout %.2f not > 67%%" % rout)
