@@ -216,10 +216,9 @@ static func units_have_any_contact(unit_a: Unit, unit_b: Unit) -> bool:
 
 static func resolve_contact_segment(attacker: Unit, defender: Unit, contact: Dictionary) -> Dictionary:
 	# Worked per-tick example (SIDE flank, constants from combat_constants.json):
-	#   contact left=15m → attacker_frontage_pct=15/40=0.375, defender_edge_pct=15/40=0.375
-	#   push_attacker ≈ 49×0.375=18.4, push_defender ≈ 49×0.375=18.4 (wobble may pick winner)
-	#   If attacker wins: shift≈0.06m → shift_drain=0.06×0.8×2.0(left mult)=0.096 morale-only
-	#   casualty_drain from k_dmg×push — edge mult does NOT apply (shift morale only per WO-008).
+	#   contact left=15m → attacker_frontage_pct=1.0 (depth), defender_edge_pct≈0.375
+	#   If attacker wins: shift≈0.06m → shift_drain=0.06×0.8×edge_mult_side_shift(2.0)≈0.096
+	#   casualty_drain from k_dmg×push → cohesion × edge_mult_side_casualty(1.5) on left edge.
 	var frontage_pct: float = contact.get("attacker_frontage_pct", 1.0)
 	var defender_edge_pct: float = contact.get("defender_edge_pct", 1.0)
 	var edge_lengths: Dictionary = contact.get("edge_lengths_m", {})
@@ -313,14 +312,13 @@ static func apply_strength_loss_with_edge(
 		unit.add_crack_intensity_from_damage(applied)
 		var pct_lost := applied / strength_max * 100.0
 		var cohesion_drain := pct_lost * Constants.get_float("drain_per_strength_pct_lost")
-		# Casualty cohesion drain is not edge-multiplied (morale mult applies to shift loss only).
-		_attribute_cohesion_drain_by_edges(unit, cohesion_drain, edge_lengths)
+		_apply_casualty_drain_by_edges(unit, cohesion_drain, edge_lengths)
 
 	return applied
 
 
-## Length-weighted edge attribution without edge multiplier (casualty cohesion drain).
-static func _attribute_cohesion_drain_by_edges(unit: Unit, amount: float, edge_lengths: Dictionary) -> void:
+## Length-weighted casualty cohesion drain with per-edge casualty multiplier.
+static func _apply_casualty_drain_by_edges(unit: Unit, amount: float, edge_lengths: Dictionary) -> void:
 	if amount <= 0.0:
 		return
 	if edge_lengths.is_empty():
@@ -337,10 +335,11 @@ static func _attribute_cohesion_drain_by_edges(unit: Unit, amount: float, edge_l
 	for edge_name in edge_lengths.keys():
 		var length_m: float = edge_lengths[edge_name]
 		var portion := amount * length_m / total_length
-		unit.apply_cohesion_drain(portion, edge_name)
+		var edge_mult := _edge_casualty_multiplier_for_name(edge_name)
+		unit.apply_cohesion_drain(portion * edge_mult, edge_name)
 
 
-## Length-weighted edge morale drain with edge multiplier (ground-lost drain only).
+## Length-weighted shift morale drain with per-edge shift multiplier (ground-lost only).
 static func _apply_morale_drain_by_edges(unit: Unit, amount: float, edge_lengths: Dictionary) -> void:
 	if amount <= 0.0:
 		return
@@ -358,18 +357,29 @@ static func _apply_morale_drain_by_edges(unit: Unit, amount: float, edge_lengths
 	for edge_name in edge_lengths.keys():
 		var length_m: float = edge_lengths[edge_name]
 		var portion := amount * length_m / total_length
-		var edge_mult := _edge_multiplier_for_name(edge_name)
+		var edge_mult := _edge_shift_multiplier_for_name(edge_name)
 		unit.apply_cohesion_drain(portion * edge_mult, edge_name)
 
 
-static func _edge_multiplier_for_name(edge_name: String) -> float:
+static func _edge_shift_multiplier_for_name(edge_name: String) -> float:
 	match edge_name:
 		EdgeContact.EDGE_FRONT:
 			return Constants.get_float("edge_mult_front")
 		EdgeContact.EDGE_LEFT, EdgeContact.EDGE_RIGHT:
-			return Constants.get_float("side_edge_multiplier")
+			return Constants.get_float("edge_mult_side_shift")
 		EdgeContact.EDGE_REAR:
-			return Constants.get_float("rear_edge_multiplier")
+			return Constants.get_float("edge_mult_rear_shift")
+	return Constants.get_float("edge_mult_front")
+
+
+static func _edge_casualty_multiplier_for_name(edge_name: String) -> float:
+	match edge_name:
+		EdgeContact.EDGE_FRONT:
+			return Constants.get_float("edge_mult_front")
+		EdgeContact.EDGE_LEFT, EdgeContact.EDGE_RIGHT:
+			return Constants.get_float("edge_mult_side_casualty")
+		EdgeContact.EDGE_REAR:
+			return Constants.get_float("edge_mult_rear_casualty")
 	return Constants.get_float("edge_mult_front")
 
 

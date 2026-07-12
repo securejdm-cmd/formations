@@ -2,7 +2,7 @@ class_name Scenario03
 extends Scenario01
 
 const TRACE_PREFIX := "scenario_03"
-const FLANK_DELAY_SEC := 11.0
+const FLANK_DELAY_SEC := 9.5
 const FLANK_CORRECTION_EAST_DEPTH_SCALE := 0.55
 
 var _red_a: Unit = null

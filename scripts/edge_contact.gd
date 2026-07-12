@@ -92,11 +92,14 @@ static func classify_contact(attacker: Unit, defender: Unit) -> Dictionary:
 	for length_m in edge_lengths.values():
 		total_contact_m += length_m
 
-	var weighted_mult := 0.0
+	var weighted_shift_mult := 0.0
+	var weighted_casualty_mult := 0.0
 	for edge_name in edge_lengths.keys():
 		var length_m: float = edge_lengths[edge_name]
-		weighted_mult += length_m * _edge_multiplier(edge_name)
-	weighted_mult /= total_contact_m
+		weighted_shift_mult += length_m * _edge_shift_multiplier(edge_name)
+		weighted_casualty_mult += length_m * _edge_casualty_multiplier(edge_name)
+	weighted_shift_mult /= total_contact_m
+	weighted_casualty_mult /= total_contact_m
 
 	var attacker_frontage_pct := _attacker_contact_frontage_pct(
 		attacker, defender, edge_lengths, total_contact_m, px_per_meter
@@ -107,7 +110,9 @@ static func classify_contact(attacker: Unit, defender: Unit) -> Dictionary:
 	return {
 		"has_contact": true,
 		"edge_lengths_m": edge_lengths,
-		"edge_multiplier": weighted_mult,
+		"edge_multiplier": weighted_shift_mult,
+		"edge_shift_multiplier": weighted_shift_mult,
+		"edge_casualty_multiplier": weighted_casualty_mult,
 		"attacker_frontage_pct": attacker_frontage_pct,
 		"defender_edge_pct": defender_edge_pct,
 		"push_normal": push_normal,
@@ -155,6 +160,8 @@ static func _empty_contact() -> Dictionary:
 		"has_contact": false,
 		"edge_lengths_m": {},
 		"edge_multiplier": 1.0,
+		"edge_shift_multiplier": 1.0,
+		"edge_casualty_multiplier": 1.0,
 		"attacker_frontage_pct": 0.0,
 		"defender_edge_pct": 0.0,
 		"push_normal": Vector2.ZERO,
@@ -188,14 +195,25 @@ static func _edge_overlap_length(
 	)
 
 
-static func _edge_multiplier(edge_name: String) -> float:
+static func _edge_shift_multiplier(edge_name: String) -> float:
 	match edge_name:
 		EDGE_FRONT:
 			return Constants.get_float("edge_mult_front")
 		EDGE_LEFT, EDGE_RIGHT:
-			return Constants.get_float("side_edge_multiplier")
+			return Constants.get_float("edge_mult_side_shift")
 		EDGE_REAR:
-			return Constants.get_float("rear_edge_multiplier")
+			return Constants.get_float("edge_mult_rear_shift")
+	return Constants.get_float("edge_mult_front")
+
+
+static func _edge_casualty_multiplier(edge_name: String) -> float:
+	match edge_name:
+		EDGE_FRONT:
+			return Constants.get_float("edge_mult_front")
+		EDGE_LEFT, EDGE_RIGHT:
+			return Constants.get_float("edge_mult_side_casualty")
+		EDGE_REAR:
+			return Constants.get_float("edge_mult_rear_casualty")
 	return Constants.get_float("edge_mult_front")
 
 
