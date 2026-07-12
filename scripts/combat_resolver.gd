@@ -183,7 +183,7 @@ static func apply_strength_loss(unit: Unit, loss: float) -> float:
 	var applied := old_strength - unit.strength
 
 	if applied > 0.0:
-		unit.apply_rear_anchored_depth_from_strength(old_strength, unit.strength)
+		unit.add_crack_intensity_from_damage(applied)
 		var pct_lost := applied / strength_max * 100.0
 		var cohesion_drain := pct_lost * Constants.get_float("drain_per_strength_pct_lost")
 		unit.apply_cohesion_drain(cohesion_drain)

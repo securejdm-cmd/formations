@@ -21,6 +21,8 @@ var engaged_partner: Unit = null
 var pushing_power: float = 0.0
 var speed_stat: float = 0.0
 var damage_dealt: float = 0.0
+var _crack_intensity: float = 0.0
+var _crack_flicker_time: float = 0.0
 
 var _state: State = State.HOLD
 var _base_team_color: Color = Color.RED
@@ -34,6 +36,8 @@ var _bump_is_winner: bool = false
 @onready var _body: ColorRect = $VisualRoot/Body
 @onready var _border: ColorRect = $VisualRoot/Border
 @onready var _collision: CollisionShape2D = $CollisionShape2D
+
+var _crack_overlay: Node2D = null
 
 
 func _ready() -> void:
@@ -142,17 +146,13 @@ func get_results_state_label() -> String:
 	return "fighting"
 
 
-func apply_rear_anchored_depth_from_strength(old_strength: float, new_strength: float) -> void:
+func add_crack_intensity_from_damage(strength_damage: float) -> void:
 	var strength_max := Constants.get_float("strength_max")
-	var full_depth := full_depth_m()
-	var old_depth := full_depth * (old_strength / strength_max)
-	var new_depth := full_depth * (new_strength / strength_max)
-	var delta_depth_m := old_depth - new_depth
-	if delta_depth_m <= 0.0001:
-		return
-
-	var px_per_meter := Constants.get_float("px_per_meter")
-	position -= facing.normalized() * delta_depth_m * 0.5 * px_per_meter
+	_crack_intensity = clampf(
+		_crack_intensity + strength_damage / strength_max,
+		0.0,
+		1.0,
+	)
 
 
 func speed_m_per_sec() -> float:
@@ -264,6 +264,7 @@ func _process(delta: float) -> void:
 	_update_dimensions()
 	_update_waver_flicker(delta)
 	_update_bump_visual(delta)
+	_update_crack_fissures(delta)
 
 
 func _set_state(new_state: State) -> void:
@@ -304,19 +305,21 @@ func _apply_state_visuals() -> void:
 
 func _update_dimensions() -> void:
 	var px_per_meter := Constants.get_float("px_per_meter")
+	var full_depth_px := full_depth_m() * px_per_meter
 	var depth_px := effective_depth_m() * px_per_meter
 	var frontage_px := effective_frontage_m() * px_per_meter
 
-	# Local X = depth (short axis, along facing). Local Y = frontage (long front edge).
-	# Rear-anchored: center sits halfway between rear (fixed line) and front face.
+	# Simulation footprint stays centered on the unit origin (WO-003 geometry).
+	# Render-only rear anchor: visual rear holds, front face recedes as depth thins.
 	_body.size = Vector2(depth_px, frontage_px)
-	_body.position = Vector2(-depth_px * 0.5, -frontage_px * 0.5)
+	_body.position = Vector2(-full_depth_px * 0.5, -frontage_px * 0.5)
 
 	var border_pad := 4.0
 	_border.size = _body.size + Vector2(border_pad, border_pad)
 	_border.position = _body.position - Vector2(border_pad * 0.5, border_pad * 0.5)
 
 	rotation = facing.angle()
+	_update_collision()
 
 
 func _update_collision() -> void:
@@ -350,6 +353,51 @@ func _update_bump_visual(delta: float) -> void:
 	)
 	var direction := 1.0 if _bump_is_winner else -1.0
 	_visual_root.position = facing.normalized() * wave * amp_px * direction
+
+
+func _update_crack_fissures(delta: float) -> void:
+	if _crack_overlay == null:
+		return
+
+	if _state != State.ENGAGED and _state != State.WAVERING:
+		_crack_overlay.queue_redraw()
+		return
+
+	_crack_flicker_time += delta
+	_crack_overlay.queue_redraw()
+
+
+func _draw_crack_fissures(canvas: Node2D) -> void:
+	if _crack_intensity <= 0.001:
+		return
+	if _state != State.ENGAGED and _state != State.WAVERING:
+		return
+
+	var px_per_meter := Constants.get_float("px_per_meter")
+	var full_depth_px := full_depth_m() * px_per_meter
+	var depth_px := effective_depth_m() * px_per_meter
+	var frontage_px := effective_frontage_m() * px_per_meter
+	var front_x := -full_depth_px * 0.5 + depth_px
+	var max_count := int(Constants.get_float("crack_fissure_max_count"))
+	var line_count := int(ceil(_crack_intensity * float(max_count)))
+	line_count = clampi(line_count, 0, max_count)
+	if line_count <= 0:
+		return
+
+	var length_px := Constants.get_float("crack_fissure_length_m") * px_per_meter
+	var flicker_hz := Constants.get_float("crack_fissure_flicker_s")
+	var flicker := 0.35 + 0.65 * absf(sin(_crack_flicker_time / flicker_hz * TAU + float(unit_id.hash() % 7)))
+	var color := Color(0.08, 0.08, 0.1, 0.85 * flicker)
+
+	for i in line_count:
+		var seed := absi(unit_id.hash() + i * 131)
+		var y := -frontage_px * 0.5 + (float(seed % 1000) / 1000.0) * frontage_px
+		var jag := float(seed % 17) / 17.0 * length_px * 0.35
+		var p0 := Vector2(front_x, y)
+		var p1 := Vector2(front_x + length_px * flicker, y + jag)
+		var p2 := Vector2(front_x + length_px * 0.65 * flicker, y - jag * 0.5)
+		canvas.draw_line(p0, p1, color, 1.2, true)
+		canvas.draw_line(p1, p2, color, 1.0, true)
 
 
 func _update_waver_flicker(delta: float) -> void:
@@ -389,5 +437,16 @@ func _ensure_nodes() -> void:
 		_body = _visual_root.get_node("Body")
 	if _border == null and _visual_root != null:
 		_border = _visual_root.get_node("Border")
+	if _crack_overlay == null and _visual_root != null:
+		_crack_overlay = _visual_root.get_node_or_null("CrackOverlay")
+		if _crack_overlay == null:
+			_crack_overlay = Node2D.new()
+			_crack_overlay.name = "CrackOverlay"
+			_visual_root.add_child(_crack_overlay)
+			_crack_overlay.draw.connect(_on_crack_overlay_draw)
 	if _collision == null:
 		_collision = $CollisionShape2D
+
+
+func _on_crack_overlay_draw() -> void:
+	_draw_crack_fissures(_crack_overlay)

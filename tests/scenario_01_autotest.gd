@@ -1,6 +1,6 @@
 extends SceneTree
 
-## Headless acceptance harness for WO-004 Scenario 1.
+## Headless acceptance harness for WO-005 Scenario 1.
 
 const WO003_WINNERS := {
 	1000: "red_1",
@@ -103,7 +103,7 @@ func _finish_current_scenario() -> void:
 				_exit_code = 1
 			else:
 				print(
-					"[WO-004 Test] Determinism: PASS (seed %d)"
+					"[WO-005 Test] Determinism: PASS (seed %d)"
 					% _constants.get_int("scenario_01_battle_seed")
 				)
 			_test_mode = "mirror_kills"
@@ -131,7 +131,7 @@ func _finish_current_scenario() -> void:
 				)
 				_exit_code = 1
 			print(
-				"[WO-004 Test] Seed %d winner: %s | combat: %.1fs (WO-003: %.1fs)"
+				"[WO-005 Test] Seed %d winner: %s | combat: %.1fs (WO-003: %.1fs)"
 				% [
 					seed_value,
 					winner,
@@ -154,12 +154,12 @@ func _finish_current_scenario() -> void:
 				_exit_code = 1
 			else:
 				print(
-					"[WO-004 Test] Primary seed winner: %s | combat: %.1fs"
+					"[WO-005 Test] Primary seed winner: %s | combat: %.1fs"
 					% [winner, phases.combat_sec]
 				)
 				if phases.combat_sec < 45.0 or phases.combat_sec > 120.0:
 					print(
-						"[WO-004 Test] NOTE: Combat %.1fs outside 45-120s band — Task 3 geometry change; traces delivered, no self-tuning"
+						"[WO-005 Test] NOTE: Combat %.1fs outside 45-120s band — Task 3 geometry change; traces delivered, no self-tuning"
 						% phases.combat_sec
 					)
 			process_frame.disconnect(_on_process_frame)
@@ -206,13 +206,13 @@ func _check_mirror_kills() -> void:
 		_exit_code = 1
 	else:
 		print(
-			"[WO-004 Test] Kill accounting: PASS (red=%d, blue=%d)"
+			"[WO-005 Test] Kill accounting: PASS (red=%d, blue=%d)"
 			% [red_kills, blue_kills]
 		)
 
 
 func _print_outcome_table() -> void:
-	print("[WO-004 Test] 10-run outcome table:")
+	print("[WO-005 Test] 10-run outcome table:")
 	for result in _ten_seed_results:
 		var old_combat: float = WO003_COMBAT_SEC.get(result.seed, -1.0)
 		print(
