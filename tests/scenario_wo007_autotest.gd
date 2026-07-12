@@ -52,10 +52,12 @@ var _sweep_accum_s2: Array[Dictionary] = []
 var _sweep_rows: Array[Dictionary] = []
 var _baseline_s1_winners: Dictionary = {}
 var _baseline_s2_winners: Dictionary = {}
+var _sim_harness: Script
 
 
 func _initialize() -> void:
 	_constants = root.get_node("Constants")
+	_sim_harness = load("res://scripts/sim_harness.gd")
 	process_frame.connect(_on_process_frame)
 	_test_mode = "reflection_normal"
 	_reflection_index = 0
@@ -68,8 +70,7 @@ func _on_process_frame() -> void:
 	if not _scenario.is_node_ready():
 		return
 	if _phase == "simulate":
-		while not _scenario.is_battle_over():
-			_scenario.advance_one_tick()
+		_sim_harness.run_to_completion(_scenario, _sim_harness.RunMode.FAST)
 		_finish_current_scenario()
 
 
@@ -90,6 +91,7 @@ func _start_scenario(scene_key: String, seed_value: int) -> void:
 	var packed: PackedScene = load(scene_path)
 	_scenario = packed.instantiate()
 	_scenario.headless_mode = true
+	_scenario.fast_sim_mode = true
 	_scenario.set_battle_seed(seed_value)
 	root.add_child(_scenario)
 	_phase = "simulate"

@@ -4,7 +4,13 @@ extends RefCounted
 ## Oriented formation rectangles: depth along facing, frontage perpendicular.
 
 
+static func left_vector(facing: Vector2) -> Vector2:
+	# Soldier's left: facing rotated +90° counterclockwise (Godot Y-down).
+	return Vector2(facing.y, -facing.x)
+
+
 static func right_vector(facing: Vector2) -> Vector2:
+	# Soldier's right: facing rotated -90° clockwise.
 	return Vector2(-facing.y, facing.x)
 
 

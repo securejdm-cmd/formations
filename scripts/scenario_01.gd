@@ -8,6 +8,8 @@ enum BattlePhase { ACTIVE, VICTORY_PENDING, VICTORY_EPILOGUE, FINISHED }
 
 @export var auto_run: bool = true
 @export var headless_mode: bool = false
+## When true (with headless_mode), autotest harness drives ticks via SimHarness — no _process loop.
+@export var fast_sim_mode: bool = false
 
 var _units: Array[Unit] = []
 var _tick_accumulator: float = 0.0
@@ -25,6 +27,7 @@ var _battle_start_time_msec: int = 0
 var _first_contact_tick: int = -1
 var _first_rout_tick: int = -1
 var _overlap_assertion_failed: bool = false
+var _adhesion_invariant_failed: bool = false
 
 @onready var _camera: Camera2D = $Camera2D
 @onready var _ground: ColorRect = $Ground
@@ -56,16 +59,28 @@ func _ready() -> void:
 		_battle_start_time_msec = Time.get_ticks_msec()
 		_write_trace_header()
 		_log_trace_row()
+	if headless_mode:
+		set_process(false)
+
+
+func simulate_realtime_step(delta: float = -1.0) -> void:
+	var step := delta if delta > 0.0 else CombatResolver.tick_interval()
+	_process(step)
+
+
+func run_simulation_fast(extra_ticks: int = 0) -> void:
+	var harness: Script = load("res://scripts/sim_harness.gd")
+	harness.run_to_completion(self, harness.RunMode.FAST, extra_ticks)
 
 
 func _process(delta: float) -> void:
 	if _battle_over:
 		return
-
 	if not headless_mode and _battle_phase == BattlePhase.VICTORY_PENDING:
 		_victory_delay_accum += delta
 		if _victory_delay_accum >= Constants.get_float("victory_delay_s"):
 			_declare_victory()
+		return
 
 	_tick_accumulator += delta
 	var tick_interval := CombatResolver.tick_interval()
@@ -83,8 +98,11 @@ func advance_one_tick() -> void:
 	var tick_interval := CombatResolver.tick_interval()
 	_sim_tick_count += 1
 	_update_movement(tick_interval)
+	_resolve_allied_overlaps()
+	_apply_contact_adhesion()
 	_assert_no_overlaps()
 	_combat_tick()
+	_apply_contact_adhesion()
 	_track_rout_state()
 	_update_victory_state(tick_interval)
 	var ticks_per_sec := int(Constants.get_float("tick_rate_per_sec"))
@@ -157,11 +175,17 @@ func _try_begin_engagement(unit: Unit) -> void:
 			continue
 		if other.team_id == unit.team_id:
 			continue
-		if CombatResolver.units_have_front_contact(unit, other):
-			unit.begin_engagement(other)
-			other.begin_engagement(unit)
-			_on_first_contact()
-			return
+		if not CombatResolver.units_have_any_contact(unit, other):
+			continue
+
+		unit.add_contact_partner(other)
+		other.add_contact_partner(unit)
+		if (
+			CombatResolver.is_head_on_pair(unit, other)
+			and not EdgeContact.has_non_front_segment_contact(unit, other)
+		):
+			CombatResolver.snap_pair_to_contact(unit, other)
+		_on_first_contact()
 
 
 func _on_first_contact() -> void:
@@ -177,7 +201,13 @@ func _on_first_rout() -> void:
 
 
 func _combat_tick() -> void:
-	var processed: Array[String] = []
+	_prune_broken_contacts()
+
+	var processed_head_on: Array[String] = []
+	var processed_segments: Array[String] = []
+	var defender_shifts: Dictionary = {}
+	var bump_winners: Dictionary = {}
+	var contact_edge_labels: Dictionary = {}  # Unit -> Array[String]
 
 	for unit in _units:
 		if unit.get_state() == Unit.State.REMOVED:
@@ -185,36 +215,186 @@ func _combat_tick() -> void:
 		if unit.get_state() != Unit.State.ENGAGED and unit.get_state() != Unit.State.WAVERING:
 			continue
 
-		var partner := unit.engaged_partner
-		if partner == null or partner.get_state() == Unit.State.REMOVED:
-			unit.break_engagement()
+		for partner in unit.get_contact_partners():
+			if partner == null or partner.get_state() == Unit.State.REMOVED:
+				continue
+			if partner.get_state() == Unit.State.ROUTING:
+				continue
+
+			if not CombatResolver.is_head_on_pair(unit, partner):
+				continue
+			if not CombatResolver.units_have_front_contact(unit, partner):
+				continue
+			if EdgeContact.has_non_front_segment_contact(unit, partner):
+				continue
+
+			var pair_key := _pair_key(unit, partner)
+			if pair_key in processed_head_on:
+				continue
+			processed_head_on.append(pair_key)
+
+			var result := CombatResolver.resolve_engagement(unit, partner)
+			CombatResolver.apply_ground_shift(unit, result.shift_a_m)
+			CombatResolver.apply_ground_shift(partner, result.shift_b_m)
+
+			var applied_to_unit := CombatResolver.apply_strength_loss(unit, result.damage_a)
+			partner.record_damage_dealt(applied_to_unit)
+			var applied_to_partner := CombatResolver.apply_strength_loss(partner, result.damage_b)
+			unit.record_damage_dealt(applied_to_partner)
+
+			unit.set_bump_state(result.gap_ratio, result.a_is_winner)
+			partner.set_bump_state(result.gap_ratio, not result.a_is_winner)
+
+			if unit.get_state() == Unit.State.ROUTING or partner.get_state() == Unit.State.ROUTING:
+				_on_first_rout()
+				_try_start_victory_delay(unit if unit.get_state() == Unit.State.ROUTING else partner)
+
+	for defender in _units:
+		if defender.get_state() == Unit.State.REMOVED:
+			continue
+		if defender.get_state() != Unit.State.ENGAGED and defender.get_state() != Unit.State.WAVERING:
 			continue
 
-		var pair_key := _pair_key(unit, partner)
-		if pair_key in processed:
+		for attacker in defender.get_contact_partners():
+			if attacker == null or attacker.get_state() == Unit.State.REMOVED:
+				continue
+			if attacker.get_state() == Unit.State.ROUTING:
+				continue
+			if CombatResolver.is_head_on_pair(attacker, defender):
+				if not EdgeContact.has_non_front_segment_contact(attacker, defender):
+					continue
+
+			var pair_key := _pair_key(attacker, defender)
+			if pair_key in processed_segments:
+				continue
+			processed_segments.append(pair_key)
+
+			var orientation := EdgeContact.pick_segment_orientation(attacker, defender)
+			var seg_attacker: Unit = orientation.get("attacker")
+			var seg_defender: Unit = orientation.get("defender")
+			var contact: Dictionary = orientation.get("contact", {})
+			if not contact.get("has_contact", false):
+				continue
+
+			var edge_label: String = contact.get("edge_label", "")
+			if not edge_label.is_empty():
+				if not contact_edge_labels.has(seg_defender):
+					contact_edge_labels[seg_defender] = [] as Array[String]
+				(contact_edge_labels[seg_defender] as Array[String]).append(edge_label)
+
+			var segment := CombatResolver.resolve_contact_segment(seg_attacker, seg_defender, contact)
+			var edge_lengths: Dictionary = segment.get("edge_lengths_m", {})
+			var push_normal: Vector2 = segment.get("push_normal", seg_defender.facing)
+
+			if is_equal_approx(segment.attacker_push, segment.defender_push):
+				var dmg_attacker := CombatResolver.apply_strength_loss_with_edge(
+					seg_attacker, segment.attacker_damage, edge_lengths
+				)
+				var dmg_defender := CombatResolver.apply_strength_loss_with_edge(
+					seg_defender, segment.defender_damage, edge_lengths
+				)
+				seg_defender.record_damage_dealt(dmg_attacker)
+				seg_attacker.record_damage_dealt(dmg_defender)
+			elif segment.attacker_wins:
+				_accumulate_directed_shift(defender_shifts, seg_defender, push_normal, segment.defender_shift_m)
+				CombatResolver.apply_shift_morale_drain(seg_defender, segment.defender_shift_m, edge_lengths)
+				var applied_defender := CombatResolver.apply_strength_loss_with_edge(
+					seg_defender, segment.defender_damage, edge_lengths
+				)
+				var applied_attacker := CombatResolver.apply_strength_loss_with_edge(
+					seg_attacker, segment.attacker_damage, edge_lengths
+				)
+				seg_attacker.record_damage_dealt(applied_defender)
+				seg_defender.record_damage_dealt(applied_attacker)
+			else:
+				_accumulate_directed_shift(defender_shifts, seg_attacker, -push_normal, segment.attacker_shift_m)
+				CombatResolver.apply_shift_morale_drain(seg_attacker, segment.attacker_shift_m, edge_lengths)
+				var applied_attacker := CombatResolver.apply_strength_loss_with_edge(
+					seg_attacker, segment.attacker_damage, edge_lengths
+				)
+				var applied_defender := CombatResolver.apply_strength_loss_with_edge(
+					seg_defender, segment.defender_damage, edge_lengths
+				)
+				seg_defender.record_damage_dealt(applied_attacker)
+				seg_attacker.record_damage_dealt(applied_defender)
+
+			var gap_ratio: float = segment.get("gap_ratio", 0.0)
+			bump_winners[seg_attacker] = segment.attacker_wins
+			seg_attacker.set_bump_state(gap_ratio, segment.attacker_wins)
+			seg_defender.set_bump_state(gap_ratio, not segment.attacker_wins)
+
+			if seg_attacker.get_state() == Unit.State.ROUTING or seg_defender.get_state() == Unit.State.ROUTING:
+				_on_first_rout()
+				_try_start_victory_delay(
+					seg_attacker if seg_attacker.get_state() == Unit.State.ROUTING else seg_defender
+				)
+
+		defender.set_active_contact_edges("")
+
+	for unit in _units:
+		if unit.get_state() == Unit.State.REMOVED:
 			continue
-		processed.append(pair_key)
+		var labels: Array[String] = contact_edge_labels.get(unit, [] as Array[String])
+		unit.set_active_contact_edges(_join_edge_labels(labels))
 
-		if not CombatResolver.units_have_front_contact(unit, partner):
-			unit.break_engagement()
-			partner.break_engagement()
+	for defender in defender_shifts.keys():
+		var shift_info: Dictionary = defender_shifts[defender]
+		var shift_vector: Vector2 = shift_info.vector
+		var shift_m := shift_vector.length() / Constants.get_float("px_per_meter")
+		if shift_m > 0.0:
+			CombatResolver.apply_directed_position_shift(
+				defender,
+				shift_m,
+				shift_vector.normalized(),
+			)
+
+	for unit in bump_winners.keys():
+		if unit.get_state() == Unit.State.ROUTING:
+			unit.clear_bump_state()
+
+
+func _prune_broken_contacts() -> void:
+	for unit in _units:
+		if unit.get_state() == Unit.State.REMOVED or unit.get_state() == Unit.State.ROUTING:
 			continue
+		for partner in unit.get_contact_partners().duplicate():
+			if partner == null or partner.get_state() == Unit.State.REMOVED:
+				unit.remove_contact_partner(partner)
+				continue
+			if partner.get_state() == Unit.State.ROUTING:
+				unit.remove_contact_partner(partner)
+				continue
+			if (
+				CombatResolver.is_head_on_pair(unit, partner)
+				and not EdgeContact.has_non_front_segment_contact(unit, partner)
+			):
+				if not CombatResolver.units_have_any_contact(unit, partner):
+					unit.remove_contact_partner(partner)
 
-		var result := CombatResolver.resolve_engagement(unit, partner)
-		CombatResolver.apply_ground_shift(unit, result.shift_a_m)
-		CombatResolver.apply_ground_shift(partner, result.shift_b_m)
 
-		var applied_to_unit := CombatResolver.apply_strength_loss(unit, result.damage_a)
-		partner.record_damage_dealt(applied_to_unit)
-		var applied_to_partner := CombatResolver.apply_strength_loss(partner, result.damage_b)
-		unit.record_damage_dealt(applied_to_partner)
+func _accumulate_directed_shift(
+	shift_map: Dictionary,
+	unit: Unit,
+	normal: Vector2,
+	shift_m: float
+) -> void:
+	if shift_m <= 0.0:
+		return
+	var px_per_meter := Constants.get_float("px_per_meter")
+	if not shift_map.has(unit):
+		shift_map[unit] = {"vector": Vector2.ZERO, "edge_lengths": {}}
+	var entry: Dictionary = shift_map[unit]
+	entry.vector += normal.normalized() * shift_m * px_per_meter
 
-		unit.set_bump_state(result.gap_ratio, result.a_is_winner)
-		partner.set_bump_state(result.gap_ratio, not result.a_is_winner)
 
-		if unit.get_state() == Unit.State.ROUTING or partner.get_state() == Unit.State.ROUTING:
-			_on_first_rout()
-			_try_start_victory_delay(unit if unit.get_state() == Unit.State.ROUTING else partner)
+func _join_edge_labels(labels: Array[String]) -> String:
+	if labels.is_empty():
+		return ""
+	var unique: Array[String] = []
+	for label in labels:
+		if label not in unique:
+			unique.append(label)
+	return ";".join(unique)
 
 
 func _track_rout_state() -> void:
@@ -363,6 +543,75 @@ func _build_results_rows() -> Array[Dictionary]:
 	return rows
 
 
+func _apply_contact_adhesion() -> void:
+	var processed: Array[String] = []
+	var prune_keys: Array[String] = []
+	for unit in _units:
+		if unit.get_state() == Unit.State.REMOVED or unit.get_state() == Unit.State.ROUTING:
+			continue
+		for partner in unit.get_contact_partners():
+			if partner == null or partner.get_state() == Unit.State.REMOVED:
+				continue
+			if partner.get_state() == Unit.State.ROUTING:
+				continue
+			var pair_key := _pair_key(unit, partner)
+			if pair_key in processed:
+				continue
+			processed.append(pair_key)
+			if CombatResolver.apply_contact_adhesion_pair(unit, partner, _units):
+				prune_keys.append(pair_key)
+	for unit in _units:
+		if unit.get_state() == Unit.State.REMOVED or unit.get_state() == Unit.State.ROUTING:
+			continue
+		for partner in unit.get_contact_partners().duplicate():
+			if partner == null:
+				continue
+			var pair_key := _pair_key(unit, partner)
+			if pair_key in prune_keys:
+				unit.remove_contact_partner(partner)
+	_assert_partner_classifier_contact_invariant()
+
+
+func _assert_partner_classifier_contact_invariant() -> void:
+	for unit in _units:
+		if unit.get_state() == Unit.State.REMOVED or unit.get_state() == Unit.State.ROUTING:
+			continue
+		for partner in unit.get_contact_partners():
+			if partner == null or partner.get_state() == Unit.State.REMOVED:
+				continue
+			if partner.get_state() == Unit.State.ROUTING:
+				continue
+			if partner.get_state() != Unit.State.ENGAGED and partner.get_state() != Unit.State.WAVERING:
+				continue
+			if (
+				CombatResolver.is_head_on_pair(unit, partner)
+				and not EdgeContact.has_non_front_segment_contact(unit, partner)
+			):
+				continue
+			if CombatResolver.pair_has_classifier_contact(unit, partner):
+				continue
+			if not _adhesion_invariant_failed:
+				push_error(
+					"Adhesion invariant failed at tick %d: %s/%s partner-linked without classifier contact"
+					% [_sim_tick_count, unit.unit_id, partner.unit_id]
+				)
+			_adhesion_invariant_failed = true
+
+
+func _resolve_allied_overlaps() -> void:
+	for i in _units.size():
+		var unit_a := _units[i]
+		if unit_a.get_state() == Unit.State.REMOVED or unit_a.get_state() == Unit.State.ROUTING:
+			continue
+		for j in range(i + 1, _units.size()):
+			var unit_b := _units[j]
+			if unit_b.get_state() == Unit.State.REMOVED or unit_b.get_state() == Unit.State.ROUTING:
+				continue
+			if unit_a.team_id != unit_b.team_id:
+				continue
+			CombatResolver.separate_allied_overlap(unit_a, unit_b)
+
+
 func _pair_key(unit_a: Unit, unit_b: Unit) -> String:
 	if unit_a.unit_id < unit_b.unit_id:
 		return unit_a.unit_id + ":" + unit_b.unit_id
@@ -370,25 +619,28 @@ func _pair_key(unit_a: Unit, unit_b: Unit) -> String:
 
 
 func _assert_no_overlaps() -> void:
+	# Non-routing pairs only (allied and enemy). Routing units are formless fugitives.
 	for i in _units.size():
 		var unit_a := _units[i]
-		if unit_a.get_state() == Unit.State.REMOVED:
+		if unit_a.get_state() == Unit.State.REMOVED or unit_a.get_state() == Unit.State.ROUTING:
 			continue
 		for j in range(i + 1, _units.size()):
 			var unit_b := _units[j]
-			if unit_b.get_state() == Unit.State.REMOVED:
+			if unit_b.get_state() == Unit.State.REMOVED or unit_b.get_state() == Unit.State.ROUTING:
 				continue
-			if CombatResolver.units_penetrating(unit_a, unit_b):
-				_overlap_assertion_failed = true
-				push_error(
-					"Overlap detected at tick %d between %s and %s"
-					% [_sim_tick_count, unit_a.unit_id, unit_b.unit_id]
-				)
+			if not CombatResolver.units_overlap(unit_a, unit_b):
+				continue
+			_overlap_assertion_failed = true
+			var relation := "allied" if unit_a.team_id == unit_b.team_id else "enemy"
+			push_error(
+				"Overlap detected at tick %d between %s and %s (%s)"
+				% [_sim_tick_count, unit_a.unit_id, unit_b.unit_id, relation]
+			)
 
 
 func _write_trace_header() -> void:
 	_trace_lines.append(
-		"time_sec,unit_id,strength,cohesion,kills,pos_x,pos_y,state"
+		"time_sec,unit_id,strength,cohesion,kills,pos_x,pos_y,state,contact_edges"
 	)
 
 
@@ -396,7 +648,7 @@ func _log_trace_row() -> void:
 	var time_sec := _sim_tick_count * CombatResolver.tick_interval()
 	for unit in _units:
 		_trace_lines.append(
-			"%.1f,%s,%.4f,%.4f,%d,%.2f,%.2f,%s"
+			"%.1f,%s,%.4f,%.4f,%d,%.2f,%.2f,%s,%s"
 			% [
 				time_sec,
 				unit.unit_id,
@@ -406,6 +658,7 @@ func _log_trace_row() -> void:
 				unit.position.x,
 				unit.position.y,
 				unit.get_state_name(),
+				unit.get_active_contact_edges(),
 			]
 		)
 
@@ -481,6 +734,10 @@ func get_phase_durations_sec() -> Dictionary:
 
 func had_overlap_failure() -> bool:
 	return _overlap_assertion_failed
+
+
+func had_adhesion_invariant_failure() -> bool:
+	return _adhesion_invariant_failed
 
 
 func is_battle_over() -> bool:

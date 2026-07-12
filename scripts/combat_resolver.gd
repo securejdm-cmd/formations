@@ -1,7 +1,13 @@
 class_name CombatResolver
 extends RefCounted
 
-const CONTACT_EPSILON_M := 0.01
+
+static func contact_epsilon_m() -> float:
+	return EdgeContact.contact_epsilon_m()
+
+
+static func engage_snap_max_m() -> float:
+	return Constants.get_float("engage_snap_max_m")
 
 
 static func tick_rate() -> float:
@@ -33,11 +39,30 @@ static func calc_push_score(unit: Unit, contact_frontage_pct: float = 1.0, conte
 
 static func units_have_front_contact(unit_a: Unit, unit_b: Unit) -> bool:
 	var gap_m := _raw_center_gap_m(unit_a, unit_b)
-	return gap_m <= CONTACT_EPSILON_M and gap_m >= -CONTACT_EPSILON_M
+	return gap_m <= contact_epsilon_m() and gap_m >= -contact_epsilon_m()
 
 
 static func units_penetrating(unit_a: Unit, unit_b: Unit) -> bool:
-	return _raw_center_gap_m(unit_a, unit_b) < -CONTACT_EPSILON_M
+	return _raw_center_gap_m(unit_a, unit_b) < -contact_epsilon_m()
+
+
+static func units_overlap(unit_a: Unit, unit_b: Unit) -> bool:
+	# Routing units are formless fugitives — no collision volume (WO-008 TD ruling).
+	if (
+		unit_a.get_state() == Unit.State.ROUTING
+		or unit_b.get_state() == Unit.State.ROUTING
+	):
+		return false
+	if unit_a.team_id == unit_b.team_id:
+		return FormationGeometry.rectangles_overlap(unit_a, unit_b)
+	if is_head_on_pair(unit_a, unit_b):
+		return units_penetrating(unit_a, unit_b)
+	if (
+		EdgeContact.units_have_contact(unit_a, unit_b)
+		or EdgeContact.units_have_contact(unit_b, unit_a)
+	):
+		return false
+	return FormationGeometry.rectangles_overlap(unit_a, unit_b)
 
 
 static func _raw_center_gap_m(unit_a: Unit, unit_b: Unit) -> float:
@@ -93,9 +118,173 @@ static func snap_pair_to_contact(unit_a: Unit, unit_b: Unit) -> void:
 		unit_b.position += dir * correction_px
 
 
+## Classifier truth: segment pairs use pick_segment_orientation contact; head-on uses edge contact.
+static func pair_has_classifier_contact(unit_a: Unit, unit_b: Unit) -> bool:
+	if (
+		unit_a.get_state() == Unit.State.ROUTING
+		or unit_b.get_state() == Unit.State.ROUTING
+		or unit_a.get_state() == Unit.State.REMOVED
+		or unit_b.get_state() == Unit.State.REMOVED
+	):
+		return false
+	if is_head_on_pair(unit_a, unit_b) and not EdgeContact.has_non_front_segment_contact(unit_a, unit_b):
+		return units_have_any_contact(unit_a, unit_b)
+	var orient := EdgeContact.pick_segment_orientation(unit_a, unit_b)
+	return orient.contact.get("has_contact", false)
+
+
+## Returns true when the partnership must be pruned this tick.
+static func apply_contact_adhesion_pair(unit_a: Unit, unit_b: Unit, all_units: Array = []) -> bool:
+	if (
+		unit_a.get_state() == Unit.State.ROUTING
+		or unit_b.get_state() == Unit.State.ROUTING
+		or unit_a.get_state() == Unit.State.REMOVED
+		or unit_b.get_state() == Unit.State.REMOVED
+	):
+		return true
+
+	if is_head_on_pair(unit_a, unit_b) and not EdgeContact.has_non_front_segment_contact(unit_a, unit_b):
+		return false
+
+	if pair_has_classifier_contact(unit_a, unit_b):
+		return false
+
+	var orient := EdgeContact.pick_segment_orientation(unit_a, unit_b)
+	var attacker: Unit = orient.attacker
+	var defender: Unit = orient.defender
+	var dirs := _segment_adhesion_move_dirs(attacker, defender, orient.contact)
+	var old_pos := attacker.position
+	var px_per_meter := Constants.get_float("px_per_meter")
+	for move_dir in dirs:
+		var closure_m := _seek_classifier_closure_m(
+			attacker, unit_a, unit_b, all_units, move_dir, engage_snap_max_m()
+		)
+		if closure_m < 0.0:
+			continue
+		attacker.position = old_pos + move_dir * closure_m * px_per_meter
+		if units_penetrating(attacker, defender):
+			var correction_dir := (defender.position - attacker.position).normalized()
+			var penetration_m := absf(_raw_center_gap_m(attacker, defender))
+			attacker.position -= correction_dir * penetration_m * px_per_meter
+		if pair_has_classifier_contact(unit_a, unit_b):
+			return false
+		attacker.position = old_pos
+	return true
+
+
+static func _segment_adhesion_move_dirs(
+	attacker: Unit,
+	defender: Unit,
+	contact: Dictionary
+) -> Array[Vector2]:
+	var dirs: Array[Vector2] = []
+	var seen: Dictionary = {}
+	for raw in [
+		_segment_adhesion_move_dir(attacker, defender, contact),
+		attacker.facing.normalized(),
+		(defender.position - attacker.position).normalized(),
+	]:
+		if raw.length_squared() <= 0.0001:
+			continue
+		var key := "%.3f,%.3f" % [raw.x, raw.y]
+		if seen.has(key):
+			continue
+		seen[key] = true
+		dirs.append(raw.normalized())
+	return dirs
+
+
+static func _segment_adhesion_move_dir(attacker: Unit, defender: Unit, contact: Dictionary) -> Vector2:
+	var push_normal: Vector2 = contact.get("push_normal", Vector2.ZERO)
+	if contact.get("has_contact", false) and push_normal.length_squared() > 0.0001:
+		return -push_normal.normalized()
+	var delta := defender.position - attacker.position
+	if delta.length_squared() <= 0.0001:
+		return Vector2.ZERO
+	return delta.normalized()
+
+
+static func _seek_classifier_closure_m(
+	attacker: Unit,
+	unit_a: Unit,
+	unit_b: Unit,
+	all_units: Array,
+	move_dir: Vector2,
+	max_m: float
+) -> float:
+	var old_pos := attacker.position
+	var px_per_meter := Constants.get_float("px_per_meter")
+	var best_m := -1.0
+	var low := 0.0
+	var high := max_m
+	for _attempt in 12:
+		var try_m := (low + high) * 0.5
+		attacker.position = old_pos + move_dir * try_m * px_per_meter
+		if _adhesion_move_creates_overlap(attacker, unit_a, unit_b, all_units):
+			high = try_m
+			continue
+		if pair_has_classifier_contact(unit_a, unit_b):
+			best_m = try_m
+			high = try_m
+		else:
+			low = try_m
+	attacker.position = old_pos
+	return best_m
+
+
+static func _adhesion_move_creates_overlap(
+	mover: Unit,
+	unit_a: Unit,
+	unit_b: Unit,
+	all_units: Array
+) -> bool:
+	var partner := unit_b if mover == unit_a else unit_a
+	for other in all_units:
+		if other == mover or other == partner:
+			continue
+		if other.get_state() == Unit.State.REMOVED or other.get_state() == Unit.State.ROUTING:
+			continue
+		if mover.get_state() == Unit.State.ROUTING:
+			continue
+		if units_overlap(mover, other):
+			return true
+	return false
+
+
+## Push apart allied rectangles that overlap (sim collision, non-routing only).
+static func separate_allied_overlap(unit_a: Unit, unit_b: Unit) -> void:
+	if unit_a.get_state() == Unit.State.ROUTING or unit_b.get_state() == Unit.State.ROUTING:
+		return
+	if unit_a.team_id != unit_b.team_id:
+		return
+	if not FormationGeometry.rectangles_overlap(unit_a, unit_b):
+		return
+
+	var delta := unit_b.position - unit_a.position
+	if delta.length_squared() <= 0.0001:
+		delta = Vector2(0.0, -Constants.get_float("px_per_meter"))
+	var dir := delta.normalized()
+	var px_per_meter := Constants.get_float("px_per_meter")
+	var step_px := maxf(px_per_meter * 0.25, 1.0)
+	for _attempt in 24:
+		if not FormationGeometry.rectangles_overlap(unit_a, unit_b):
+			return
+		unit_a.position -= dir * step_px * 0.5
+		unit_b.position += dir * step_px * 0.5
+
+
 static func clamp_march_distance(unit: Unit, enemy: Unit, move_px: float) -> float:
 	if move_px <= 0.0:
 		return 0.0
+
+	if (
+		EdgeContact.units_have_contact(unit, enemy)
+		or EdgeContact.units_have_contact(enemy, unit)
+	):
+		return 0.0
+
+	if not is_head_on_pair(unit, enemy):
+		return move_px
 
 	var to_enemy := enemy.position - unit.position
 	if to_enemy.dot(unit.facing) <= 0.0:
@@ -171,6 +360,188 @@ static func _calc_strength_loss(opponent_push_score: float, is_push_loser: bool)
 	if is_push_loser:
 		loss *= Constants.get_float("push_loser_damage_factor")
 	return loss
+
+
+static func is_head_on_pair(unit_a: Unit, unit_b: Unit) -> bool:
+	var to_b := unit_b.position - unit_a.position
+	var to_a := unit_a.position - unit_b.position
+	return to_b.dot(unit_a.facing) > 0.0 and to_a.dot(unit_b.facing) > 0.0
+
+
+static func units_have_any_contact(unit_a: Unit, unit_b: Unit) -> bool:
+	return (
+		EdgeContact.units_have_contact(unit_a, unit_b)
+		or EdgeContact.units_have_contact(unit_b, unit_a)
+	)
+
+
+static func resolve_contact_segment(attacker: Unit, defender: Unit, contact: Dictionary) -> Dictionary:
+	# Worked per-tick example (SIDE flank, constants from combat_constants.json):
+	#   contact left=15m → attacker_frontage_pct=1.0 (depth), defender_edge_pct≈0.375
+	#   If attacker wins: shift≈0.06m → shift_drain=0.06×0.8×edge_mult_side_shift(2.0)≈0.096
+	#   casualty_drain from k_dmg×push → cohesion × edge_mult_side_casualty(1.5) on left edge.
+	var frontage_pct: float = contact.get("attacker_frontage_pct", 1.0)
+	var defender_edge_pct: float = contact.get("defender_edge_pct", 1.0)
+	var edge_lengths: Dictionary = contact.get("edge_lengths_m", {})
+	var push_normal: Vector2 = contact.get("push_normal", defender.facing)
+
+	var push_attacker := calc_push_score(attacker, frontage_pct)
+	var push_defender := calc_push_score(defender, defender_edge_pct)
+
+	var result := {
+		"attacker_push": push_attacker,
+		"defender_push": push_defender,
+		"attacker_shift_m": 0.0,
+		"defender_shift_m": 0.0,
+		"attacker_damage": 0.0,
+		"defender_damage": 0.0,
+		"gap_ratio": 0.0,
+		"attacker_wins": false,
+		"edge_lengths_m": edge_lengths,
+		"push_normal": push_normal,
+	}
+
+	if is_equal_approx(push_attacker, push_defender):
+		result.attacker_damage = _calc_strength_loss(push_defender, false)
+		result.defender_damage = _calc_strength_loss(push_attacker, false)
+		return result
+
+	var attacker_wins := push_attacker > push_defender
+	var winner_push := push_attacker if attacker_wins else push_defender
+	var loser_push := push_defender if attacker_wins else push_attacker
+	var shift_m := _calc_ground_shift_m(winner_push, loser_push)
+	result.gap_ratio = clampf((winner_push - loser_push) / winner_push, 0.0, 1.0)
+	result.attacker_wins = attacker_wins
+
+	if attacker_wins:
+		result.defender_shift_m = shift_m
+		result.attacker_damage = _calc_strength_loss(push_defender, false)
+		result.defender_damage = _calc_strength_loss(push_attacker, true)
+	else:
+		result.attacker_shift_m = shift_m
+		result.attacker_damage = _calc_strength_loss(push_defender, true)
+		result.defender_damage = _calc_strength_loss(push_attacker, false)
+
+	return result
+
+
+static func apply_directed_ground_shift(
+	loser: Unit,
+	shift_m: float,
+	normal: Vector2,
+	edge_lengths: Dictionary = {}
+) -> void:
+	apply_directed_position_shift(loser, shift_m, normal)
+	var cohesion_drain := shift_m * Constants.get_float("drain_per_meter_lost")
+	_apply_morale_drain_by_edges(loser, cohesion_drain, edge_lengths)
+
+
+static func apply_directed_position_shift(loser: Unit, shift_m: float, normal: Vector2) -> void:
+	if shift_m <= 0.0:
+		return
+
+	var px_per_meter := Constants.get_float("px_per_meter")
+	var direction := normal.normalized()
+	if direction.length_squared() <= 0.0001:
+		direction = loser.facing.normalized()
+	loser.position -= direction * shift_m * px_per_meter
+
+
+static func apply_shift_morale_drain(
+	unit: Unit,
+	shift_m: float,
+	edge_lengths: Dictionary = {}
+) -> void:
+	var cohesion_drain := shift_m * Constants.get_float("drain_per_meter_lost")
+	_apply_morale_drain_by_edges(unit, cohesion_drain, edge_lengths)
+
+
+static func apply_strength_loss_with_edge(
+	unit: Unit,
+	loss: float,
+	edge_lengths: Dictionary = {}
+) -> float:
+	if loss <= 0.0:
+		return 0.0
+
+	var strength_max := Constants.get_float("strength_max")
+	var old_strength := unit.strength
+	unit.strength = maxf(unit.strength - loss, 0.0)
+	var applied := old_strength - unit.strength
+
+	if applied > 0.0:
+		unit.add_crack_intensity_from_damage(applied)
+		var pct_lost := applied / strength_max * 100.0
+		var cohesion_drain := pct_lost * Constants.get_float("drain_per_strength_pct_lost")
+		_apply_casualty_drain_by_edges(unit, cohesion_drain, edge_lengths)
+
+	return applied
+
+
+## Length-weighted casualty cohesion drain with per-edge casualty multiplier.
+static func _apply_casualty_drain_by_edges(unit: Unit, amount: float, edge_lengths: Dictionary) -> void:
+	if amount <= 0.0:
+		return
+	if edge_lengths.is_empty():
+		unit.apply_cohesion_drain(amount)
+		return
+
+	var total_length := 0.0
+	for length_m in edge_lengths.values():
+		total_length += length_m
+	if total_length <= 0.0:
+		unit.apply_cohesion_drain(amount)
+		return
+
+	for edge_name in edge_lengths.keys():
+		var length_m: float = edge_lengths[edge_name]
+		var portion := amount * length_m / total_length
+		var edge_mult := _edge_casualty_multiplier_for_name(edge_name)
+		unit.apply_cohesion_drain(portion * edge_mult, edge_name)
+
+
+## Length-weighted shift morale drain with per-edge shift multiplier (ground-lost only).
+static func _apply_morale_drain_by_edges(unit: Unit, amount: float, edge_lengths: Dictionary) -> void:
+	if amount <= 0.0:
+		return
+	if edge_lengths.is_empty():
+		unit.apply_cohesion_drain(amount)
+		return
+
+	var total_length := 0.0
+	for length_m in edge_lengths.values():
+		total_length += length_m
+	if total_length <= 0.0:
+		unit.apply_cohesion_drain(amount)
+		return
+
+	for edge_name in edge_lengths.keys():
+		var length_m: float = edge_lengths[edge_name]
+		var portion := amount * length_m / total_length
+		var edge_mult := _edge_shift_multiplier_for_name(edge_name)
+		unit.apply_cohesion_drain(portion * edge_mult, edge_name)
+
+
+static func _edge_shift_multiplier_for_name(edge_name: String) -> float:
+	match edge_name:
+		EdgeContact.EDGE_FRONT:
+			return Constants.get_float("edge_mult_front")
+		EdgeContact.EDGE_LEFT, EdgeContact.EDGE_RIGHT:
+			return Constants.get_float("edge_mult_side_shift")
+		EdgeContact.EDGE_REAR:
+			return Constants.get_float("edge_mult_rear_shift")
+	return Constants.get_float("edge_mult_front")
+
+
+static func _edge_casualty_multiplier_for_name(edge_name: String) -> float:
+	match edge_name:
+		EdgeContact.EDGE_FRONT:
+			return Constants.get_float("edge_mult_front")
+		EdgeContact.EDGE_LEFT, EdgeContact.EDGE_RIGHT:
+			return Constants.get_float("edge_mult_side_casualty")
+		EdgeContact.EDGE_REAR:
+			return Constants.get_float("edge_mult_rear_casualty")
+	return Constants.get_float("edge_mult_front")
 
 
 static func apply_strength_loss(unit: Unit, loss: float) -> float:
