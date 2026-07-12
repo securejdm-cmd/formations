@@ -467,8 +467,10 @@ func _check_perf_40() -> void:
 			_perf_stats.get("tick_count", 0),
 		]
 	)
-	if float(_perf_stats.get("min_fps", 0.0)) < 60.0:
-		print("[WO-009] Perf40 NOTE: min_fps %.1f below 60 on this runner (report actuals)" % _perf_stats.get("min_fps", 0.0))
+	print("[WO-009] Perf40 environmental actuals (not gate): min_fps=%.1f avg_fps=%.1f" % [
+		_perf_stats.get("min_fps", 0.0),
+		_perf_stats.get("avg_fps", 0.0),
+	])
 
 
 func _load_baseline_trace(filename: String) -> String:
