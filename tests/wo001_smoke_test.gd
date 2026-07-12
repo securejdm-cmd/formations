@@ -39,6 +39,8 @@ func _test_constants_loaded(constants: Node) -> bool:
 		"idle_recovery_per_sec",
 		"rout_flee_speed_pct",
 		"pursuit_damage_multiplier",
+		"pursuit_radius_m",
+		"pursuit_contact_m",
 		"t_rally_sec",
 		"rally_cohesion_reset",
 		"rally_per_battle_limit",

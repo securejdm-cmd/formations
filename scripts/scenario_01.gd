@@ -98,10 +98,13 @@ func advance_one_tick() -> void:
 	var tick_interval := CombatResolver.tick_interval()
 	_sim_tick_count += 1
 	_update_movement(tick_interval)
+	_process_rout_events()
 	_resolve_allied_overlaps()
+	_try_passive_engagement()
 	_apply_contact_adhesion()
 	_assert_no_overlaps()
 	_combat_tick()
+	_pursuit_tick()
 	_apply_contact_adhesion()
 	_track_rout_state()
 	_update_victory_state(tick_interval)
@@ -154,24 +157,25 @@ func _update_movement(delta: float) -> void:
 		if unit.get_state() == Unit.State.MARCHING:
 			unit.update_marching(delta, _enemies_for(unit))
 			_try_begin_engagement(unit)
-		elif unit.get_state() == Unit.State.ROUTING:
-			unit.update_routing(delta)
+		elif unit.get_state() == Unit.State.ROUTING or unit.get_state() == Unit.State.RALLYING:
+			unit.update_routing(delta, _enemies_for(unit))
 		elif (
 			unit.get_state() == Unit.State.HOLD
 			and unit.current_order == Unit.Order.MARCH_TO
+			and not unit.is_rallied_hold()
 		):
 			unit.update_marching(delta, _enemies_for(unit))
 			_try_begin_engagement(unit)
 
 
 func _try_begin_engagement(unit: Unit) -> void:
-	if unit.get_state() == Unit.State.ROUTING:
+	if unit.get_state() == Unit.State.ROUTING or unit.get_state() == Unit.State.RALLYING:
 		return
 
 	for other in _units:
 		if other == unit or other.get_state() == Unit.State.REMOVED:
 			continue
-		if other.get_state() == Unit.State.ROUTING:
+		if other.get_state() == Unit.State.ROUTING or other.get_state() == Unit.State.RALLYING:
 			continue
 		if other.team_id == unit.team_id:
 			continue
@@ -186,6 +190,76 @@ func _try_begin_engagement(unit: Unit) -> void:
 		):
 			CombatResolver.snap_pair_to_contact(unit, other)
 		_on_first_contact()
+
+
+func _try_passive_engagement() -> void:
+	for unit in _units:
+		if unit.get_state() != Unit.State.HOLD or not unit.is_rallied_hold():
+			continue
+		for other in _units:
+			if other == unit or other.get_state() == Unit.State.REMOVED:
+				continue
+			if other.team_id == unit.team_id:
+				continue
+			if other.get_state() == Unit.State.ROUTING or other.get_state() == Unit.State.RALLYING:
+				continue
+			if not CombatResolver.units_have_any_contact(unit, other):
+				continue
+			unit.add_contact_partner(other)
+			other.add_contact_partner(unit)
+			if (
+				CombatResolver.is_head_on_pair(unit, other)
+				and not EdgeContact.has_non_front_segment_contact(unit, other)
+			):
+				CombatResolver.snap_pair_to_contact(unit, other)
+			_on_first_contact()
+
+
+func _process_rout_events() -> void:
+	for unit in _units:
+		if unit.get_state() == Unit.State.REMOVED:
+			continue
+		if not unit.consume_pending_rout_event():
+			continue
+		_apply_neighbor_rout_shock(unit)
+
+
+func _apply_neighbor_rout_shock(routing_unit: Unit) -> void:
+	var radius_m := Constants.get_float("neighbor_rout_shock_radius_m")
+	var shock := Constants.get_float("neighbor_rout_shock")
+	for ally in _units:
+		if ally == routing_unit or ally.team_id != routing_unit.team_id:
+			continue
+		if ally.get_state() == Unit.State.REMOVED:
+			continue
+		if CombatResolver.center_distance_m(ally, routing_unit) > radius_m:
+			continue
+		ally.apply_cohesion_drain(shock)
+		_log_trace_event(
+			"neighbor_rout_shock",
+			"victim=%s,source=%s,drain=%.1f" % [ally.unit_id, routing_unit.unit_id, shock]
+		)
+
+
+func _pursuit_tick() -> void:
+	for routing_unit in _units:
+		if routing_unit.get_state() != Unit.State.ROUTING:
+			continue
+		for enemy in _enemies_for(routing_unit):
+			if not CombatResolver.can_apply_pursuit(enemy):
+				continue
+			if not CombatResolver.is_within_pursuit_contact(enemy, routing_unit):
+				continue
+			var damage := CombatResolver.calc_pursuit_damage(enemy)
+			var applied := CombatResolver.apply_strength_loss(routing_unit, damage)
+			routing_unit.reset_rally_timer()
+			enemy.record_damage_dealt(applied)
+			_log_trace_event(
+				"pursuit_damage",
+				"victim=%s,pursuer=%s,damage=%.4f" % [routing_unit.unit_id, enemy.unit_id, applied]
+			)
+			if routing_unit.strength <= 0.0:
+				routing_unit.mark_removed()
 
 
 func _on_first_contact() -> void:
@@ -661,6 +735,19 @@ func _log_trace_row() -> void:
 				unit.get_active_contact_edges(),
 			]
 		)
+
+
+func _log_trace_event(event_type: String, detail: String) -> void:
+	var time_sec := _sim_tick_count * CombatResolver.tick_interval()
+	_trace_lines.append("%.1f,EVENT,%s,%s" % [time_sec, event_type, detail])
+
+
+func get_trace_events() -> PackedStringArray:
+	var events := PackedStringArray()
+	for line in _trace_lines:
+		if ",EVENT," in line:
+			events.append(line)
+	return events
 
 
 func _write_trace_file() -> void:

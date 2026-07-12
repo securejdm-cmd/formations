@@ -1,0 +1,213 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/scenario_05.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battlefield_camera.gd" id="2_camera"]
+[ext_resource type="Script" path="res://scripts/scenario_debug_overlay.gd" id="3_debug"]
+[ext_resource type="Script" path="res://scripts/unit_stat_card.gd" id="4_stat_card"]
+[ext_resource type="Script" path="res://scripts/battle_results_overlay.gd" id="5_results"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button"]
+bg_color = Color(0.15, 0.15, 0.15, 0.85)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.08, 0.08, 0.1, 0.92)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.55, 0.55, 0.6, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
+bg_color = Color(0.05, 0.05, 0.08, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.7, 0.7, 0.75, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="Scenario05" type="Node2D"]
+script = ExtResource("1_scenario")
+
+[node name="Ground" type="ColorRect" parent="."]
+color = Color(0.45, 0.55, 0.35, 1)
+
+[node name="Camera2D" type="Camera2D" parent="."]
+script = ExtResource("2_camera")
+enable_left_drag_pan = false
+
+[node name="DebugOverlay" type="CanvasLayer" parent="."]
+script = ExtResource("3_debug")
+
+[node name="MarginContainer" type="MarginContainer" parent="DebugOverlay"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="VBoxContainer" type="VBoxContainer" parent="DebugOverlay/MarginContainer"]
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
+theme_override_constants/separation = 8
+
+[node name="StatsLabel" type="Label" parent="DebugOverlay/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+text = "FPS: --"
+
+[node name="UnitPanel" type="Label" parent="DebugOverlay/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+text = "Unit: (click a block)"
+
+[node name="RngTestButton" type="Button" parent="DebugOverlay/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_button")
+text = "Test RNG (same seed)"
+
+[node name="RngResultLabel" type="Label" parent="DebugOverlay/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+text = "RNG test: not run yet"
+
+[node name="StatCardLayer" type="CanvasLayer" parent="."]
+layer = 2
+
+[node name="UnitStatCard" type="PanelContainer" parent="StatCardLayer"]
+offset_right = 180.0
+offset_bottom = 28.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+script = ExtResource("4_stat_card")
+
+[node name="MarginContainer" type="MarginContainer" parent="StatCardLayer/UnitStatCard"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 4
+
+[node name="Label" type="Label" parent="StatCardLayer/UnitStatCard/MarginContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+text = "STR --% · COH --% · ⚔ --"
+
+[node name="ResultsOverlay" type="CanvasLayer" parent="."]
+layer = 3
+script = ExtResource("5_results")
+
+[node name="VictoryPanel" type="PanelContainer" parent="ResultsOverlay"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -180.0
+offset_top = -70.0
+offset_right = 180.0
+offset_bottom = 70.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="MarginContainer" type="MarginContainer" parent="ResultsOverlay/VictoryPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 16
+
+[node name="VBox" type="VBoxContainer" parent="ResultsOverlay/VictoryPanel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="VictoryLabel" type="Label" parent="ResultsOverlay/VictoryPanel/MarginContainer/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.92, 0.45, 1)
+theme_override_font_sizes/font_size = 22
+text = "VICTORY — RED"
+horizontal_alignment = 1
+
+[node name="ButtonRow" type="HBoxContainer" parent="ResultsOverlay/VictoryPanel/MarginContainer/VBox"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 16
+
+[node name="SkipButton" type="Button" parent="ResultsOverlay/VictoryPanel/MarginContainer/VBox/ButtonRow"]
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+text = "Skip"
+
+[node name="WatchButton" type="Button" parent="ResultsOverlay/VictoryPanel/MarginContainer/VBox/ButtonRow"]
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+text = "Watch"
+
+[node name="ResultsPanel" type="PanelContainer" parent="ResultsOverlay"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -260.0
+offset_top = -160.0
+offset_right = 260.0
+offset_bottom = 160.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="MarginContainer" type="MarginContainer" parent="ResultsOverlay/ResultsPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 16
+
+[node name="VBox" type="VBoxContainer" parent="ResultsOverlay/ResultsPanel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="ResultsLabel" type="Label" parent="ResultsOverlay/ResultsPanel/MarginContainer/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 14
+text = "Results"
+
+[node name="SummaryLabel" type="Label" parent="ResultsOverlay/ResultsPanel/MarginContainer/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.85, 0.9, 1)
+theme_override_font_sizes/font_size = 13
+text = "march · combat · flee"
+
+[connection signal="pressed" from="DebugOverlay/MarginContainer/VBoxContainer/RngTestButton" to="DebugOverlay" method="_on_rng_test_button_pressed"]
