@@ -276,6 +276,9 @@ func _check_scenario_03() -> void:
 	if _scenario.had_overlap_failure():
 		push_error("S3 overlap assertion failed (non-routing pairs)")
 		_exit_code = 1
+	if _scenario.had_adhesion_invariant_failure():
+		push_error("S3 adhesion invariant failed (partner-linked without classifier contact)")
+		_exit_code = 1
 
 
 func _check_s4_labels_and_ratio() -> void:
@@ -382,6 +385,9 @@ func _core_trace(trace_text: String) -> String:
 func _check_reflection_pair(seed_value: int) -> void:
 	if _scenario.had_overlap_failure():
 		push_error("Overlap on seed %d" % seed_value)
+		_exit_code = 1
+	elif _scenario.had_adhesion_invariant_failure():
+		push_error("Adhesion invariant failed on seed %d" % seed_value)
 		_exit_code = 1
 	else:
 		print("[WO-008] Overlap check seed %d PASS" % seed_value)

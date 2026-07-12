@@ -37,7 +37,7 @@ func _spawn_units() -> void:
 
 	var attacker_pos := Vector2(half_depth_px * 2.0, 0.0)
 	var attacker_facing := Vector2.LEFT
-	var touch_pen_px := (EdgeContact.CONTACT_EPSILON_M + 0.15) * px_per_meter
+	var touch_pen_px := (EdgeContact.contact_epsilon_m() + 0.15) * px_per_meter
 	match contact_mode:
 		ContactMode.FRONT:
 			attacker_pos = Vector2(half_depth_px * 2.0, 0.0)

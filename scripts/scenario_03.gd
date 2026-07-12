@@ -116,7 +116,7 @@ func _maybe_release_flank() -> void:
 
 	var along_scales: Array[float] = [0.0, -0.05, -0.10, -0.15, -0.20, -0.25, -0.35, -0.50, -0.75, -1.0, -1.5, -2.0]
 	var across_scales: Array[float] = [0.98, 1.0, 1.02, 1.05, 1.08, 1.12]
-	var touch_pen_m := EdgeContact.CONTACT_EPSILON_M + 0.15
+	var touch_pen_m := EdgeContact.contact_epsilon_m() + 0.15
 	var candidate_offsets: Array[Vector2] = []
 	if not _flank_candidate_scales.is_empty():
 		for scale in _flank_candidate_scales:

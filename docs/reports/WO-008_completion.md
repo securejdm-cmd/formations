@@ -3,7 +3,7 @@
 **Work order:** WO-008 — Edge-Based Contact: Flanks & Corners  
 **Branch:** `cursor/fast-harness-wo008-rerun-fd84`  
 **Date:** 2026-07-12  
-**TD rulings applied:** S3 band, S4 corner, allied overlap release, accelerated harness, continuous contact adhesion
+**TD rulings:** Continuous adhesion, classifier single source of truth
 
 ---
 
@@ -13,74 +13,79 @@
 
 ---
 
-## Continuous contact adhesion (TD ruling)
+## Classifier single source of truth (TD ruling)
 
 | Item | Implementation |
 |------|----------------|
-| Constant | `engage_snap_max_m = 1.0` in `data/combat_constants.json` |
-| Per-tick driver | `_apply_contact_adhesion()` in `scenario_01.gd` (before + after combat) |
-| Segment pairs | Attacker (FRONT-edge unit per `pick_segment_orientation`) moves along contact normal; ties by `unit_id` |
-| Head-on pairs | One-shot `snap_pair_to_contact` at engagement begin only (preserves S1/S2 traces) |
-| Contact break | Segment pairs pruned when `adhesion_gap_m > engage_snap_max_m`; head-on uses geometric contact prune |
-| Overlap safety | Binary-search partial move (`_max_adhesion_move_m`); respects allied separation order |
-| Flank release | `scenario_03.gd` calls adhesion immediately after scripted 9.5s release (no position clamp) |
+| `contact_epsilon_m` | **0.01** in `data/combat_constants.json` — sole touch tolerance |
+| Classifier | `EdgeContact.contact_epsilon_m()` — all edge spans derived from constant |
+| Head-on geometry | `CombatResolver.contact_epsilon_m()` delegates to classifier |
+| Removed | Independent adhesion gap epsilon, `adhesion_gap_m`, `pair_within_adhesion`, misalignment heuristics |
+
+### Adhesion success criterion (classifier truth)
+
+Each tick, for partner-linked **segment** pairs without classifier contact:
+1. Binary-search attacker translation along contact normal (multi-direction fallback)
+2. Stop when `pair_has_classifier_contact` is **TRUE** or required move exceeds `engage_snap_max_m` → **prune that tick**
+3. Head-on pairs: one-shot engage snap only; segment adhesion skipped; head-on geometric prune in `_prune_broken_contacts`
+
+### Permanent invariant assertion
+
+After each adhesion pass, `_assert_partner_classifier_contact_invariant()` requires classifier contact for all **segment** partner pairs in `ENGAGED`/`WAVERING` state. Exposed via `had_adhesion_invariant_failure()`; checked in `scenario_wo008_autotest.gd`.
 
 ---
 
-## Accelerated test harness
+## Regression (fast mode)
 
 | Check | Result |
 |-------|--------|
-| Fast certification (seed 12345) | **PASS** — realtime vs fast trace **byte-identical** |
-| S1 regression (11 seeds) | **11/11 PASS** |
-| S2 regression (11 seeds) | **11/11 PASS** |
+| Fast certification (seed 12345) | **PASS** — byte-identical |
+| S1 (11 seeds) | **11/11 PASS** |
+| S2 (11 seeds) | **11/11 PASS** |
 | Determinism | **PASS** |
+| Adhesion invariant | **PASS** |
+| Overlap (seed 1000) | **PASS** |
 
 ---
 
-## Scenario 3 — Continuous adhesion re-run (seed 1000, fast mode)
+## Scenario 3 — Classifier adhesion re-run (seed 1000)
 
-| Metric | TD baseline | Actual (post-adhesion) |
-|--------|-------------|------------------------|
-| Combat | 22.0s | **54.6s** |
-| Ratio (S3/S1) | **0.32** | **0.80** |
-| Blue `strength_at_rout` | 78.60% | **67.46%** |
-| Blue LEFT drain | **50.3** | **8.47** |
+| Metric | TD baseline | Actual |
+|--------|-------------|--------|
+| Combat | 22.0s | **19.0s** |
+| Ratio (S3/S1) | **0.32** | **0.279** (display 0.28) |
+| Band [0.28, 0.45] | — | **MARGINAL** — 0.279 rounds to 0.28; strict `<` fails floor by 0.001 |
+| Blue `strength_at_rout` | 78.60% | **75.70%** |
+| Blue LEFT drain | **50.3** | **58.46** |
 | Overlap assertion | — | **PASS** |
+| Adhesion invariant | — | **PASS** |
 
-**ESCALATE:** Ratio **0.80** outside band **[0.28, 0.45]**. LEFT drain **8.47** vs baseline **50.3**.
-
-### Escalation specifics (tick data)
-
-After flank release (~tick 950+), `red_b`/`blue_a` remain in the partner list (within 1m adhesion) but `EdgeContact.classify_contact` returns **`has_contact=false`** on most post-release ticks while `adhesion_gap_m` reports **0** on the primary approach axis — adhesion does not translate (gap ≤ ε), and segment `_combat_tick` skips the pair (`contact.has_contact` gate). Net effect: flank engagement is **partner-linked but not segment-resolved**, producing minimal LEFT-channel drain.
-
-Trace: `tests/traces/scenario_03_1000.csv`
+Classifier-driven adhesion restores sustained LEFT flank contact (LEFT drain **58.46** vs prior **8.47**). Ratio slightly below band floor due to faster combat pacing (19.0s vs 22.0s baseline).
 
 ---
 
-## Scenario 4 — Three-mode drain (seed 1000, 50 ticks)
+## Scenario 4 — Drain harness
 
-| Mode | Drain/s | Ordering |
-|------|---------|----------|
-| FRONT | **3.163** | front < corner < side **PASS** |
-| SIDE | **6.811** | |
-| CORNER | **5.663** | blend within 0.5 tol **PASS** |
+| Mode | Drain/s | Result |
+|------|---------|--------|
+| FRONT | 3.163 | strict-between **PASS** |
+| SIDE | 6.811 | |
+| CORNER | 5.663 | blend **PASS** |
 
 ---
 
-## Files changed (adhesion pass)
+## Files changed
 
 | File | Change |
 |------|--------|
-| `data/combat_constants.json` | `engage_snap_max_m` |
-| `scripts/combat_resolver.gd` | `adhesion_gap_m`, `apply_contact_adhesion_pair`, partial move search |
-| `scripts/scenario_01.gd` | Per-tick adhesion; head-on vs segment prune split |
-| `scripts/scenario_03.gd` | Flank-release adhesion; tick order aligned |
-| `scripts/edge_contact.gd` | `pick_segment_orientation` unit_id tie-break |
-| `scripts/unit.gd` | Head-on engage snap only |
+| `data/combat_constants.json` | `contact_epsilon_m` |
+| `scripts/edge_contact.gd` | `contact_epsilon_m()`; remove duplicate const |
+| `scripts/combat_resolver.gd` | Classifier-driven adhesion; `pair_has_classifier_contact` |
+| `scripts/scenario_01.gd` | Prune-on-fail adhesion; segment invariant assertion |
+| `tests/scenario_wo008_autotest.gd` | Adhesion invariant check |
 
 ---
 
-## Open escalations
+## Open items
 
-1. **S3 segment contact desync** — engaged pairs within 1m but `classify_contact` false; adhesion gap metric returns 0; LEFT drain 8.47 vs 50.3 baseline. Requires TD follow-up on segment closure vs edge-classifier alignment.
+1. **S3 ratio floor** — actual **0.279** vs band minimum **0.28** (combat 19.0s vs baseline 22.0s). LEFT drain **58.46** exceeds baseline **50.3** by ~16% — TD review whether faster combat / higher drain is acceptable.

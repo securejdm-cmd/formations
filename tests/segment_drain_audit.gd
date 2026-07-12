@@ -12,7 +12,7 @@ func _initialize() -> void:
 	var px := Constants.get_float("px_per_meter")
 	var depth_m := float(profile.get("formation_depth_m", 15.0))
 	var frontage_m := float(profile.get("formation_frontage_m", 40.0))
-	var touch := (EdgeContact.CONTACT_EPSILON_M + 0.15) * px
+	var touch := (EdgeContact.contact_epsilon_m() + 0.15) * px
 	var pos := Vector2(0.0, -(frontage_m * 0.5 + depth_m * 0.5) * px + touch)
 	attacker.configure("atk", "red", profile, pos, Vector2.DOWN)
 	var contact: Dictionary = EdgeContact.classify_contact(attacker, defender)

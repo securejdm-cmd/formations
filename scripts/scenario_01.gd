@@ -27,6 +27,7 @@ var _battle_start_time_msec: int = 0
 var _first_contact_tick: int = -1
 var _first_rout_tick: int = -1
 var _overlap_assertion_failed: bool = false
+var _adhesion_invariant_failed: bool = false
 
 @onready var _camera: Camera2D = $Camera2D
 @onready var _ground: ColorRect = $Ground
@@ -369,8 +370,6 @@ func _prune_broken_contacts() -> void:
 			):
 				if not CombatResolver.units_have_any_contact(unit, partner):
 					unit.remove_contact_partner(partner)
-			elif not CombatResolver.pair_within_adhesion(unit, partner):
-				unit.remove_contact_partner(partner)
 
 
 func _accumulate_directed_shift(
@@ -546,6 +545,7 @@ func _build_results_rows() -> Array[Dictionary]:
 
 func _apply_contact_adhesion() -> void:
 	var processed: Array[String] = []
+	var prune_keys: Array[String] = []
 	for unit in _units:
 		if unit.get_state() == Unit.State.REMOVED or unit.get_state() == Unit.State.ROUTING:
 			continue
@@ -558,7 +558,44 @@ func _apply_contact_adhesion() -> void:
 			if pair_key in processed:
 				continue
 			processed.append(pair_key)
-			CombatResolver.apply_contact_adhesion_pair(unit, partner, _units)
+			if CombatResolver.apply_contact_adhesion_pair(unit, partner, _units):
+				prune_keys.append(pair_key)
+	for unit in _units:
+		if unit.get_state() == Unit.State.REMOVED or unit.get_state() == Unit.State.ROUTING:
+			continue
+		for partner in unit.get_contact_partners().duplicate():
+			if partner == null:
+				continue
+			var pair_key := _pair_key(unit, partner)
+			if pair_key in prune_keys:
+				unit.remove_contact_partner(partner)
+	_assert_partner_classifier_contact_invariant()
+
+
+func _assert_partner_classifier_contact_invariant() -> void:
+	for unit in _units:
+		if unit.get_state() == Unit.State.REMOVED or unit.get_state() == Unit.State.ROUTING:
+			continue
+		for partner in unit.get_contact_partners():
+			if partner == null or partner.get_state() == Unit.State.REMOVED:
+				continue
+			if partner.get_state() == Unit.State.ROUTING:
+				continue
+			if partner.get_state() != Unit.State.ENGAGED and partner.get_state() != Unit.State.WAVERING:
+				continue
+			if (
+				CombatResolver.is_head_on_pair(unit, partner)
+				and not EdgeContact.has_non_front_segment_contact(unit, partner)
+			):
+				continue
+			if CombatResolver.pair_has_classifier_contact(unit, partner):
+				continue
+			if not _adhesion_invariant_failed:
+				push_error(
+					"Adhesion invariant failed at tick %d: %s/%s partner-linked without classifier contact"
+					% [_sim_tick_count, unit.unit_id, partner.unit_id]
+				)
+			_adhesion_invariant_failed = true
 
 
 func _resolve_allied_overlaps() -> void:
@@ -697,6 +734,10 @@ func get_phase_durations_sec() -> Dictionary:
 
 func had_overlap_failure() -> bool:
 	return _overlap_assertion_failed
+
+
+func had_adhesion_invariant_failure() -> bool:
+	return _adhesion_invariant_failed
 
 
 func is_battle_over() -> bool:

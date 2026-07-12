@@ -4,12 +4,14 @@ extends RefCounted
 ## Oriented edge contact classification per COMBAT_CORE §3.6.
 ## Basis: FRONT = facing; LEFT = +90° CCW (soldier's left); RIGHT = −90°; REAR = −facing.
 
-const CONTACT_EPSILON_M := 0.01
-
 const EDGE_FRONT := "front"
 const EDGE_LEFT := "left"
 const EDGE_RIGHT := "right"
 const EDGE_REAR := "rear"
+
+
+static func contact_epsilon_m() -> float:
+	return Constants.get_float("contact_epsilon_m")
 
 
 static func classify_contact(attacker: Unit, defender: Unit) -> Dictionary:
@@ -27,7 +29,7 @@ static func classify_contact(attacker: Unit, defender: Unit) -> Dictionary:
 	var half_frontage_m := defender.effective_frontage_m() * 0.5
 
 	var attacker_corners := FormationGeometry.get_corners(attacker)
-	var eps := CONTACT_EPSILON_M
+	var eps := contact_epsilon_m()
 	var along_min := INF
 	var along_max := -INF
 	var across_min := INF
@@ -332,7 +334,7 @@ static func _attacker_front_face_contact_pct(attacker: Unit, defender: Unit, px_
 
 	var overlap_across_min := maxf(across_min, -half_frontage_m)
 	var overlap_across_max := minf(across_max, half_frontage_m)
-	var front_touch := along_max >= half_depth_m - CONTACT_EPSILON_M and along_min <= half_depth_m + CONTACT_EPSILON_M
+	var front_touch := along_max >= half_depth_m - contact_epsilon_m() and along_min <= half_depth_m + contact_epsilon_m()
 	if not front_touch:
 		return 0.0
 
