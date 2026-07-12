@@ -173,16 +173,20 @@ static func _calc_strength_loss(opponent_push_score: float, is_push_loser: bool)
 	return loss
 
 
-static func apply_strength_loss(unit: Unit, loss: float) -> void:
+static func apply_strength_loss(unit: Unit, loss: float) -> float:
 	if loss <= 0.0:
-		return
+		return 0.0
 
 	var strength_max := Constants.get_float("strength_max")
 	var old_strength := unit.strength
 	unit.strength = maxf(unit.strength - loss, 0.0)
+	var applied := old_strength - unit.strength
 
-	var pct_lost := (old_strength - unit.strength) / strength_max * 100.0
-	if pct_lost > 0.0:
+	if applied > 0.0:
+		unit.apply_rear_anchored_depth_from_strength(old_strength, unit.strength)
+		var pct_lost := applied / strength_max * 100.0
 		var cohesion_drain := pct_lost * Constants.get_float("drain_per_strength_pct_lost")
 		unit.apply_cohesion_drain(cohesion_drain)
+
+	return applied
 

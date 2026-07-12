@@ -10,12 +10,13 @@ Kings & Generals–style historical battle simulator for mobile (Godot 4.x).
 4. **Touch:** one-finger drag to pan, pinch to zoom.
 5. Click **Test RNG** in the debug overlay to verify deterministic randomness.
 
-### Scenario 1 (WO-002 / WO-003)
+### Scenario 1 (WO-002 / WO-003 / WO-004)
 
 1. Open `tests/scenario_01.tscn` and press **F6** (Run Current Scene).
 2. Two blocks march head-on (long edges meet), fight, and one routs off the map.
-3. **Left-click** (or tap) a block to see live stats. **Right-drag** to pan; scroll/pinch to zoom.
-4. Trace CSV is written to `tests/traces/scenario_01_<seed>.csv` when the battle ends.
+3. **Left-click** (or tap) a block — mini stat card tracks the unit; full detail stays in the upper-right panel. **Click empty ground** to dismiss. **Right-drag** to pan; scroll/pinch to zoom.
+4. After victory (~2.5s post-rout), choose **Skip** or **Watch** the flee epilogue; results table shows kills and phase timings.
+5. Trace CSV is written to `tests/traces/scenario_01_<seed>.csv` when the battle ends (includes `kills` column).
 
 ### Headless tests
 

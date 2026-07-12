@@ -29,8 +29,10 @@
   "cohesion_max": 100,
   "speed_stat_meters_per_10s": 1,
   "push_ground_shift_max_m_per_tick": 0.1,
-  "bump_amplitude_max_m": 0.5,
-  "bump_period_sec": 1.2,
+  "bump_amplitude_m": 0.75,
+  "bump_period_s": 2.0,
+  "men_per_full_unit": 1000,
+  "victory_delay_s": 2.5,
   "scenario_01_start_distance_m": 200,
   "scenario_01_battle_seed": 12345
 }
