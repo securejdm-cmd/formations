@@ -83,10 +83,12 @@ func advance_one_tick() -> void:
 	var tick_interval := CombatResolver.tick_interval()
 	_sim_tick_count += 1
 	_update_movement(tick_interval)
-	_combat_tick()
-	_maybe_release_flank()
 	_resolve_allied_overlaps()
+	_maybe_release_flank()
+	_apply_contact_adhesion()
 	_assert_no_overlaps()
+	_combat_tick()
+	_apply_contact_adhesion()
 	_track_rout_state()
 	_update_victory_state(tick_interval)
 	var ticks_per_sec := int(Constants.get_float("tick_rate_per_sec"))
@@ -167,6 +169,7 @@ func _maybe_release_flank() -> void:
 	_red_b.rotation = _red_b.facing.angle()
 	_red_b.add_contact_partner(_blue_a)
 	_blue_a.add_contact_partner(_red_b)
+	CombatResolver.apply_contact_adhesion_pair(_red_b, _blue_a, _units)
 	_flank_along_m = chosen_along_m
 	_flank_across_m = chosen_across_m
 	_flank_released = true

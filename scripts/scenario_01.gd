@@ -98,8 +98,10 @@ func advance_one_tick() -> void:
 	_sim_tick_count += 1
 	_update_movement(tick_interval)
 	_resolve_allied_overlaps()
+	_apply_contact_adhesion()
 	_assert_no_overlaps()
 	_combat_tick()
+	_apply_contact_adhesion()
 	_track_rout_state()
 	_update_victory_state(tick_interval)
 	var ticks_per_sec := int(Constants.get_float("tick_rate_per_sec"))
@@ -177,7 +179,11 @@ func _try_begin_engagement(unit: Unit) -> void:
 
 		unit.add_contact_partner(other)
 		other.add_contact_partner(unit)
-		CombatResolver.snap_pair_to_contact(unit, other)
+		if (
+			CombatResolver.is_head_on_pair(unit, other)
+			and not EdgeContact.has_non_front_segment_contact(unit, other)
+		):
+			CombatResolver.snap_pair_to_contact(unit, other)
 		_on_first_contact()
 
 
@@ -357,7 +363,13 @@ func _prune_broken_contacts() -> void:
 			if partner.get_state() == Unit.State.ROUTING:
 				unit.remove_contact_partner(partner)
 				continue
-			if not CombatResolver.units_have_any_contact(unit, partner):
+			if (
+				CombatResolver.is_head_on_pair(unit, partner)
+				and not EdgeContact.has_non_front_segment_contact(unit, partner)
+			):
+				if not CombatResolver.units_have_any_contact(unit, partner):
+					unit.remove_contact_partner(partner)
+			elif not CombatResolver.pair_within_adhesion(unit, partner):
 				unit.remove_contact_partner(partner)
 
 
@@ -530,6 +542,23 @@ func _build_results_rows() -> Array[Dictionary]:
 	if not rows.is_empty():
 		rows[0].top = true
 	return rows
+
+
+func _apply_contact_adhesion() -> void:
+	var processed: Array[String] = []
+	for unit in _units:
+		if unit.get_state() == Unit.State.REMOVED or unit.get_state() == Unit.State.ROUTING:
+			continue
+		for partner in unit.get_contact_partners():
+			if partner == null or partner.get_state() == Unit.State.REMOVED:
+				continue
+			if partner.get_state() == Unit.State.ROUTING:
+				continue
+			var pair_key := _pair_key(unit, partner)
+			if pair_key in processed:
+				continue
+			processed.append(pair_key)
+			CombatResolver.apply_contact_adhesion_pair(unit, partner, _units)
 
 
 func _resolve_allied_overlaps() -> void:

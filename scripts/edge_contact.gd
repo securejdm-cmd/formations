@@ -137,6 +137,10 @@ static func pick_segment_orientation(unit_a: Unit, unit_b: Unit) -> Dictionary:
 	var priority_ba := _segment_orientation_priority(contact_ba)
 	if priority_ba > priority_ab:
 		return {"attacker": unit_b, "defender": unit_a, "contact": contact_ba}
+	if priority_ab > priority_ba:
+		return {"attacker": unit_a, "defender": unit_b, "contact": contact_ab}
+	if unit_b.unit_id < unit_a.unit_id:
+		return {"attacker": unit_b, "defender": unit_a, "contact": contact_ba}
 	return {"attacker": unit_a, "defender": unit_b, "contact": contact_ab}
 
 

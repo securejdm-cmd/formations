@@ -240,7 +240,11 @@ func update_routing(delta: float) -> void:
 
 func begin_engagement(partner: Unit) -> void:
 	add_contact_partner(partner)
-	CombatResolver.snap_pair_to_contact(self, partner)
+	if (
+		CombatResolver.is_head_on_pair(self, partner)
+		and not EdgeContact.has_non_front_segment_contact(self, partner)
+	):
+		CombatResolver.snap_pair_to_contact(self, partner)
 	_set_state(State.ENGAGED)
 
 

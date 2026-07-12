@@ -4,6 +4,10 @@ extends RefCounted
 const CONTACT_EPSILON_M := 0.01
 
 
+static func engage_snap_max_m() -> float:
+	return Constants.get_float("engage_snap_max_m")
+
+
 static func tick_rate() -> float:
 	return Constants.get_float("tick_rate_per_sec")
 
@@ -110,6 +114,181 @@ static func snap_pair_to_contact(unit_a: Unit, unit_b: Unit) -> void:
 		var correction_px := absf(gap_m) * 0.5 * px_per_meter
 		unit_a.position -= dir * correction_px
 		unit_b.position += dir * correction_px
+
+
+## Positive gap in meters along the approach axis; INF when adhesion does not apply.
+static func adhesion_gap_m(unit_a: Unit, unit_b: Unit) -> float:
+	if (
+		unit_a.get_state() == Unit.State.ROUTING
+		or unit_b.get_state() == Unit.State.ROUTING
+		or unit_a.get_state() == Unit.State.REMOVED
+		or unit_b.get_state() == Unit.State.REMOVED
+	):
+		return INF
+
+	if is_head_on_pair(unit_a, unit_b) and not EdgeContact.has_non_front_segment_contact(unit_a, unit_b):
+		if units_have_any_contact(unit_a, unit_b):
+			return maxf(_raw_center_gap_m(unit_a, unit_b), 0.0)
+		return _front_contact_distance(unit_a, unit_b)
+
+	var orient := EdgeContact.pick_segment_orientation(unit_a, unit_b)
+	var attacker: Unit = orient.attacker
+	var defender: Unit = orient.defender
+	var contact: Dictionary = orient.contact
+	var axis: Vector2
+	if contact.get("has_contact", false):
+		var push_normal: Vector2 = contact.get("push_normal", defender.facing)
+		if push_normal.length_squared() > 0.0001:
+			axis = -push_normal.normalized()
+		else:
+			axis = defender.position - attacker.position
+	else:
+		axis = defender.position - attacker.position
+	if axis.length_squared() <= 0.0001:
+		return INF
+	var gap_px := _projected_gap_px(
+		FormationGeometry.get_corners(attacker),
+		FormationGeometry.get_corners(defender),
+		axis.normalized()
+	)
+	var gap_m := gap_px / Constants.get_float("px_per_meter")
+	if not contact.get("has_contact", false):
+		var face_gap_px := _projected_gap_px(
+			FormationGeometry.get_corners(attacker),
+			FormationGeometry.get_corners(defender),
+			attacker.facing.normalized()
+		)
+		gap_m = maxf(gap_m, face_gap_px / Constants.get_float("px_per_meter"))
+		gap_m = maxf(gap_m, _segment_misalignment_gap_m(attacker, defender))
+	return gap_m
+
+
+static func _segment_misalignment_gap_m(attacker: Unit, defender: Unit) -> float:
+	var px_per_meter := Constants.get_float("px_per_meter")
+	var forward := defender.facing.normalized()
+	var left := FormationGeometry.left_vector(forward)
+	var rel := (attacker.position - defender.position) / px_per_meter
+	var across := rel.dot(left)
+	var along := rel.dot(forward)
+	var half_def_frontage := defender.effective_frontage_m() * 0.5
+	var half_att_depth := attacker.effective_depth_m() * 0.5
+	var half_def_depth := defender.effective_depth_m() * 0.5
+	var half_att_frontage := attacker.effective_frontage_m() * 0.5
+
+	# Left-flank approach (attacker on defender's left).
+	if across > 0.0 and absf(across) >= absf(along) * 0.5:
+		return maxf(across - half_def_frontage - half_att_depth, 0.0)
+	# Right-flank approach.
+	if across < 0.0 and absf(across) >= absf(along) * 0.5:
+		return maxf(-across - half_def_frontage - half_att_depth, 0.0)
+	# Front approach.
+	if along > 0.0:
+		return maxf(along - half_def_depth - half_att_depth, 0.0)
+	# Rear approach.
+	if along < 0.0:
+		return maxf(-along - half_def_depth - half_att_depth, 0.0)
+	return 0.0
+
+
+static func pair_within_adhesion(unit_a: Unit, unit_b: Unit) -> bool:
+	return adhesion_gap_m(unit_a, unit_b) <= engage_snap_max_m()
+
+
+static func apply_contact_adhesion_pair(unit_a: Unit, unit_b: Unit, all_units: Array = []) -> void:
+	if is_head_on_pair(unit_a, unit_b) and not EdgeContact.has_non_front_segment_contact(unit_a, unit_b):
+		return
+
+	var gap_m := adhesion_gap_m(unit_a, unit_b)
+	if gap_m > engage_snap_max_m() or gap_m <= CONTACT_EPSILON_M:
+		return
+
+	var orient := EdgeContact.pick_segment_orientation(unit_a, unit_b)
+	var attacker: Unit = orient.attacker
+	var defender: Unit = orient.defender
+
+	var push_normal: Vector2 = orient.contact.get("push_normal", defender.facing)
+	var old_pos := attacker.position
+	var move_dir: Vector2
+	var contact: Dictionary = orient.contact
+	if contact.get("has_contact", false) and push_normal.length_squared() > 0.0001:
+		move_dir = -push_normal.normalized()
+	else:
+		var delta := defender.position - attacker.position
+		if delta.length_squared() <= 0.0001:
+			return
+		move_dir = delta.normalized()
+
+	var allowed_m := _max_adhesion_move_m(attacker, unit_a, unit_b, all_units, old_pos, move_dir, gap_m)
+	if allowed_m <= CONTACT_EPSILON_M:
+		return
+	var px_per_meter := Constants.get_float("px_per_meter")
+	attacker.position = old_pos + move_dir * allowed_m * px_per_meter
+
+	if units_penetrating(attacker, defender):
+		var correction_dir := (defender.position - attacker.position).normalized()
+		var penetration_m := absf(_raw_center_gap_m(attacker, defender))
+		attacker.position -= correction_dir * penetration_m * px_per_meter
+
+
+static func _max_adhesion_move_m(
+	mover: Unit,
+	unit_a: Unit,
+	unit_b: Unit,
+	all_units: Array,
+	start_pos: Vector2,
+	move_dir: Vector2,
+	gap_m: float
+) -> float:
+	if gap_m <= CONTACT_EPSILON_M:
+		return 0.0
+	var px_per_meter := Constants.get_float("px_per_meter")
+	var low := 0.0
+	var high := gap_m
+	for _attempt in 8:
+		var try_m := (low + high) * 0.5
+		mover.position = start_pos + move_dir * try_m * px_per_meter
+		if _adhesion_move_creates_overlap(mover, unit_a, unit_b, all_units):
+			high = try_m
+		else:
+			low = try_m
+	mover.position = start_pos
+	return low
+
+
+static func _projected_gap_px(
+	corners_a: PackedVector2Array,
+	corners_b: PackedVector2Array,
+	axis: Vector2
+) -> float:
+	if axis.length_squared() <= 0.0001:
+		return INF
+	axis = axis.normalized()
+	var a_proj := FormationGeometry._project_corners(corners_a, axis)
+	var b_proj := FormationGeometry._project_corners(corners_b, axis)
+	if a_proj.y < b_proj.x:
+		return b_proj.x - a_proj.y
+	if b_proj.y < a_proj.x:
+		return a_proj.x - b_proj.y
+	return 0.0
+
+
+static func _adhesion_move_creates_overlap(
+	mover: Unit,
+	unit_a: Unit,
+	unit_b: Unit,
+	all_units: Array
+) -> bool:
+	var partner := unit_b if mover == unit_a else unit_a
+	for other in all_units:
+		if other == mover or other == partner:
+			continue
+		if other.get_state() == Unit.State.REMOVED or other.get_state() == Unit.State.ROUTING:
+			continue
+		if mover.get_state() == Unit.State.ROUTING:
+			continue
+		if units_overlap(mover, other):
+			return true
+	return false
 
 
 ## Push apart allied rectangles that overlap (sim collision, non-routing only).

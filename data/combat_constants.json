@@ -42,5 +42,6 @@
   "crack_fissure_length_m": 0.4,
   "crack_fissure_flicker_s": 0.35,
   "scenario_01_start_distance_m": 200,
-  "scenario_01_battle_seed": 12345
+  "scenario_01_battle_seed": 12345,
+  "engage_snap_max_m": 1.0
 }
