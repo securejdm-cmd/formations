@@ -82,3 +82,31 @@ When the Technical Director approves a work order, its pull request must be mark
 - **Merge order:** When catching up retroactively or merging dependent work, merge in work-order sequence (WO-003, WO-004, …). Resolve conflicts in favor of the **latest approved state** for that work order.
 - **Gate on `main`:** After merges, `main` must pass the full fast-mode regression suite: compass, fast certification (seed 12345), S1/S2 eleven-seed regression, determinism, and overlap assertion.
 - **Report:** Completion reports for merge batches must list the merge sequence and final regression result.
+
+## Report Links Footer (governance amendment)
+
+Every Completion Report and Escalation Report must end with a **## Links** section containing full `raw.githubusercontent.com` URLs to:
+
+1. **This report** — the committed file itself
+2. **The previous report** — the immediately prior work-order report in sequence (completion or escalation)
+3. **Any trace files cited** in the report body
+
+### Branch at review time (TD amendment)
+
+While a work order is **awaiting merge** (PR open, not yet on `main`), report footers must use the **current feature branch** raw URLs — `main` links 404 until merge lands.
+
+After merge, footers on `main` may use `main` branch URLs (or leave branch URLs in the merged commit; `INDEX.md` is updated to `main`).
+
+### Report index (`docs/reports/INDEX.md`)
+
+`INDEX.md` always uses **`main` branch** raw links (canonical post-merge index).
+
+Use this format for report footers (substitute `<branch>` with the PR branch name pre-merge, `main` post-merge optional):
+
+```markdown
+## Links
+
+- This report: https://raw.githubusercontent.com/<org>/<repo>/<branch>/docs/reports/WO-XXX_completion.md
+- Previous report: https://raw.githubusercontent.com/<org>/<repo>/main/docs/reports/WO-XXX_completion.md
+- Trace (if cited): https://raw.githubusercontent.com/<org>/<repo>/<branch>/tests/traces/<filename>.csv
+```

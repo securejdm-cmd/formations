@@ -21,6 +21,8 @@
   "idle_recovery_per_sec": 2,
   "rout_flee_speed_pct": 1.3,
   "pursuit_damage_multiplier": 4,
+  "pursuit_radius_m": 25,
+  "pursuit_contact_m": 3,
   "t_rally_sec": 8,
   "rally_cohesion_reset": 50,
   "rally_per_battle_limit": 1,

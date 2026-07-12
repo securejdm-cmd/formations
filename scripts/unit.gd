@@ -2,7 +2,7 @@ class_name Unit
 extends Area2D
 
 enum Order { HOLD, MARCH_TO }
-enum State { MARCHING, ENGAGED, WAVERING, ROUTING, HOLD, REMOVED }
+enum State { MARCHING, ENGAGED, WAVERING, ROUTING, RALLYING, HOLD, REMOVED }
 
 signal state_changed(unit: Unit)
 signal selected(unit: Unit)
@@ -39,6 +39,12 @@ var _bump_time: float = 0.0
 var _bump_phase_offset: float = 0.0
 var _bump_gap_ratio: float = 0.0
 var _bump_is_winner: bool = false
+
+var _rally_elapsed_sec: float = 0.0
+var _rallies_this_battle: int = 0
+var _rallied_hold: bool = false
+var _rally_reform_remaining_sec: float = 0.0
+var _pending_rout_event: bool = false
 
 @onready var _visual_root: Node2D = $VisualRoot
 @onready var _body: ColorRect = $VisualRoot/Body
@@ -97,6 +103,8 @@ func get_state_name() -> String:
 			return "wavering"
 		State.ROUTING:
 			return "routing"
+		State.RALLYING:
+			return "rallying"
 		State.HOLD:
 			return "hold"
 		State.REMOVED:
@@ -223,7 +231,36 @@ func update_marching(delta: float, enemies: Array[Unit] = []) -> void:
 	position += to_target.normalized() * move_px
 
 
-func update_routing(delta: float) -> void:
+func has_trait(trait_name: String) -> bool:
+	var traits: Array = profile.get("traits", [])
+	for entry in traits:
+		if str(entry).to_upper() == trait_name.to_upper():
+			return true
+	return false
+
+
+func is_rallied_hold() -> bool:
+	return _rallied_hold and _state == State.HOLD
+
+
+func consume_pending_rout_event() -> bool:
+	if not _pending_rout_event:
+		return false
+	_pending_rout_event = false
+	return true
+
+
+func reset_rally_timer() -> void:
+	_rally_elapsed_sec = 0.0
+
+
+func update_routing(delta: float, enemies: Array[Unit] = []) -> void:
+	if _state == State.RALLYING:
+		_rally_reform_remaining_sec -= delta
+		if _rally_reform_remaining_sec <= 0.0:
+			_set_state(State.HOLD)
+		return
+
 	if _state != State.ROUTING:
 		return
 
@@ -236,6 +273,58 @@ func update_routing(delta: float) -> void:
 	)
 	position += flee_direction * speed_px * delta
 	_check_edge_removal()
+
+	if not has_trait("RALLY"):
+		return
+	if _rallies_this_battle >= Constants.get_int("rally_per_battle_limit"):
+		return
+
+	if _enemy_within_pursuit_radius(enemies):
+		_rally_elapsed_sec = 0.0
+		return
+
+	_rally_elapsed_sec += delta
+	if _rally_elapsed_sec >= Constants.get_float("t_rally_sec"):
+		_complete_rally(enemies)
+
+
+func _enemy_within_pursuit_radius(enemies: Array[Unit]) -> bool:
+	for enemy in enemies:
+		if enemy == null or enemy.get_state() == State.REMOVED:
+			continue
+		if CombatResolver.enemy_blocks_rally_distance_m(self, enemy):
+			return true
+	return false
+
+
+func _complete_rally(enemies: Array[Unit]) -> void:
+	_rallies_this_battle += 1
+	_rally_elapsed_sec = 0.0
+	cohesion = Constants.get_float("rally_cohesion_reset")
+	current_order = Order.HOLD
+	_rallied_hold = true
+	_face_nearest_threat(enemies)
+	_set_state(State.RALLYING)
+	_rally_reform_remaining_sec = 1.0
+
+
+func _face_nearest_threat(enemies: Array[Unit]) -> void:
+	var nearest: Unit = null
+	var nearest_dist := INF
+	for enemy in enemies:
+		if enemy == null or enemy.get_state() == State.REMOVED:
+			continue
+		var dist := CombatResolver.center_distance_m(self, enemy)
+		if dist < nearest_dist:
+			nearest_dist = dist
+			nearest = enemy
+	if nearest == null:
+		return
+	var to_enemy := nearest.position - position
+	if to_enemy.length_squared() <= 0.0001:
+		return
+	facing = to_enemy.normalized()
+	rotation = facing.angle()
 
 
 func begin_engagement(partner: Unit) -> void:
@@ -256,7 +345,7 @@ func add_contact_partner(partner: Unit) -> void:
 		return
 	_contact_partners.append(partner)
 	_sync_primary_partner()
-	if _state != State.ROUTING and _state != State.REMOVED:
+	if _state != State.ROUTING and _state != State.REMOVED and _state != State.RALLYING:
 		_set_state(State.ENGAGED)
 
 
@@ -327,6 +416,8 @@ func enter_rout() -> void:
 				partner._set_state(State.HOLD)
 
 	clear_bump_state()
+	_rally_elapsed_sec = 0.0
+	_pending_rout_event = true
 	_set_state(State.ROUTING)
 
 
@@ -355,7 +446,7 @@ func _set_state(new_state: State) -> void:
 
 
 func _refresh_morale_state() -> void:
-	if _state == State.ROUTING or _state == State.REMOVED:
+	if _state == State.ROUTING or _state == State.REMOVED or _state == State.RALLYING:
 		return
 
 	if cohesion < Constants.get_float("rout_threshold"):
@@ -374,6 +465,10 @@ func _apply_state_visuals() -> void:
 			_body.color = _base_team_color.lerp(Color(0.92, 0.92, 0.92), 0.8)
 			_body.modulate = Color(1.0, 1.0, 1.0, 0.38)
 			_border.visible = false
+		State.RALLYING:
+			_body.color = _base_team_color.lerp(Color(0.92, 0.92, 0.92), 0.45)
+			_body.modulate = Color(1.0, 1.0, 1.0, 0.75)
+			_border.visible = false
 		State.REMOVED:
 			_body.color = _base_team_color
 			_body.modulate = Color.WHITE
@@ -391,7 +486,7 @@ func _update_dimensions() -> void:
 	var frontage_px := effective_frontage_m() * px_per_meter
 	var front_face_x := full_depth_px * 0.5
 
-	if _state == State.ROUTING:
+	if _state == State.ROUTING or _state == State.RALLYING:
 		# Formless fugitive: pale, softened footprint (collision already dropped in sim).
 		depth_px *= 0.55
 		frontage_px *= 1.2

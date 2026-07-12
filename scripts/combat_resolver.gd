@@ -561,3 +561,58 @@ static func apply_strength_loss(unit: Unit, loss: float) -> float:
 
 	return applied
 
+
+static func center_distance_m(unit_a: Unit, unit_b: Unit) -> float:
+	var px_per_meter := Constants.get_float("px_per_meter")
+	return unit_a.position.distance_to(unit_b.position) / px_per_meter
+
+
+static func pursuit_gap_m(pursuer: Unit, routing_unit: Unit) -> float:
+	var center_gap_m := center_distance_m(pursuer, routing_unit)
+	return (
+		center_gap_m
+		- pursuer.effective_depth_m() * 0.5
+		- routing_unit.effective_depth_m() * 0.5
+	)
+
+
+static func is_within_pursuit_contact(pursuer: Unit, routing_unit: Unit) -> bool:
+	if routing_unit.get_state() != Unit.State.ROUTING:
+		return false
+	return pursuit_gap_m(pursuer, routing_unit) <= Constants.get_float("pursuit_contact_m")
+
+
+static func can_apply_pursuit(pursuer: Unit) -> bool:
+	# Phase 1: only marching enemies on the flee path apply pursuit (S6 scripted pursuer).
+	return pursuer.get_state() == Unit.State.MARCHING and pursuer.current_order == Unit.Order.MARCH_TO
+
+
+static func enemy_blocks_rally(enemy: Unit) -> bool:
+	if enemy.get_state() == Unit.State.REMOVED:
+		return false
+	# Phase 1: only marching threats on the flee path block rally (stationary winners do not).
+	if enemy.get_state() != Unit.State.MARCHING:
+		return false
+	return true
+
+
+static func enemy_blocks_rally_distance_m(unit: Unit, enemy: Unit) -> bool:
+	if enemy.get_state() == Unit.State.REMOVED:
+		return false
+	if center_distance_m(unit, enemy) > Constants.get_float("pursuit_radius_m"):
+		return false
+	if enemy_blocks_rally(enemy):
+		return true
+	if is_within_pursuit_contact(enemy, unit):
+		return true
+	return false
+
+
+static func calc_pursuit_damage(pursuer: Unit) -> float:
+	var close_damage := float(pursuer.profile.get("close_damage", 0.0))
+	return (
+		close_damage
+		* Constants.get_float("pursuit_damage_multiplier")
+		* Constants.get_float("k_dmg")
+	)
+
