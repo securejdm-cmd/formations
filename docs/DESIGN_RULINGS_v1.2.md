@@ -55,3 +55,6 @@ Victory declared victory_delay_s (2.5) after last enemy unit begins routing; fle
 - Merge discipline: TD approval ⇒ PR merged to main before next WO.
 - Reports of record: committed .md in /docs/reports/ with raw-link footer + INDEX.md.
 - Permanent assertion suite: determinism, reflection symmetry, no-overlap (non-routing), fast certification, compass (32 cases), contact coherence invariant.
+
+## R13. Victory vs unused rally (designer + TD; WO-010)
+A routing unit with the **RALLY** trait and `rallies_remaining > 0` does **not** count as defeated for the victory check. Victory requires every enemy unit to be removed, destroyed, or routing with no rally remaining. If victory would otherwise be declared while such a unit exists, the battle continues; a successful rally resumes the fight naturally. **STATUS: BUILT (WO-010).**

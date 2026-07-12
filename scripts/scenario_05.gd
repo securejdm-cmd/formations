@@ -71,6 +71,9 @@ func _spawn_units() -> void:
 	red_rally.set_march_to(Vector2(half_distance_px, lane_offset_px))
 	_units.append(red_rally)
 
+	for unit in _units:
+		unit.set_render_camera(_camera)
+
 
 func advance_one_tick() -> void:
 	super.advance_one_tick()
@@ -107,6 +110,9 @@ func _find_unit(unit_id: String) -> Unit:
 		if unit.unit_id == unit_id:
 			return unit
 	return null
+
+
+func _write_trace_file() -> void:
 	var dir := DirAccess.open("res://tests")
 	if dir == null:
 		return

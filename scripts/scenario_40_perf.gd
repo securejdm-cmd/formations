@@ -51,6 +51,9 @@ func _spawn_units() -> void:
 			blue.set_march_to(Vector2(-half_distance_px, lane_y))
 			_units.append(blue)
 
+	for unit in _units:
+		unit.set_render_camera(_camera)
+
 
 func advance_one_tick() -> void:
 	var start_usec := Time.get_ticks_usec()

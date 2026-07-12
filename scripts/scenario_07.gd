@@ -2,7 +2,8 @@ class_name Scenario07
 extends Scenario01
 
 const TRACE_PREFIX := "scenario_07"
-const LINE_SPACING_M := 28.0
+const LINE_SPACING_M := 24.0
+const FLANK_DEPTH_STAGGER_M := 15.0
 
 var _red_left: Unit = null
 var _red_center: Unit = null
@@ -18,11 +19,19 @@ func _spawn_units() -> void:
 	var defender_profile := UnitProfileLoader.load_profile("test_infantry_push40")
 	var px_per_meter := Constants.get_float("px_per_meter")
 	var spacing_px := LINE_SPACING_M * px_per_meter
+	var stagger_px := FLANK_DEPTH_STAGGER_M * px_per_meter
 	var half_distance_px := Constants.get_float("scenario_01_start_distance_m") * 0.5 * px_per_meter
 
+	# WO-010: line abreast on Y-axis; flanks staggered in depth to avoid allied OBB overlap.
 	_red_left = UNIT_SCENE.instantiate()
 	add_child(_red_left)
-	_red_left.configure("red_left", "red", ally_profile, Vector2(-spacing_px, 0.0), Vector2.RIGHT)
+	_red_left.configure(
+		"red_left",
+		"red",
+		ally_profile,
+		Vector2(-stagger_px, -spacing_px),
+		Vector2.RIGHT,
+	)
 	_red_left.current_order = Unit.Order.HOLD
 	_units.append(_red_left)
 
@@ -34,7 +43,13 @@ func _spawn_units() -> void:
 
 	_red_right = UNIT_SCENE.instantiate()
 	add_child(_red_right)
-	_red_right.configure("red_right", "red", ally_profile, Vector2(spacing_px, 0.0), Vector2.RIGHT)
+	_red_right.configure(
+		"red_right",
+		"red",
+		ally_profile,
+		Vector2(-stagger_px, spacing_px),
+		Vector2.RIGHT,
+	)
 	_red_right.current_order = Unit.Order.HOLD
 	_units.append(_red_right)
 
@@ -50,6 +65,9 @@ func _spawn_units() -> void:
 	blue_striker.set_march_to(Vector2(-half_distance_px, 0.0))
 	_units.append(blue_striker)
 
+	for unit in _units:
+		unit.set_render_camera(_camera)
+
 
 func advance_one_tick() -> void:
 	if _battle_over:
@@ -57,6 +75,7 @@ func advance_one_tick() -> void:
 
 	var tick_interval := CombatResolver.tick_interval()
 	_sim_tick_count += 1
+	_rebuild_spatial_grid()
 	_update_movement(tick_interval)
 	_maybe_force_center_rout()
 	_process_rout_events()
@@ -130,6 +149,7 @@ func _maybe_force_center_rout() -> void:
 		if CombatResolver.center_distance_m(ally, _red_center) > radius_m:
 			continue
 		ally.apply_cohesion_drain(shock)
+		_spawn_shock_floater(ally, shock)
 		_log_trace_event(
 			"neighbor_rout_shock",
 			"victim=%s,source=%s,drain=%.1f" % [ally.unit_id, _red_center.unit_id, shock]

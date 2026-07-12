@@ -1,0 +1,57 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/visual_gallery.gd" id="1_gallery"]
+[ext_resource type="Script" path="res://scripts/battlefield_camera.gd" id="2_camera"]
+[ext_resource type="Script" path="res://scripts/unit_stat_card.gd" id="3_stat_card"]
+[ext_resource type="Script" path="res://scripts/shock_floater_layer.gd" id="4_shock"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
+bg_color = Color(0.05, 0.05, 0.08, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.7, 0.7, 0.75, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="VisualGallery" type="Node2D"]
+script = ExtResource("1_gallery")
+
+[node name="Ground" type="ColorRect" parent="."]
+offset_left = -600.0
+offset_top = -400.0
+offset_right = 600.0
+offset_bottom = 400.0
+color = Color(0.45, 0.55, 0.35, 1)
+
+[node name="Camera2D" type="Camera2D" parent="."]
+zoom = Vector2(0.35, 0.35)
+script = ExtResource("2_camera")
+
+[node name="StatCardLayer" type="CanvasLayer" parent="."]
+layer = 2
+
+[node name="UnitStatCard" type="PanelContainer" parent="StatCardLayer"]
+offset_right = 180.0
+offset_bottom = 28.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+script = ExtResource("3_stat_card")
+
+[node name="MarginContainer" type="MarginContainer" parent="StatCardLayer/UnitStatCard"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 4
+
+[node name="Label" type="Label" parent="StatCardLayer/UnitStatCard/MarginContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "STR --% · COH --% · ⚔ --"
+
+[node name="ShockFloaterLayer" type="CanvasLayer" parent="."]
+layer = 4
+script = ExtResource("4_shock")

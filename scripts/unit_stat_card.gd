@@ -11,6 +11,7 @@ var _camera: Camera2D = null
 
 func setup(camera: Camera2D) -> void:
 	_camera = camera
+	scale = Vector2.ONE
 	visible = false
 
 
@@ -54,12 +55,17 @@ func _update_position() -> void:
 	if _unit == null or _camera == null:
 		return
 
+	# Screen-space card: constant pixel size regardless of zoom.
+	scale = Vector2.ONE
 	var px_per_meter := Constants.get_float("px_per_meter")
 	var half_frontage_px := _unit.effective_frontage_m() * 0.5 * px_per_meter
 	var world_above := _unit.position + Vector2(0.0, -(half_frontage_px + OFFSET_ABOVE_PX))
-	var screen_pos := _camera.get_canvas_transform() * world_above
-	var zoom := _camera.zoom.x
+	var screen_pos: Vector2 = _camera.get_canvas_transform() * world_above
 
-	position = screen_pos
-	scale = Vector2.ONE / zoom
-	pivot_offset = size * 0.5
+	var viewport_size := get_viewport().get_visible_rect().size
+	var margin := Constants.get_float("stat_card_edge_margin_px")
+	var half := size * 0.5
+	screen_pos.x = clampf(screen_pos.x, margin + half.x, viewport_size.x - margin - half.x)
+	screen_pos.y = clampf(screen_pos.y, margin + half.y, viewport_size.y - margin - half.y)
+
+	position = screen_pos - half

@@ -48,6 +48,15 @@ func _test_constants_loaded(constants: Node) -> bool:
 		"px_per_meter",
 		"battlefield_width_m",
 		"battlefield_height_m",
+		"grind_band_min_screen_px",
+		"crack_min_screen_length_px",
+		"crack_min_screen_width_px",
+		"thinning_visual_gain",
+		"shock_floater_duration_s",
+		"shock_floater_font_px",
+		"shock_floater_rise_px",
+		"stat_card_edge_margin_px",
+		"spatial_grid_cell_m",
 	]
 
 	for key in required_keys:

@@ -2,6 +2,7 @@
 
 Canonical index of FORMATIONS work-order reports (newest first). Raw `main` branch links.
 
+- [WO-010_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/WO-010_completion.md)
 - [WO-009_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/WO-009_completion.md)
 - [MERGE_BATCH_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/MERGE_BATCH_completion.md) — WO-003 through WO-008 merge batch
 - [WO-008_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/WO-008_completion.md)

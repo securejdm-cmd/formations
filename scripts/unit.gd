@@ -45,6 +45,8 @@ var _rallies_this_battle: int = 0
 var _rallied_hold: bool = false
 var _rally_reform_remaining_sec: float = 0.0
 var _pending_rout_event: bool = false
+var _render_camera: Camera2D = null
+var _rout_flicker_time: float = 0.0
 
 @onready var _visual_root: Node2D = $VisualRoot
 @onready var _body: ColorRect = $VisualRoot/Body
@@ -52,6 +54,7 @@ var _pending_rout_event: bool = false
 @onready var _collision: CollisionShape2D = $CollisionShape2D
 
 var _crack_overlay: Node2D = null
+var _grind_band: ColorRect = null
 
 
 func _ready() -> void:
@@ -237,6 +240,24 @@ func has_trait(trait_name: String) -> bool:
 		if str(entry).to_upper() == trait_name.to_upper():
 			return true
 	return false
+
+
+func get_rallies_remaining() -> int:
+	return maxi(0, Constants.get_int("rally_per_battle_limit") - _rallies_this_battle)
+
+
+func is_defeated_for_victory() -> bool:
+	if _state == State.REMOVED:
+		return true
+	if _state == State.ROUTING:
+		if has_trait("RALLY") and get_rallies_remaining() > 0:
+			return false
+		return true
+	return false
+
+
+func set_render_camera(camera: Camera2D) -> void:
+	_render_camera = camera
 
 
 func is_rallied_hold() -> bool:
@@ -432,6 +453,7 @@ func mark_removed() -> void:
 func _process(delta: float) -> void:
 	_update_dimensions()
 	_update_waver_flicker(delta)
+	_update_rout_flicker(delta)
 	_update_bump_visual(delta)
 	_update_crack_fissures(delta)
 
@@ -482,18 +504,17 @@ func _apply_state_visuals() -> void:
 func _update_dimensions() -> void:
 	var px_per_meter := Constants.get_float("px_per_meter")
 	var full_depth_px := full_depth_m() * px_per_meter
-	var depth_px := effective_depth_m() * px_per_meter
+	var sim_depth_px := effective_depth_m() * px_per_meter
+	var thinning_gain := Constants.get_float("thinning_visual_gain")
+	var depth_px := sim_depth_px * thinning_gain
 	var frontage_px := effective_frontage_m() * px_per_meter
 	var front_face_x := full_depth_px * 0.5
 
 	if _state == State.ROUTING or _state == State.RALLYING:
-		# Formless fugitive: pale, softened footprint (collision already dropped in sim).
-		depth_px *= 0.55
-		frontage_px *= 1.2
+		# WO-010: constant frontage; formlessness = pale/transparent/flicker only.
+		depth_px = sim_depth_px * 0.55 * thinning_gain
 		front_face_x = full_depth_px * 0.5
 
-	# Simulation footprint stays centered on the unit origin (WO-003 geometry).
-	# Visual front face anchored at the sim contact edge; depth loss thins toward the rear.
 	_body.size = Vector2(depth_px, frontage_px)
 	_body.position = Vector2(front_face_x - depth_px, -frontage_px * 0.5)
 
@@ -503,6 +524,7 @@ func _update_dimensions() -> void:
 
 	rotation = facing.angle()
 	_update_collision()
+	_update_grind_band()
 
 
 func _update_collision() -> void:
@@ -524,6 +546,7 @@ func _update_bump_visual(delta: float) -> void:
 
 	if _state != State.ENGAGED and _state != State.WAVERING:
 		_visual_root.position = Vector2.ZERO
+		_update_grind_band(Vector2.ZERO)
 		return
 
 	_bump_time += delta
@@ -535,7 +558,9 @@ func _update_bump_visual(delta: float) -> void:
 		* Constants.get_float("px_per_meter")
 	)
 	var direction := 1.0 if _bump_is_winner else -1.0
-	_visual_root.position = facing.normalized() * wave * amp_px * direction
+	var bump_offset := facing.normalized() * wave * amp_px * direction
+	_visual_root.position = bump_offset
+	_update_grind_band(bump_offset)
 
 
 func _update_crack_fissures(delta: float) -> void:
@@ -567,6 +592,8 @@ func _draw_crack_fissures(canvas: Node2D) -> void:
 		return
 
 	var length_px := Constants.get_float("crack_fissure_length_m") * px_per_meter
+	length_px = maxf(length_px, _min_world_px_for_screen(Constants.get_float("crack_min_screen_length_px")))
+	var line_width := maxf(1.2, _min_world_px_for_screen(Constants.get_float("crack_min_screen_width_px")))
 	var flicker_hz := Constants.get_float("crack_fissure_flicker_s")
 	var flicker := 0.35 + 0.65 * absf(sin(_crack_flicker_time / flicker_hz * TAU + float(unit_id.hash() % 7)))
 	var color := Color(0.08, 0.08, 0.1, 0.85 * flicker)
@@ -578,8 +605,8 @@ func _draw_crack_fissures(canvas: Node2D) -> void:
 		var p0 := Vector2(front_x, y)
 		var p1 := Vector2(front_x + length_px * flicker, y + jag)
 		var p2 := Vector2(front_x + length_px * 0.65 * flicker, y - jag * 0.5)
-		canvas.draw_line(p0, p1, color, 1.2, true)
-		canvas.draw_line(p1, p2, color, 1.0, true)
+		canvas.draw_line(p0, p1, color, line_width, true)
+		canvas.draw_line(p1, p2, color, line_width * 0.85, true)
 
 
 func _update_waver_flicker(delta: float) -> void:
@@ -627,6 +654,46 @@ func _ensure_nodes() -> void:
 			_crack_overlay.draw.connect(_on_crack_overlay_draw)
 	if _collision == null:
 		_collision = $CollisionShape2D
+	if _grind_band == null and _visual_root != null:
+		_grind_band = ColorRect.new()
+		_grind_band.name = "GrindBand"
+		_grind_band.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_visual_root.add_child(_grind_band)
+		_visual_root.move_child(_grind_band, 0)
+
+
+func _min_world_px_for_screen(screen_px: float) -> float:
+	var zoom := 1.0
+	if _render_camera != null:
+		zoom = _render_camera.zoom.x
+	return screen_px / maxf(zoom, 0.001)
+
+
+func _update_grind_band(bump_offset: Vector2 = Vector2.ZERO) -> void:
+	if _grind_band == null:
+		return
+	if _state != State.ENGAGED and _state != State.WAVERING or _bump_gap_ratio <= 0.001:
+		_grind_band.visible = false
+		return
+
+	_grind_band.visible = true
+	var px_per_meter := Constants.get_float("px_per_meter")
+	var full_depth_px := full_depth_m() * px_per_meter
+	var frontage_px := effective_frontage_m() * px_per_meter
+	var front_x := full_depth_px * 0.5
+	var band_depth_px := _min_world_px_for_screen(Constants.get_float("grind_band_min_screen_px"))
+	var intensity := clampf(_bump_gap_ratio, 0.0, 1.0)
+	_grind_band.size = Vector2(band_depth_px, frontage_px * 0.88)
+	_grind_band.position = Vector2(front_x - band_depth_px * 0.5, -frontage_px * 0.44) + bump_offset
+	_grind_band.color = Color(1.0, 0.5 + 0.35 * intensity, 0.1, 0.25 + 0.55 * intensity)
+
+
+func _update_rout_flicker(delta: float) -> void:
+	if _state != State.ROUTING:
+		return
+	_rout_flicker_time += delta
+	var alpha := 0.32 + 0.08 * sin(_rout_flicker_time * 9.0)
+	_body.modulate = Color(1.0, 1.0, 1.0, alpha)
 
 
 func _on_crack_overlay_draw() -> void:

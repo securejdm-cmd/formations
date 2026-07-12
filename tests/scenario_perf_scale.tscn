@@ -1,6 +1,6 @@
 [gd_scene load_steps=10 format=3]
 
-[ext_resource type="Script" path="res://scripts/scenario_01.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/scenario_perf_scale.gd" id="1_scenario"]
 [ext_resource type="Script" path="res://scripts/battlefield_camera.gd" id="2_camera"]
 [ext_resource type="Script" path="res://scripts/scenario_debug_overlay.gd" id="3_debug"]
 [ext_resource type="Script" path="res://scripts/unit_stat_card.gd" id="4_stat_card"]
@@ -38,7 +38,7 @@ corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
-[node name="Scenario01" type="Node2D"]
+[node name="ScenarioPerfScale" type="Node2D"]
 script = ExtResource("1_scenario")
 
 [node name="Ground" type="ColorRect" parent="."]

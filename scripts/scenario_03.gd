@@ -82,12 +82,15 @@ func advance_one_tick() -> void:
 
 	var tick_interval := CombatResolver.tick_interval()
 	_sim_tick_count += 1
+	_rebuild_spatial_grid()
 	_update_movement(tick_interval)
 	_resolve_allied_overlaps()
 	_maybe_release_flank()
+	_process_rout_events()
 	_apply_contact_adhesion()
 	_assert_no_overlaps()
 	_combat_tick()
+	_pursuit_tick()
 	_apply_contact_adhesion()
 	_track_rout_state()
 	_update_victory_state(tick_interval)

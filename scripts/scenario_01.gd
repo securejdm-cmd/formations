@@ -28,11 +28,14 @@ var _first_contact_tick: int = -1
 var _first_rout_tick: int = -1
 var _overlap_assertion_failed: bool = false
 var _adhesion_invariant_failed: bool = false
+var _grid_cell_size_px: float = 1.0
+var _grid_cells: Dictionary = {}
 
 @onready var _camera: Camera2D = $Camera2D
 @onready var _ground: ColorRect = $Ground
 @onready var _debug_overlay: CanvasLayer = $DebugOverlay
 @onready var _stat_card = $StatCardLayer/UnitStatCard
+var _shock_floater_layer: CanvasLayer = null
 @onready var _results_overlay = $ResultsOverlay
 
 
@@ -47,6 +50,7 @@ func _ready() -> void:
 	print("[Scenario 01] Battle seed: %d" % _battle_seed)
 
 	_spawn_units()
+	_shock_floater_layer = get_node_or_null("ShockFloaterLayer") as CanvasLayer
 	_debug_overlay.setup_for_scenario(_units, _camera, _stat_card)
 	_stat_card.setup(_camera)
 	if not headless_mode:
@@ -97,6 +101,7 @@ func advance_one_tick() -> void:
 
 	var tick_interval := CombatResolver.tick_interval()
 	_sim_tick_count += 1
+	_rebuild_spatial_grid()
 	_update_movement(tick_interval)
 	_process_rout_events()
 	_resolve_allied_overlaps()
@@ -138,6 +143,84 @@ func _spawn_units() -> void:
 	blue.set_march_to(Vector2(-half_distance_px, 0.0))
 	_units.append(blue)
 
+	for unit in _units:
+		unit.set_render_camera(_camera)
+
+
+func _spatial_cell_size_m() -> float:
+	return Constants.get_float("spatial_grid_cell_m")
+
+
+func _rebuild_spatial_grid() -> void:
+	var px_per_meter := Constants.get_float("px_per_meter")
+	_grid_cell_size_px = maxf(_spatial_cell_size_m() * px_per_meter, 1.0)
+	_grid_cells.clear()
+	for unit in _units:
+		if unit == null or _grid_unit_inactive(unit):
+			continue
+		var cell: Vector2i = _grid_cell_key(unit.position)
+		if not _grid_cells.has(cell):
+			_grid_cells[cell] = []
+		(_grid_cells[cell] as Array).append(unit)
+
+
+func _grid_unit_inactive(unit: Unit) -> bool:
+	var state_name: String = unit.get_state_name()
+	return state_name == "removed" or state_name == "routing"
+
+
+func _grid_cell_key(pos: Vector2) -> Vector2i:
+	return Vector2i(
+		int(floor(pos.x / _grid_cell_size_px)),
+		int(floor(pos.y / _grid_cell_size_px)),
+	)
+
+
+func _grid_neighbor_units(unit: Unit) -> Array:
+	var origin: Vector2i = _grid_cell_key(unit.position)
+	var found: Array = []
+	for dx in range(-1, 2):
+		for dy in range(-1, 2):
+			var key := Vector2i(origin.x + dx, origin.y + dy)
+			if not _grid_cells.has(key):
+				continue
+			for other in _grid_cells[key]:
+				if other != unit:
+					found.append(other)
+	return found
+
+
+func _grid_sorted_pair_candidates() -> Array:
+	if _grid_cells.is_empty():
+		_rebuild_spatial_grid()
+	var seen: Dictionary = {}
+	var pairs: Array = []
+	for unit in _units:
+		if unit == null or _grid_unit_inactive(unit):
+			continue
+		for other in _grid_neighbor_units(unit):
+			if other == null or _grid_unit_inactive(other):
+				continue
+			var key := _pair_key(unit, other)
+			if seen.has(key):
+				continue
+			seen[key] = true
+			pairs.append([unit, other])
+	pairs.sort_custom(func(a, b) -> bool:
+		return _pair_key(a[0], a[1]) < _pair_key(b[0], b[1])
+	)
+	return pairs
+
+
+func _spatial_neighbors_sorted(unit: Unit) -> Array:
+	if _grid_cells.is_empty():
+		_rebuild_spatial_grid()
+	var neighbors: Array = _grid_neighbor_units(unit)
+	neighbors.sort_custom(func(a: Unit, b: Unit) -> bool:
+		return a.unit_id < b.unit_id
+	)
+	return neighbors
+
 
 func _enemies_for(unit: Unit) -> Array[Unit]:
 	var enemies: Array[Unit] = []
@@ -172,8 +255,8 @@ func _try_begin_engagement(unit: Unit) -> void:
 	if unit.get_state() == Unit.State.ROUTING or unit.get_state() == Unit.State.RALLYING:
 		return
 
-	for other in _units:
-		if other == unit or other.get_state() == Unit.State.REMOVED:
+	for other in _spatial_neighbors_sorted(unit):
+		if other.get_state() == Unit.State.REMOVED:
 			continue
 		if other.get_state() == Unit.State.ROUTING or other.get_state() == Unit.State.RALLYING:
 			continue
@@ -196,8 +279,8 @@ func _try_passive_engagement() -> void:
 	for unit in _units:
 		if unit.get_state() != Unit.State.HOLD or not unit.is_rallied_hold():
 			continue
-		for other in _units:
-			if other == unit or other.get_state() == Unit.State.REMOVED:
+		for other in _spatial_neighbors_sorted(unit):
+			if other.get_state() == Unit.State.REMOVED:
 				continue
 			if other.team_id == unit.team_id:
 				continue
@@ -235,10 +318,17 @@ func _apply_neighbor_rout_shock(routing_unit: Unit) -> void:
 		if CombatResolver.center_distance_m(ally, routing_unit) > radius_m:
 			continue
 		ally.apply_cohesion_drain(shock)
+		_spawn_shock_floater(ally, shock)
 		_log_trace_event(
 			"neighbor_rout_shock",
 			"victim=%s,source=%s,drain=%.1f" % [ally.unit_id, routing_unit.unit_id, shock]
 		)
+
+
+func _spawn_shock_floater(unit: Unit, amount: float) -> void:
+	if headless_mode or _shock_floater_layer == null or amount <= 0.0:
+		return
+	_shock_floater_layer.spawn_for_unit(unit, amount, _camera)
 
 
 func _pursuit_tick() -> void:
@@ -482,7 +572,7 @@ func _track_rout_state() -> void:
 func _try_start_victory_delay(routing_unit: Unit) -> void:
 	if _battle_phase != BattlePhase.ACTIVE:
 		return
-	if not _team_fully_routing(routing_unit.team_id):
+	if not _team_fully_defeated(routing_unit.team_id):
 		return
 
 	_victory_team = _opponent_team(routing_unit.team_id)
@@ -493,16 +583,16 @@ func _try_start_victory_delay(routing_unit: Unit) -> void:
 			_winner = unit
 
 
-func _team_fully_routing(team_id: String) -> bool:
+func _team_fully_defeated(team_id: String) -> bool:
 	var has_active := false
 	for unit in _units:
 		if unit.team_id != team_id:
 			continue
 		if unit.get_state() == Unit.State.REMOVED:
 			continue
-		if unit.get_state() != Unit.State.ROUTING:
-			return false
 		has_active = true
+		if not unit.is_defeated_for_victory():
+			return false
 	return has_active
 
 
@@ -673,17 +763,12 @@ func _assert_partner_classifier_contact_invariant() -> void:
 
 
 func _resolve_allied_overlaps() -> void:
-	for i in _units.size():
-		var unit_a := _units[i]
-		if unit_a.get_state() == Unit.State.REMOVED or unit_a.get_state() == Unit.State.ROUTING:
+	for pair in _grid_sorted_pair_candidates():
+		var unit_a: Unit = pair[0]
+		var unit_b: Unit = pair[1]
+		if unit_a.team_id != unit_b.team_id:
 			continue
-		for j in range(i + 1, _units.size()):
-			var unit_b := _units[j]
-			if unit_b.get_state() == Unit.State.REMOVED or unit_b.get_state() == Unit.State.ROUTING:
-				continue
-			if unit_a.team_id != unit_b.team_id:
-				continue
-			CombatResolver.separate_allied_overlap(unit_a, unit_b)
+		CombatResolver.separate_allied_overlap(unit_a, unit_b)
 
 
 func _pair_key(unit_a: Unit, unit_b: Unit) -> String:
@@ -694,22 +779,17 @@ func _pair_key(unit_a: Unit, unit_b: Unit) -> String:
 
 func _assert_no_overlaps() -> void:
 	# Non-routing pairs only (allied and enemy). Routing units are formless fugitives.
-	for i in _units.size():
-		var unit_a := _units[i]
-		if unit_a.get_state() == Unit.State.REMOVED or unit_a.get_state() == Unit.State.ROUTING:
+	for pair in _grid_sorted_pair_candidates():
+		var unit_a: Unit = pair[0]
+		var unit_b: Unit = pair[1]
+		if not CombatResolver.units_overlap(unit_a, unit_b):
 			continue
-		for j in range(i + 1, _units.size()):
-			var unit_b := _units[j]
-			if unit_b.get_state() == Unit.State.REMOVED or unit_b.get_state() == Unit.State.ROUTING:
-				continue
-			if not CombatResolver.units_overlap(unit_a, unit_b):
-				continue
-			_overlap_assertion_failed = true
-			var relation := "allied" if unit_a.team_id == unit_b.team_id else "enemy"
-			push_error(
-				"Overlap detected at tick %d between %s and %s (%s)"
-				% [_sim_tick_count, unit_a.unit_id, unit_b.unit_id, relation]
-			)
+		_overlap_assertion_failed = true
+		var relation := "allied" if unit_a.team_id == unit_b.team_id else "enemy"
+		push_error(
+			"Overlap detected at tick %d between %s and %s (%s)"
+			% [_sim_tick_count, unit_a.unit_id, unit_b.unit_id, relation]
+		)
 
 
 func _write_trace_header() -> void:
