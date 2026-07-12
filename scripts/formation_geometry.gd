@@ -41,7 +41,23 @@ static func contains_world_point(unit: Unit, world_point: Vector2) -> bool:
 	return absf(along) <= half_depth_px and absf(across) <= half_frontage_px
 
 
+static func bounds_may_overlap(unit_a: Unit, unit_b: Unit) -> bool:
+	var px_per_meter := Constants.get_float("px_per_meter")
+	var dist := unit_a.position.distance_to(unit_b.position)
+	var half_diag_a := sqrt(
+		pow(unit_a.effective_depth_m() * 0.5 * px_per_meter, 2.0)
+		+ pow(unit_a.effective_frontage_m() * 0.5 * px_per_meter, 2.0)
+	)
+	var half_diag_b := sqrt(
+		pow(unit_b.effective_depth_m() * 0.5 * px_per_meter, 2.0)
+		+ pow(unit_b.effective_frontage_m() * 0.5 * px_per_meter, 2.0)
+	)
+	return dist <= half_diag_a + half_diag_b + px_per_meter * 0.25
+
+
 static func rectangles_overlap(unit_a: Unit, unit_b: Unit) -> bool:
+	if not bounds_may_overlap(unit_a, unit_b):
+		return false
 	return _obb_overlap(get_corners(unit_a), get_corners(unit_b))
 
 

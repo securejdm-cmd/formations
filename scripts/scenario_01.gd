@@ -3,6 +3,7 @@ extends Node2D
 
 const UNIT_SCENE := preload("res://scenes/unit.tscn")
 const TRACE_DIR := "res://tests/traces/"
+const _TickProfiler := preload("res://scripts/tick_profiler.gd")
 
 enum BattlePhase { ACTIVE, VICTORY_PENDING, VICTORY_EPILOGUE, FINISHED }
 
@@ -101,6 +102,15 @@ func advance_one_tick() -> void:
 
 	var tick_interval := CombatResolver.tick_interval()
 	_sim_tick_count += 1
+	EdgeContact.begin_tick(_sim_tick_count)
+
+	if _TickProfiler.enabled:
+		_advance_one_tick_profiled(tick_interval)
+	else:
+		_advance_one_tick_fast(tick_interval)
+
+
+func _advance_one_tick_fast(tick_interval: float) -> void:
 	_rebuild_spatial_grid()
 	_update_movement(tick_interval)
 	_process_rout_events()
@@ -117,6 +127,52 @@ func advance_one_tick() -> void:
 	if _sim_tick_count % ticks_per_sec == 0:
 		_log_trace_row()
 	_check_epilogue_end()
+
+
+func _advance_one_tick_profiled(tick_interval: float) -> void:
+	var t0 := _TickProfiler.begin_section("grid_overhead")
+	_rebuild_spatial_grid()
+	_TickProfiler.end_section("grid_overhead", t0)
+
+	t0 = _TickProfiler.begin_section("movement")
+	_update_movement(tick_interval)
+	_process_rout_events()
+	_TickProfiler.end_section("movement", t0)
+
+	t0 = _TickProfiler.begin_section("allied_separation")
+	_resolve_allied_overlaps()
+	_try_passive_engagement()
+	_TickProfiler.end_section("allied_separation", t0)
+
+	t0 = _TickProfiler.begin_section("adhesion")
+	_apply_contact_adhesion()
+	_TickProfiler.end_section("adhesion", t0)
+
+	t0 = _TickProfiler.begin_section("overlap_assert")
+	_assert_no_overlaps()
+	_TickProfiler.end_section("overlap_assert", t0)
+
+	t0 = _TickProfiler.begin_section("combat")
+	_combat_tick()
+	_pursuit_tick()
+	_TickProfiler.end_section("combat", t0)
+
+	t0 = _TickProfiler.begin_section("adhesion_post")
+	_apply_contact_adhesion()
+	_TickProfiler.end_section("adhesion_post", t0)
+
+	t0 = _TickProfiler.begin_section("victory_epilogue")
+	_track_rout_state()
+	_update_victory_state(tick_interval)
+	var ticks_per_sec := int(Constants.get_float("tick_rate_per_sec"))
+	if _sim_tick_count % ticks_per_sec == 0:
+		var t_log := _TickProfiler.begin_section("trace_logging")
+		_log_trace_row()
+		_TickProfiler.end_section("trace_logging", t_log)
+	_check_epilogue_end()
+	_TickProfiler.end_section("victory_epilogue", t0)
+
+	_TickProfiler.on_tick_complete()
 
 
 func _setup_ground() -> void:
@@ -224,7 +280,10 @@ func _spatial_neighbors_sorted(unit: Unit) -> Array:
 
 func _enemies_for(unit: Unit) -> Array[Unit]:
 	var enemies: Array[Unit] = []
-	for other in _units:
+	var candidates: Array = _units
+	if unit.get_state() in [Unit.State.ENGAGED, Unit.State.WAVERING, Unit.State.ROUTING, Unit.State.RALLYING]:
+		candidates = _spatial_neighbors_sorted(unit)
+	for other in candidates:
 		if other == unit or other.get_state() == Unit.State.REMOVED:
 			continue
 		if other.team_id == unit.team_id:
@@ -768,6 +827,8 @@ func _resolve_allied_overlaps() -> void:
 		var unit_b: Unit = pair[1]
 		if unit_a.team_id != unit_b.team_id:
 			continue
+		if not FormationGeometry.bounds_may_overlap(unit_a, unit_b):
+			continue
 		CombatResolver.separate_allied_overlap(unit_a, unit_b)
 
 
@@ -782,6 +843,8 @@ func _assert_no_overlaps() -> void:
 	for pair in _grid_sorted_pair_candidates():
 		var unit_a: Unit = pair[0]
 		var unit_b: Unit = pair[1]
+		if not FormationGeometry.bounds_may_overlap(unit_a, unit_b):
+			continue
 		if not CombatResolver.units_overlap(unit_a, unit_b):
 			continue
 		_overlap_assertion_failed = true

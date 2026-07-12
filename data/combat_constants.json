@@ -52,6 +52,7 @@
   "shock_floater_rise_px": 36,
   "stat_card_edge_margin_px": 8,
   "spatial_grid_cell_m": 80,
+  "adhesion_binary_search_max_iters": 8,
   "scenario_01_start_distance_m": 200,
   "scenario_01_battle_seed": 12345,
   "engage_snap_max_m": 1.0,

@@ -222,6 +222,8 @@ func update_marching(delta: float, enemies: Array[Unit] = []) -> void:
 		return
 
 	for enemy in enemies:
+		if not CombatResolver.could_have_contact(self, enemy):
+			continue
 		if (
 			EdgeContact.units_have_contact(self, enemy)
 			or EdgeContact.units_have_contact(enemy, self)

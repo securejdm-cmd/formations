@@ -82,6 +82,7 @@ func advance_one_tick() -> void:
 
 	var tick_interval := CombatResolver.tick_interval()
 	_sim_tick_count += 1
+	EdgeContact.begin_tick(_sim_tick_count)
 	_rebuild_spatial_grid()
 	_update_movement(tick_interval)
 	_resolve_allied_overlaps()

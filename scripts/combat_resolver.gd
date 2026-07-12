@@ -1,6 +1,8 @@
 class_name CombatResolver
 extends RefCounted
 
+const _TickProfiler := preload("res://scripts/tick_profiler.gd")
+
 
 static func contact_epsilon_m() -> float:
 	return EdgeContact.contact_epsilon_m()
@@ -8,6 +10,20 @@ static func contact_epsilon_m() -> float:
 
 static func engage_snap_max_m() -> float:
 	return Constants.get_float("engage_snap_max_m")
+
+
+static func could_have_contact(unit_a: Unit, unit_b: Unit) -> bool:
+	var px_per_meter := Constants.get_float("px_per_meter")
+	var dist_m := unit_a.position.distance_to(unit_b.position) / px_per_meter
+	var reach := (
+		unit_a.effective_depth_m()
+		+ unit_b.effective_depth_m()
+		+ unit_a.effective_frontage_m() * 0.5
+		+ unit_b.effective_frontage_m() * 0.5
+		+ engage_snap_max_m()
+		+ 1.0
+	)
+	return dist_m <= reach
 
 
 static func tick_rate() -> float:
@@ -52,6 +68,10 @@ static func units_overlap(unit_a: Unit, unit_b: Unit) -> bool:
 		unit_a.get_state() == Unit.State.ROUTING
 		or unit_b.get_state() == Unit.State.ROUTING
 	):
+		return false
+	if not FormationGeometry.bounds_may_overlap(unit_a, unit_b):
+		return false
+	if not could_have_contact(unit_a, unit_b):
 		return false
 	if unit_a.team_id == unit_b.team_id:
 		return FormationGeometry.rectangles_overlap(unit_a, unit_b)
@@ -135,6 +155,14 @@ static func pair_has_classifier_contact(unit_a: Unit, unit_b: Unit) -> bool:
 
 ## Returns true when the partnership must be pruned this tick.
 static func apply_contact_adhesion_pair(unit_a: Unit, unit_b: Unit, all_units: Array = []) -> bool:
+	_TickProfiler.record_adhesion_pair()
+	_TickProfiler.adhesion_context = true
+	var result := _apply_contact_adhesion_pair_impl(unit_a, unit_b, all_units)
+	_TickProfiler.adhesion_context = false
+	return result
+
+
+static func _apply_contact_adhesion_pair_impl(unit_a: Unit, unit_b: Unit, all_units: Array = []) -> bool:
 	if (
 		unit_a.get_state() == Unit.State.ROUTING
 		or unit_b.get_state() == Unit.State.ROUTING
@@ -217,7 +245,9 @@ static func _seek_classifier_closure_m(
 	var best_m := -1.0
 	var low := 0.0
 	var high := max_m
-	for _attempt in 12:
+	var max_iters := Constants.get_int("adhesion_binary_search_max_iters")
+	for _attempt in max_iters:
+		_TickProfiler.record_binary_search_step()
 		var try_m := (low + high) * 0.5
 		attacker.position = old_pos + move_dir * try_m * px_per_meter
 		if _adhesion_move_creates_overlap(attacker, unit_a, unit_b, all_units):
@@ -239,12 +269,22 @@ static func _adhesion_move_creates_overlap(
 	all_units: Array
 ) -> bool:
 	var partner := unit_b if mover == unit_a else unit_a
+	var px_per_meter := Constants.get_float("px_per_meter")
+	var reach_px := (
+		mover.effective_depth_m()
+		+ mover.effective_frontage_m()
+		+ partner.effective_depth_m()
+		+ partner.effective_frontage_m()
+		+ 5.0
+	) * px_per_meter
 	for other in all_units:
 		if other == mover or other == partner:
 			continue
 		if other.get_state() == Unit.State.REMOVED or other.get_state() == Unit.State.ROUTING:
 			continue
 		if mover.get_state() == Unit.State.ROUTING:
+			continue
+		if mover.position.distance_to(other.position) > reach_px:
 			continue
 		if units_overlap(mover, other):
 			return true

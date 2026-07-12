@@ -1,6 +1,9 @@
 class_name EdgeContact
 extends RefCounted
 
+const _TickProfiler := preload("res://scripts/tick_profiler.gd")
+const _ContactCache := preload("res://scripts/contact_cache.gd")
+
 ## Oriented edge contact classification per COMBAT_CORE §3.6.
 ## Basis: FRONT = facing; LEFT = +90° CCW (soldier's left); RIGHT = −90°; REAR = −facing.
 
@@ -14,7 +17,25 @@ static func contact_epsilon_m() -> float:
 	return Constants.get_float("contact_epsilon_m")
 
 
+static func begin_tick(tick_id: int) -> void:
+	_ContactCache.begin_tick(tick_id)
+
+
 static func classify_contact(attacker: Unit, defender: Unit) -> Dictionary:
+	var prof_start := _TickProfiler.begin_classification()
+	var result: Dictionary
+	var cached = _ContactCache.lookup(attacker, defender)
+	if cached != null:
+		result = cached
+	else:
+		result = _classify_contact_impl(attacker, defender)
+		_ContactCache.store(attacker, defender, result)
+	_TickProfiler.end_classification(prof_start)
+	_TickProfiler.record_classifier()
+	return result
+
+
+static func _classify_contact_impl(attacker: Unit, defender: Unit) -> Dictionary:
 	# Head-on pairs defer to legacy center-gap contact until aligned.
 	if (
 		CombatResolver.is_head_on_pair(attacker, defender)
