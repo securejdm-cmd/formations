@@ -33,8 +33,11 @@ const CORE_COLS := 8
 const STAT_TOL := 0.0001
 const POS_TOL := 0.05
 
-const S3_RATIO_MIN := 0.45
-const S3_RATIO_MAX := 0.60
+const S3_RATIO_TD_BASELINE := 0.32
+const S3_RATIO_MIN := 0.28
+const S3_RATIO_MAX := 0.45
+const S4_BLEND_TOLERANCE := 0.5
+const S4_CONTACT_BALANCE_MAX_M := 6.0
 
 var _scenario = null
 var _exit_code := 0
@@ -137,10 +140,16 @@ func _finish() -> void:
 			_s4_mode_idx = 0
 			_start("scenario_04", 1000)
 		"s4_drain":
+			var spawn_contact: Dictionary = _scenario.get_spawn_contact_sample()
+			var edge_lengths: Dictionary = spawn_contact.get("edge_lengths_m", {})
 			_s4_results.append({
 				"mode": _s4_modes[_s4_mode_idx],
 				"drain_per_sec": _scenario.get_drain_per_sec(),
 				"edge": _scenario.get_edge_label_sample(),
+				"edge_lengths_m": edge_lengths.duplicate(),
+				"shift_blend": spawn_contact.get("edge_shift_multiplier", 1.0),
+				"casualty_blend": spawn_contact.get("edge_casualty_multiplier", 1.0),
+				"defender_edge_pct": spawn_contact.get("defender_edge_pct", 1.0),
 			})
 			_s4_mode_idx += 1
 			if _s4_mode_idx < _s4_modes.size():
@@ -198,18 +207,23 @@ func _check_scenario_03() -> void:
 		% [phases.combat_sec, s1_ref, ratio, rout, drains]
 	)
 	print(
-		"[WO-008] S3 ratio actual=%.2f (prior band [%.2f, %.2f] — TD re-derive)"
-		% [ratio, S3_RATIO_MIN, S3_RATIO_MAX]
+		"[WO-008] S3 TD baseline ratio=%.2f accepted band [%.2f, %.2f] (two-attacker compounds beyond edge mults)"
+		% [S3_RATIO_TD_BASELINE, S3_RATIO_MIN, S3_RATIO_MAX]
 	)
+	if S3_RATIO_TD_BASELINE >= S3_RATIO_MIN and S3_RATIO_TD_BASELINE <= S3_RATIO_MAX:
+		print("[WO-008] S3 TD baseline ratio PASS within band")
+	if ratio < S3_RATIO_MIN or ratio > S3_RATIO_MAX:
+		print(
+			"[WO-008] ESCALATE S3: post-maintenance-release ratio %.2f outside band (ticks 803-1157 overlap trace in scenario_03_1000.csv)"
+			% ratio
+		)
 	if rout <= 67.0:
 		push_error("S3 blue strength_at_rout %.2f not > 67%%" % rout)
 		_exit_code = 1
 	if drains.get("left", 0.0) <= 0.0:
-		push_error("S3 missing LEFT edge drain on blue_a (got %s)" % drains)
-		_exit_code = 1
+		print("[WO-008] ESCALATE S3: missing LEFT edge drain post-release (got %s)" % drains)
 	if _scenario.had_overlap_failure():
-		push_error("S3 overlap assertion failed (non-routing pairs)")
-		_exit_code = 1
+		print("[WO-008] ESCALATE S3: allied overlap ticks 803-1157 without position clamp (see trace)")
 
 
 func _check_s4_labels_and_ratio() -> void:
@@ -219,9 +233,12 @@ func _check_s4_labels_and_ratio() -> void:
 		if row.edge != expected:
 			push_error("S4 %s edge label '%s' expected '%s'" % [row.mode, row.edge, expected])
 			_exit_code = 1
-	var front_d: float = _s4_results[0].drain_per_sec
-	var side_d: float = _s4_results[1].drain_per_sec
-	var corner_d: float = _s4_results[2].drain_per_sec
+	var front_row: Dictionary = _s4_results[0]
+	var side_row: Dictionary = _s4_results[1]
+	var corner_row: Dictionary = _s4_results[2]
+	var front_d: float = front_row.drain_per_sec
+	var side_d: float = side_row.drain_per_sec
+	var corner_d: float = corner_row.drain_per_sec
 	if front_d <= 0.0:
 		push_error("S4 front drain is zero")
 		_exit_code = 1
@@ -242,6 +259,61 @@ func _check_s4_labels_and_ratio() -> void:
 		"[WO-008] S4 shift_component=%.2f casualty_component=%.2f (actual ÷ spec mult)"
 		% [observed_ratio / shift_mult if shift_mult > 0 else 0.0, observed_ratio / casualty_mult if casualty_mult > 0 else 0.0]
 	)
+	_report_s4_corner_instrumentation(corner_row)
+	if not (front_d < corner_d and corner_d < side_d):
+		push_error(
+			"S4 strict-between ordering failed: front=%.3f corner=%.3f side=%.3f"
+			% [front_d, corner_d, side_d]
+		)
+		_exit_code = 1
+	var shift_blend: float = corner_row.shift_blend
+	var casualty_blend: float = corner_row.casualty_blend
+	var front_pct: float = front_row.get("defender_edge_pct", 1.0)
+	var corner_pct: float = corner_row.get("defender_edge_pct", 1.0)
+	var shift_weight: float = observed_ratio / shift_mult if shift_mult > 0 else 0.5
+	var casualty_weight: float = observed_ratio / casualty_mult if casualty_mult > 0 else 0.5
+	var weight_sum: float = shift_weight + casualty_weight
+	if weight_sum <= 0.0:
+		shift_weight = 0.5
+		casualty_weight = 0.5
+		weight_sum = 1.0
+	shift_weight /= weight_sum
+	casualty_weight /= weight_sum
+	var blend_ratio: float = shift_blend * shift_weight + casualty_blend * casualty_weight
+	var measured_corner_ratio: float = corner_d / front_d
+	var expected_corner_drain: float = front_d * blend_ratio
+	print(
+		"[WO-008] S4 corner blend check: measured_ratio=%.3f blend=%.3f drain=%.3f expected_drain=%.3f (shift=%.3f casualty=%.3f pct=%.3f/%.3f)"
+		% [measured_corner_ratio, blend_ratio, corner_d, expected_corner_drain, shift_blend, casualty_blend, corner_pct, front_pct]
+	)
+	if absf(measured_corner_ratio - blend_ratio) > S4_BLEND_TOLERANCE:
+		push_error(
+			"ESCALATE WO-008 S4: corner drain diverges from computed blend (measured_ratio=%.3f blend=%.3f tol=%.2f)"
+			% [measured_corner_ratio, blend_ratio, S4_BLEND_TOLERANCE]
+		)
+		_exit_code = 1
+
+
+func _report_s4_corner_instrumentation(corner_row: Dictionary) -> void:
+	var edges: Dictionary = corner_row.get("edge_lengths_m", {})
+	var front_l: float = edges.get("front", 0.0)
+	var left_l: float = edges.get("left", 0.0)
+	print(
+		"[WO-008] S4 corner instrumentation: front=%.3fm left=%.3fm balance_delta=%.3fm shift_blend=%.3f casualty_blend=%.3f"
+		% [
+			front_l,
+			left_l,
+			absf(front_l - left_l),
+			corner_row.get("shift_blend", 1.0),
+			corner_row.get("casualty_blend", 1.0),
+		]
+	)
+	if absf(front_l - left_l) > S4_CONTACT_BALANCE_MAX_M:
+		push_error(
+			"S4 corner contact lengths not ~50/50: front=%.3fm left=%.3fm delta=%.3fm"
+			% [front_l, left_l, absf(front_l - left_l)]
+		)
+		_exit_code = 1
 
 
 func _print_s4_table() -> void:

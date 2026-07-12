@@ -204,6 +204,8 @@ func _combat_tick() -> void:
 				continue
 			if not CombatResolver.units_have_front_contact(unit, partner):
 				continue
+			if EdgeContact.has_non_front_segment_contact(unit, partner):
+				continue
 
 			var pair_key := _pair_key(unit, partner)
 			if pair_key in processed_head_on:

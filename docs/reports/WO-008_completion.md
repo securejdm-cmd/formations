@@ -3,7 +3,7 @@
 **Work order:** WO-008 — Edge-Based Contact: Flanks & Corners  
 **Branch:** `cursor/wo-008-edge-contact-fd84`  
 **Date:** 2026-07-12  
-**TD ruling:** Per-channel edge multipliers (shift vs casualty) — spec change reversed in structure, revised in values
+**TD rulings applied:** S3 band re-derive, S4 corner instrumentation, S3 allied overlap release
 
 ---
 
@@ -13,23 +13,15 @@
 
 ---
 
-## Governance
+## S3 band derivation (TD ruling 1)
 
-Prior acceptance bands are **not** enforced on this run. Actuals delivered for TD band re-derivation. Any doc contradiction was escalated via TD ruling before implementation.
+| Item | Value |
+|------|-------|
+| TD accepted band | **[0.28, 0.45]** |
+| TD baseline ratio (two-attacker harness) | **0.32** |
+| Rationale | Two-attacker configuration compounds beyond per-edge multipliers; single-edge mults (2.0 shift / 1.5 casualty) do not bound combined front+flank pacing |
 
----
-
-## Per-channel edge multipliers (implemented)
-
-| Constant | Value | Channel |
-|----------|-------|---------|
-| `edge_mult_front` | 1.0 | front (both channels) |
-| `edge_mult_side_shift` | 2.0 | shift morale (ground lost) |
-| `edge_mult_rear_shift` | 3.0 | shift morale |
-| `edge_mult_side_casualty` | 1.5 | casualty cohesion |
-| `edge_mult_rear_casualty` | 2.0 | casualty cohesion |
-
-Corner contacts length-weight blend **per channel** (`edge_shift_multiplier`, `edge_casualty_multiplier` in `classify_contact`). Head-on legacy path unchanged (no edge mult).
+Prior band [0.45, 0.60] superseded.
 
 ---
 
@@ -37,63 +29,79 @@ Corner contacts length-weight blend **per channel** (`edge_shift_multiplier`, `e
 
 | Check | Result |
 |-------|--------|
-| S1 winner flips | **0** (11/11 seeds) |
-| S1 combat drift | **0** (±0.15s) |
-| S2 winner / combat / rout | **0** drift (11/11 seeds) |
-| Determinism (core 8 cols, seed 12345) | **PASS** |
+| S1 winner / combat | **11/11 PASS** (±0.15s) |
+| S2 winner / combat / rout | **11/11 PASS** |
+| Determinism (seed 12345) | **PASS** |
 
 ---
 
-## Scenario 3 — LEFT flank (seed 1000, `FLANK_DELAY_SEC=9.5`)
+## Scenario 3 — Flank + overlap release (seed 1000)
 
-| Metric | Actual |
-|--------|--------|
-| S1 reference combat | 68.2s |
-| S3 combat | **22.0s** |
-| Combat ratio (S3/S1) | **0.32** |
-| Prior band | [0.45, 0.60] — **TD re-derive** |
-| Blue `strength_at_rout` | **78.60%** |
-| Blue edge drains | front=0, **left=50.3**, rear=12.5 |
+| Metric | TD baseline | Post-release (no position clamp) |
+|--------|-------------|----------------------------------|
+| Combat | 22.0s | **54.0s** |
+| Ratio (S3/S1) | **0.32** | **0.79** |
+| Blue `strength_at_rout` | 78.60% | **67.52%** |
+| Blue LEFT drain | 50.3 | **8.43** |
 
-**Note:** Allied overlap red_a/red_b detected at tick 837 during flank correction (faster rout with casualty mult). Overlap assertion **FAIL** — report to TD; timing not retuned per directive.
+### Allied overlap escalation (TD ruling 3)
+
+Scripted per-tick `_maintain_flank_contact()` and overlap correction **removed** after flank contact is established. Sim collision governs thereafter.
+
+| Item | Value |
+|------|-------|
+| First overlap tick | **803** |
+| Last overlap tick (trace) | **1157** |
+| Trace | `tests/traces/scenario_03_1000.csv` |
+| Position clamp | **None** (per TD) |
+
+**ESCALATE:** Non-routing `red_a`/`red_b` overlap persists ticks 803–1157 without clamp. Post-release combat ratio and flank drain diverge from TD baseline — allied hard-collision / march-lane separation requires TD follow-up.
 
 ---
 
 ## Scenario 4 — Three-mode drain (seed 1000, 50 ticks)
 
-| Mode | Drain/s | Spawn edge label |
-|------|---------|------------------|
-| FRONT | **3.155** | front |
-| SIDE | **6.658** | left |
-| CORNER | **3.163** | front+left |
+### Pre-fix corner instrumentation (harness placement bug)
 
-### Decomposition (side vs front)
+| Edge | Length |
+|------|--------|
+| front | 26.255 m |
+| left | 15.000 m |
+| shift_blend | 1.364 |
+| casualty_blend | 1.182 |
+
+Measured corner drain ≈ front (corner/front ≈ 1.00) — **harness placement**, not resolver (head-on path consumed corner pairs).
+
+### Post-fix (corner solver + segment harness + head-on skip)
+
+| Mode | Drain/s | Edge label | Notes |
+|------|---------|------------|-------|
+| FRONT | **3.155** | front | |
+| SIDE | **6.812** | left | side/front **2.16×** |
+| CORNER | **5.663** | front+left | **strict-between PASS** |
+
+### Corner instrumentation (post-fix)
 
 | Metric | Value |
 |--------|-------|
-| Observed side/front | **2.11×** |
-| Spec shift mult (side/front) | **2.00×** |
-| Spec casualty mult (side/front) | **1.50×** |
-| Actual ÷ shift mult | **1.06×** |
-| Actual ÷ casualty mult | **1.41×** |
-
-### Corner ratios (actuals)
-
-| Ratio | Value |
-|-------|-------|
-| corner/front | **1.00×** |
-| corner/side | **0.48×** |
-
-Prior strict-between ordering **not met** (corner ≈ front, side elevated by casualty channel). Delivered for TD band re-derivation; constants not retuned.
+| front contact | **11.119 m** |
+| left contact | **10.373 m** |
+| balance_delta | **0.746 m** |
+| shift_blend | **1.483** |
+| casualty_blend | **1.241** |
+| corner/front measured | **1.795** |
+| blend expected | **1.345** (within 0.5 tol) |
 
 ---
 
-## Compass & overlap
+## Resolver fixes
 
-| Check | Result |
-|-------|--------|
-| Compass 32/32 | **PASS** |
-| S1 reflection overlap (seed 1000) | **PASS** |
+| Fix | File |
+|-----|------|
+| Head-on loop skips pairs with meaningful flank/rear segment contact | `scenario_01.gd` |
+| `has_non_front_segment_contact` checks both orientations | `edge_contact.gd` |
+| S4 side/corner use spawn-contact segment harness | `scenario_04.gd` |
+| Corner spawn brute-force solver (~50/50 lengths) | `scenario_04.gd` |
 
 ---
 
@@ -101,17 +109,16 @@ Prior strict-between ordering **not met** (corner ≈ front, side elevated by ca
 
 | File | Change |
 |------|--------|
-| `data/combat_constants.json` | Four per-channel mult constants |
-| `scripts/combat_resolver.gd` | `_edge_shift_multiplier_for_name`, `_edge_casualty_multiplier_for_name`, `_apply_casualty_drain_by_edges` |
-| `scripts/edge_contact.gd` | Per-channel weighted blends in contact dict |
-| `scripts/scenario_03.gd` | `FLANK_DELAY_SEC` restored to **9.5** |
-| `tests/scenario_wo008_autotest.gd` | Report actuals; prior S3/S4 bands not enforced |
-| `tests/wo001_smoke_test.gd` | New constant keys |
+| `scripts/scenario_03.gd` | Release flank position maintenance; single overlap escalation |
+| `scripts/scenario_04.gd` | Corner solver, segment harness `_combat_tick`, spawn instrumentation |
+| `scripts/scenario_01.gd` | Head-on skip when non-front segment contact |
+| `scripts/edge_contact.gd` | Bidirectional non-front segment detection |
+| `tests/scenario_wo008_autotest.gd` | S3 band [0.28,0.45], S4 instrumentation + ordering + blend checks |
+| `tests/corner_instrument_probe.gd` | Corner diagnostic probe |
 
 ---
 
-## Escalations (open)
+## Open escalations
 
-1. **S3 ratio 0.32** — below prior [0.45, 0.60] band after casualty channel restore; TD re-derive band.
-2. **S3 allied overlap** at tick 837 with 9.5s flank release — investigate vs casualty-mult pacing.
-3. **S4 corner ordering** — corner ≈ front, side >> corner; TD re-derive strict-between band.
+1. **S3 allied overlap** ticks 803–1157 without clamp (trace attached).
+2. **S3 post-release ratio 0.79** vs TD baseline 0.32 — flank effectiveness without blue-tracking maintenance.

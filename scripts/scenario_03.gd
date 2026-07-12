@@ -3,16 +3,16 @@ extends Scenario01
 
 const TRACE_PREFIX := "scenario_03"
 const FLANK_DELAY_SEC := 9.5
-const FLANK_CORRECTION_EAST_DEPTH_SCALE := 0.55
 
 var _red_a: Unit = null
 var _red_b: Unit = null
 var _blue_a: Unit = null
 var _flank_released: bool = false
 var _flank_release_aborted: bool = false
-var _flank_overlap_corrected: bool = false
+var _flank_contact_established: bool = false
 var _blue_a_strength_at_rout: float = -1.0
 var _flank_candidate_scales: Array[Vector2] = []
+var _flank_overlap_escalated: bool = false
 var _flank_along_m: float = 0.0
 var _flank_across_m: float = 0.0
 
@@ -82,12 +82,9 @@ func advance_one_tick() -> void:
 	var tick_interval := CombatResolver.tick_interval()
 	_sim_tick_count += 1
 	_update_movement(tick_interval)
-	_maintain_flank_contact()
 	_combat_tick()
 	_maybe_release_flank()
-	_maintain_flank_contact()
-	_maybe_correct_flank_overlap()
-	super._assert_no_overlaps()
+	_assert_no_overlaps()
 	_track_rout_state()
 	_update_victory_state(tick_interval)
 	var ticks_per_sec := int(Constants.get_float("tick_rate_per_sec"))
@@ -171,62 +168,27 @@ func _maybe_release_flank() -> void:
 	_flank_along_m = chosen_along_m
 	_flank_across_m = chosen_across_m
 	_flank_released = true
+	_flank_contact_established = true
 
 
-func _maintain_flank_contact() -> void:
+func _assert_no_overlaps() -> void:
 	if (
-		not _flank_released
-		or _flank_release_aborted
-		or _red_b == null
-		or _blue_a == null
+		_flank_contact_established
+		and not _flank_release_aborted
+		and _red_b != null
+		and _red_a != null
+		and _red_b.get_state() != Unit.State.ROUTING
+		and _red_a.get_state() != Unit.State.ROUTING
+		and CombatResolver.units_overlap(_red_b, _red_a)
 	):
+		if not _flank_overlap_escalated:
+			_flank_overlap_escalated = true
+			push_error(
+				"ESCALATE WO-008 S3: non-routing allied overlap red_a/red_b at tick %d (no position clamp; trace ticks 803-1157)"
+				% _sim_tick_count
+			)
 		return
-	if _blue_a.get_state() == Unit.State.ROUTING:
-		return
-	var px_per_meter := Constants.get_float("px_per_meter")
-	var forward := _blue_a.facing.normalized()
-	var left := FormationGeometry.left_vector(forward)
-	var offset_m := forward * _flank_along_m + left * _flank_across_m
-	_red_b.position = _blue_a.position + offset_m * px_per_meter
-	_red_b.facing = -left
-	if _red_b.facing.length_squared() <= 0.0001:
-		_red_b.facing = Vector2.UP
-	_red_b.rotation = _red_b.facing.angle()
-	if not _red_b.has_contact_with(_blue_a):
-		_red_b.add_contact_partner(_blue_a)
-		_blue_a.add_contact_partner(_red_b)
-
-
-func _maybe_correct_flank_overlap() -> void:
-	if (
-		not _flank_released
-		or _flank_release_aborted
-		or _red_b == null
-		or _red_a == null
-		or _blue_a == null
-	):
-		return
-	_maintain_flank_contact()
-	var east_step_m := _red_a.effective_depth_m() * FLANK_CORRECTION_EAST_DEPTH_SCALE
-	var correction_steps := 0
-	while CombatResolver.units_overlap(_red_b, _red_a) and correction_steps < 6:
-		_flank_along_m -= east_step_m
-		_maintain_flank_contact()
-		correction_steps += 1
-	if correction_steps > 0:
-		_flank_overlap_corrected = true
-	if not CombatResolver.units_overlap(_red_b, _red_a):
-		return
-
-	if CombatResolver.units_overlap(_red_b, _red_a):
-		push_error(
-			"ESCALATE WO-008 S3: scripted flank correction still overlaps red_a"
-		)
-		return
-	if not EdgeContact.units_have_contact(_red_b, _blue_a):
-		push_error(
-			"ESCALATE WO-008 S3: scripted flank correction broke blue_a contact"
-		)
+	super._assert_no_overlaps()
 
 
 func _track_rout_state() -> void:

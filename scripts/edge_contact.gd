@@ -141,17 +141,16 @@ static func pick_segment_orientation(unit_a: Unit, unit_b: Unit) -> Dictionary:
 
 
 static func has_non_front_segment_contact(unit_a: Unit, unit_b: Unit) -> bool:
-	var orientation := pick_segment_orientation(unit_a, unit_b)
-	var contact: Dictionary = orientation.get("contact", {})
-	if not contact.get("has_contact", false):
-		return false
-	if is_front_only_contact(contact):
-		return false
-	var edges: Dictionary = contact.get("edge_lengths_m", {})
 	const MIN_FLANK_EDGE_M := 5.0
-	for edge_name in [EDGE_LEFT, EDGE_RIGHT, EDGE_REAR]:
-		if edges.get(edge_name, 0.0) >= MIN_FLANK_EDGE_M:
-			return true
+	for contact in [classify_contact(unit_a, unit_b), classify_contact(unit_b, unit_a)]:
+		if not contact.get("has_contact", false):
+			continue
+		if is_front_only_contact(contact):
+			continue
+		var edges: Dictionary = contact.get("edge_lengths_m", {})
+		for edge_name in [EDGE_LEFT, EDGE_RIGHT, EDGE_REAR]:
+			if edges.get(edge_name, 0.0) >= MIN_FLANK_EDGE_M:
+				return true
 	return false
 
 
