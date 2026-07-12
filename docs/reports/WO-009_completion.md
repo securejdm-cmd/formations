@@ -107,10 +107,10 @@ Same-speed pursuer denying rally = accepted Phase 1; kill-off-map requires faste
 
 ## Links
 
-- This report: https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-009-routs-rally-fd84/docs/reports/WO-009_completion.md
+- This report: https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/WO-009_completion.md
 - Previous report: https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/MERGE_BATCH_completion.md
-- Trace S5: https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-009-routs-rally-fd84/tests/traces/scenario_05_1000.csv
-- Trace S6: https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-009-routs-rally-fd84/tests/traces/scenario_06_1000.csv
-- Trace S7: https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-009-routs-rally-fd84/tests/traces/scenario_07_1000.csv
-- Trace S8 single: https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-009-routs-rally-fd84/tests/traces/scenario_08_1000_1.csv
-- Trace S8 triple: https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-009-routs-rally-fd84/tests/traces/scenario_08_1000_3.csv
+- Trace S5: https://raw.githubusercontent.com/securejdm-cmd/formations/main/tests/traces/scenario_05_1000.csv
+- Trace S6: https://raw.githubusercontent.com/securejdm-cmd/formations/main/tests/traces/scenario_06_1000.csv
+- Trace S7: https://raw.githubusercontent.com/securejdm-cmd/formations/main/tests/traces/scenario_07_1000.csv
+- Trace S8 single: https://raw.githubusercontent.com/securejdm-cmd/formations/main/tests/traces/scenario_08_1000_1.csv
+- Trace S8 triple: https://raw.githubusercontent.com/securejdm-cmd/formations/main/tests/traces/scenario_08_1000_3.csv
