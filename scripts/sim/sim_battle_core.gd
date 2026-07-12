@@ -1,0 +1,889 @@
+class_name SimBattleCore
+extends RefCounted
+
+const _TickProfiler := preload("res://scripts/tick_profiler.gd")
+const SimUnitProxy := preload("res://scripts/sim/sim_unit_proxy.gd")
+const SimRngBridge := preload("res://scripts/sim/sim_rng_bridge.gd")
+const SimCombatDispatch := preload("res://scripts/sim/sim_combat_dispatch.gd")
+const SimRng := preload("res://scripts/sim/sim_rng.gd")
+
+enum BattlePhase { ACTIVE, VICTORY_PENDING, VICTORY_EPILOGUE, FINISHED }
+
+var units: Array = []
+var sim_tick_count: int = 0
+var battle_over: bool = false
+var battle_phase: BattlePhase = BattlePhase.ACTIVE
+var victory_team: String = ""
+var victory_delay_accum: float = 0.0
+var watch_epilogue: bool = false
+var trace_lines: PackedStringArray = PackedStringArray()
+var winner_id: String = ""
+var first_contact_tick: int = -1
+var first_rout_tick: int = -1
+var overlap_assertion_failed: bool = false
+var adhesion_invariant_failed: bool = false
+var grid_cell_size_px: float = 1.0
+var grid_cells: Dictionary = {}
+var current_tick_interval: float = 0.1
+var tick_start_positions: Dictionary = {}
+var headless_mode: bool = true
+var fast_sim_mode: bool = false
+var battle_seed: int = 0
+var _rng: SimRng = SimRng.new()
+
+
+func configure_rng(seed_value: int) -> void:
+	_rng.set_seed(seed_value)
+	battle_seed = seed_value
+
+func advance_one_tick() -> void:
+	if battle_over:
+		return
+	var tick_interval := 1.0 / Constants.get_float("tick_rate_per_sec")
+	sim_tick_count += 1
+	begin_sim_tick(tick_interval)
+	advance_one_tick_fast(tick_interval)
+
+func begin_sim_tick(tick_interval: float) -> void:
+	current_tick_interval = tick_interval
+	SimRngBridge.set_worker_rng(_rng)
+	SimEdgeContact.begin_tick(sim_tick_count)
+	capture_tick_start_positions()
+
+
+func overlap_assert_enabled() -> bool:
+	# Verification equipment: autotest and fast-mode only — not realtime gameplay.
+	return headless_mode and fast_sim_mode
+
+
+func capture_tick_start_positions() -> void:
+	tick_start_positions.clear()
+	for unit in units:
+		if unit == null:
+			continue
+		tick_start_positions[unit.unit_id] = unit.position
+
+
+func unit_moved_this_tick(unit: SimUnitProxy) -> bool:
+	if unit == null or not tick_start_positions.has(unit.unit_id):
+		return true
+	var start: Vector2 = tick_start_positions[unit.unit_id]
+	return start.distance_squared_to(unit.position) > 0.0001
+
+
+func advance_one_tick_fast(tick_interval: float) -> void:
+	rebuild_spatial_grid()
+	update_movement(tick_interval)
+	process_rout_events()
+	resolve_allied_overlaps()
+	try_passive_engagement()
+	apply_contact_adhesion()
+	run_overlap_assert_if_enabled()
+	combat_tick()
+	pursuit_tick()
+	apply_contact_adhesion()
+	track_rout_state()
+	update_victory_state(tick_interval)
+	var ticks_per_sec := int(Constants.get_float("tick_rate_per_sec"))
+	if sim_tick_count % ticks_per_sec == 0:
+		log_trace_row()
+	check_epilogue_end()
+
+
+func advance_one_tick_profiled(tick_interval: float) -> void:
+	var t0 := _TickProfiler.begin_section("grid_overhead")
+	rebuild_spatial_grid()
+	_TickProfiler.end_section("grid_overhead", t0)
+
+	t0 = _TickProfiler.begin_section("movement")
+	update_movement(tick_interval)
+	process_rout_events()
+	_TickProfiler.end_section("movement", t0)
+
+	t0 = _TickProfiler.begin_section("allied_separation")
+	resolve_allied_overlaps()
+	try_passive_engagement()
+	_TickProfiler.end_section("allied_separation", t0)
+
+	t0 = _TickProfiler.begin_section("adhesion")
+	apply_contact_adhesion()
+	_TickProfiler.end_section("adhesion", t0)
+
+	t0 = _TickProfiler.begin_section("overlap_assert")
+	run_overlap_assert_if_enabled()
+	_TickProfiler.end_section("overlap_assert", t0)
+
+	t0 = _TickProfiler.begin_section("combat")
+	combat_tick()
+	pursuit_tick()
+	_TickProfiler.end_section("combat", t0)
+
+	t0 = _TickProfiler.begin_section("adhesion_post")
+	apply_contact_adhesion()
+	_TickProfiler.end_section("adhesion_post", t0)
+
+	t0 = _TickProfiler.begin_section("victory_epilogue")
+	track_rout_state()
+	update_victory_state(tick_interval)
+	var ticks_per_sec := int(Constants.get_float("tick_rate_per_sec"))
+	if sim_tick_count % ticks_per_sec == 0:
+		var t_log := _TickProfiler.begin_section("trace_logging")
+		log_trace_row()
+		_TickProfiler.end_section("trace_logging", t_log)
+	check_epilogue_end()
+	_TickProfiler.end_section("victory_epilogue", t0)
+
+	_TickProfiler.on_tick_complete()
+
+
+func spatial_cell_size_m() -> float:
+	return Constants.get_float("spatial_grid_cell_m")
+
+
+func rebuild_spatial_grid() -> void:
+	var px_per_meter := Constants.get_float("px_per_meter")
+	grid_cell_size_px = maxf(spatial_cell_size_m() * px_per_meter, 1.0)
+	grid_cells.clear()
+	for unit in units:
+		if unit == null or grid_unit_inactive(unit):
+			continue
+		var cell: Vector2i = grid_cell_key(unit.position)
+		if not grid_cells.has(cell):
+			grid_cells[cell] = []
+		(grid_cells[cell] as Array).append(unit)
+
+
+func grid_unit_inactive(unit: SimUnitProxy) -> bool:
+	var state_name: String = unit.get_state_name()
+	return state_name == "removed" or state_name == "routing"
+
+
+func grid_cell_key(pos: Vector2) -> Vector2i:
+	return Vector2i(
+		int(floor(pos.x / grid_cell_size_px)),
+		int(floor(pos.y / grid_cell_size_px)),
+	)
+
+
+func grid_neighbor_units(unit: SimUnitProxy) -> Array:
+	var origin: Vector2i = grid_cell_key(unit.position)
+	var found: Array = []
+	for dx in range(-1, 2):
+		for dy in range(-1, 2):
+			var key := Vector2i(origin.x + dx, origin.y + dy)
+			if not grid_cells.has(key):
+				continue
+			for other in grid_cells[key]:
+				if other != unit:
+					found.append(other)
+	return found
+
+
+func grid_sorted_pair_candidates() -> Array:
+	if grid_cells.is_empty():
+		rebuild_spatial_grid()
+	var seen: Dictionary = {}
+	var pairs: Array = []
+	for unit in units:
+		if unit == null or grid_unit_inactive(unit):
+			continue
+		for other in grid_neighbor_units(unit):
+			if other == null or grid_unit_inactive(other):
+				continue
+			var key := pair_key(unit, other)
+			if seen.has(key):
+				continue
+			seen[key] = true
+			pairs.append([unit, other])
+	pairs.sort_custom(func(a, b) -> bool:
+		return pair_key(a[0], a[1]) < pair_key(b[0], b[1])
+	)
+	return pairs
+
+
+func spatial_neighbors_sorted(unit: SimUnitProxy) -> Array:
+	if grid_cells.is_empty():
+		rebuild_spatial_grid()
+	var neighbors: Array = grid_neighbor_units(unit)
+	neighbors.sort_custom(func(a: SimUnitProxy, b: SimUnitProxy) -> bool:
+		return a.unit_id < b.unit_id
+	)
+	return neighbors
+
+
+func max_closing_speed_m() -> float:
+	var max_speed := 0.0
+	for unit in units:
+		if unit == null or unit.get_state() == Unit.State.REMOVED:
+			continue
+		max_speed = maxf(max_speed, unit.speed_m_per_sec())
+	return max_speed * 2.0
+
+
+func max_unit_dimension_m() -> float:
+	var max_dim := 0.0
+	for unit in units:
+		if unit == null or unit.get_state() == Unit.State.REMOVED:
+			continue
+		var dim: float = unit.effective_depth_m() + unit.effective_frontage_m()
+		max_dim = maxf(max_dim, dim)
+	return max_dim
+
+
+func march_enemy_query_radius_px() -> float:
+	var px_per_meter := Constants.get_float("px_per_meter")
+	var radius_m := (
+		max_closing_speed_m() * current_tick_interval
+		+ max_unit_dimension_m()
+	)
+	return radius_m * px_per_meter
+
+
+func grid_units_within_radius_sorted(unit: SimUnitProxy, radius_px: float) -> Array:
+	if grid_cells.is_empty():
+		rebuild_spatial_grid()
+	var origin: Vector2i = grid_cell_key(unit.position)
+	var ring := maxi(int(ceil(radius_px / grid_cell_size_px)), 1)
+	var found: Array = []
+	var seen: Dictionary = {}
+	for dx in range(-ring, ring + 1):
+		for dy in range(-ring, ring + 1):
+			var key := Vector2i(origin.x + dx, origin.y + dy)
+			if not grid_cells.has(key):
+				continue
+			for other in grid_cells[key]:
+				if other == unit or other == null or seen.has(other.unit_id):
+					continue
+				if unit.position.distance_to(other.position) > radius_px:
+					continue
+				seen[other.unit_id] = true
+				found.append(other)
+	found.sort_custom(func(a: SimUnitProxy, b: SimUnitProxy) -> bool:
+		return a.unit_id < b.unit_id
+	)
+	return found
+
+
+func uses_march_grid_enemies(unit: SimUnitProxy) -> bool:
+	if unit.get_state() == Unit.State.MARCHING:
+		return true
+	return (
+		unit.get_state() == Unit.State.HOLD
+		and unit.current_order == Unit.Order.MARCH_TO
+		and not unit.is_rallied_hold()
+	)
+
+
+func enemies_for(unit: SimUnitProxy) -> Array:
+	var enemies: Array = []
+	var candidates: Array = units
+	if uses_march_grid_enemies(unit):
+		candidates = grid_units_within_radius_sorted(unit, march_enemy_query_radius_px())
+	elif unit.get_state() in [Unit.State.ENGAGED, Unit.State.WAVERING, Unit.State.ROUTING, Unit.State.RALLYING]:
+		candidates = spatial_neighbors_sorted(unit)
+	for other in candidates:
+		if other == unit or other.get_state() == Unit.State.REMOVED:
+			continue
+		if other.team_id == unit.team_id:
+			continue
+		enemies.append(other)
+	return enemies
+
+
+func update_movement(delta: float) -> void:
+	for unit in units:
+		if unit.get_state() == Unit.State.REMOVED:
+			continue
+		if unit.get_state() == Unit.State.MARCHING:
+			unit.update_marching(delta, enemies_for(unit))
+			try_begin_engagement(unit)
+		elif unit.get_state() == Unit.State.ROUTING or unit.get_state() == Unit.State.RALLYING:
+			unit.update_routing(delta, enemies_for(unit))
+		elif (
+			unit.get_state() == Unit.State.HOLD
+			and unit.current_order == Unit.Order.MARCH_TO
+			and not unit.is_rallied_hold()
+		):
+			unit.update_marching(delta, enemies_for(unit))
+			try_begin_engagement(unit)
+
+
+func try_begin_engagement(unit: SimUnitProxy) -> void:
+	if unit.get_state() == Unit.State.ROUTING or unit.get_state() == Unit.State.RALLYING:
+		return
+
+	for other in spatial_neighbors_sorted(unit):
+		if other.get_state() == Unit.State.REMOVED:
+			continue
+		if other.get_state() == Unit.State.ROUTING or other.get_state() == Unit.State.RALLYING:
+			continue
+		if other.team_id == unit.team_id:
+			continue
+		if not SimCombatDispatch.units_have_any_contact(unit, other):
+			continue
+
+		unit.add_contact_partner(other)
+		other.add_contact_partner(unit)
+		if (
+			SimCombatDispatch.is_head_on_pair(unit, other)
+			and not SimCombatDispatch.has_non_front_segment_contact(unit, other)
+		):
+			SimCombatDispatch.snap_pair_to_contact(unit, other)
+		on_first_contact()
+
+
+func try_passive_engagement() -> void:
+	for unit in units:
+		if unit.get_state() != Unit.State.HOLD or not unit.is_rallied_hold():
+			continue
+		for other in spatial_neighbors_sorted(unit):
+			if other.get_state() == Unit.State.REMOVED:
+				continue
+			if other.team_id == unit.team_id:
+				continue
+			if other.get_state() == Unit.State.ROUTING or other.get_state() == Unit.State.RALLYING:
+				continue
+			if not SimCombatDispatch.units_have_any_contact(unit, other):
+				continue
+			unit.add_contact_partner(other)
+			other.add_contact_partner(unit)
+			if (
+				SimCombatDispatch.is_head_on_pair(unit, other)
+				and not SimCombatDispatch.has_non_front_segment_contact(unit, other)
+			):
+				SimCombatDispatch.snap_pair_to_contact(unit, other)
+			on_first_contact()
+
+
+func process_rout_events() -> void:
+	for unit in units:
+		if unit.get_state() == Unit.State.REMOVED:
+			continue
+		if not unit.consume_pending_rout_event():
+			continue
+		apply_neighbor_rout_shock(unit)
+
+
+func apply_neighbor_rout_shock(routing_unit: SimUnitProxy) -> void:
+	var radius_m := Constants.get_float("neighbor_rout_shock_radius_m")
+	var shock := Constants.get_float("neighbor_rout_shock")
+	for ally in units:
+		if ally == routing_unit or ally.team_id != routing_unit.team_id:
+			continue
+		if ally.get_state() == Unit.State.REMOVED:
+			continue
+		if SimCombatDispatch.center_distance_m(ally, routing_unit) > radius_m:
+			continue
+		ally.apply_cohesion_drain(shock)
+		spawn_shock_floater(ally, shock)
+		log_trace_event(
+			"neighbor_rout_shock",
+			"victim=%s,source=%s,drain=%.1f" % [ally.unit_id, routing_unit.unit_id, shock]
+		)
+
+
+func spawn_shock_floater(_unit: SimUnitProxy, _amount: float) -> void:
+	pass
+
+
+
+func pursuit_tick() -> void:
+	for routing_unit in units:
+		if routing_unit.get_state() != Unit.State.ROUTING:
+			continue
+		for enemy in enemies_for(routing_unit):
+			if not SimCombatDispatch.can_apply_pursuit(enemy):
+				continue
+			if not SimCombatDispatch.is_within_pursuit_contact(enemy, routing_unit):
+				continue
+			var damage := SimCombatDispatch.calc_pursuit_damage(enemy)
+			var applied := SimCombatDispatch.apply_strength_loss(routing_unit, damage)
+			routing_unit.reset_rally_timer()
+			enemy.record_damage_dealt(applied)
+			log_trace_event(
+				"pursuit_damage",
+				"victim=%s,pursuer=%s,damage=%.4f" % [routing_unit.unit_id, enemy.unit_id, applied]
+			)
+			if routing_unit.strength <= 0.0:
+				routing_unit.mark_removed()
+
+
+func on_first_contact() -> void:
+	if first_contact_tick >= 0:
+		return
+	first_contact_tick = sim_tick_count
+
+
+func on_first_rout() -> void:
+	if first_rout_tick >= 0:
+		return
+	first_rout_tick = sim_tick_count
+
+
+func combat_tick() -> void:
+	prune_broken_contacts()
+
+	var processed_head_on: Array[String] = []
+	var processed_segments: Array[String] = []
+	var defender_shifts: Dictionary = {}
+	var bump_winners: Dictionary = {}
+	var contact_edge_labels: Dictionary = {}  # Unit -> Array[String]
+
+	for unit in units:
+		if unit.get_state() == Unit.State.REMOVED:
+			continue
+		if unit.get_state() != Unit.State.ENGAGED and unit.get_state() != Unit.State.WAVERING:
+			continue
+
+		for partner in unit.get_contact_partners():
+			if partner == null or partner.get_state() == Unit.State.REMOVED:
+				continue
+			if partner.get_state() == Unit.State.ROUTING:
+				continue
+
+			if not SimCombatDispatch.is_head_on_pair(unit, partner):
+				continue
+			if not SimCombatDispatch.units_have_front_contact(unit, partner):
+				continue
+			if SimCombatDispatch.has_non_front_segment_contact(unit, partner):
+				continue
+
+			var pair_key := pair_key(unit, partner)
+			if pair_key in processed_head_on:
+				continue
+			processed_head_on.append(pair_key)
+
+			var result := SimCombatDispatch.resolve_engagement(unit, partner)
+			SimCombatDispatch.apply_ground_shift(unit, result.shift_a_m)
+			SimCombatDispatch.apply_ground_shift(partner, result.shift_b_m)
+
+			var applied_to_unit := SimCombatDispatch.apply_strength_loss(unit, result.damage_a)
+			partner.record_damage_dealt(applied_to_unit)
+			var applied_to_partner := SimCombatDispatch.apply_strength_loss(partner, result.damage_b)
+			unit.record_damage_dealt(applied_to_partner)
+
+			unit.set_bump_state(result.gap_ratio, result.a_is_winner)
+			partner.set_bump_state(result.gap_ratio, not result.a_is_winner)
+
+			if unit.get_state() == Unit.State.ROUTING or partner.get_state() == Unit.State.ROUTING:
+				on_first_rout()
+				try_start_victory_delay(unit if unit.get_state() == Unit.State.ROUTING else partner)
+
+	for defender in units:
+		if defender.get_state() == Unit.State.REMOVED:
+			continue
+		if defender.get_state() != Unit.State.ENGAGED and defender.get_state() != Unit.State.WAVERING:
+			continue
+
+		for attacker in defender.get_contact_partners():
+			if attacker == null or attacker.get_state() == Unit.State.REMOVED:
+				continue
+			if attacker.get_state() == Unit.State.ROUTING:
+				continue
+			if SimCombatDispatch.is_head_on_pair(attacker, defender):
+				if not SimCombatDispatch.has_non_front_segment_contact(attacker, defender):
+					continue
+
+			var pair_key := pair_key(attacker, defender)
+			if pair_key in processed_segments:
+				continue
+			processed_segments.append(pair_key)
+
+			var orientation := SimCombatDispatch.pick_segment_orientation(attacker, defender)
+			var seg_attacker: SimUnitProxy = orientation.get("attacker")
+			var seg_defender: SimUnitProxy = orientation.get("defender")
+			var contact: Dictionary = orientation.get("contact", {})
+			if not contact.get("has_contact", false):
+				continue
+
+			var edge_label: String = contact.get("edge_label", "")
+			if not edge_label.is_empty():
+				if not contact_edge_labels.has(seg_defender):
+					contact_edge_labels[seg_defender] = [] as Array[String]
+				(contact_edge_labels[seg_defender] as Array[String]).append(edge_label)
+
+			var segment := SimCombatDispatch.resolve_contact_segment(seg_attacker, seg_defender, contact)
+			var edge_lengths: Dictionary = segment.get("edge_lengths_m", {})
+			var push_normal: Vector2 = segment.get("push_normal", seg_defender.facing)
+
+			if is_equal_approx(segment.attacker_push, segment.defender_push):
+				var dmg_attacker := SimCombatDispatch.apply_strength_loss_with_edge(
+					seg_attacker, segment.attacker_damage, edge_lengths
+				)
+				var dmg_defender := SimCombatDispatch.apply_strength_loss_with_edge(
+					seg_defender, segment.defender_damage, edge_lengths
+				)
+				seg_defender.record_damage_dealt(dmg_attacker)
+				seg_attacker.record_damage_dealt(dmg_defender)
+			elif segment.attacker_wins:
+				accumulate_directed_shift(defender_shifts, seg_defender, push_normal, segment.defender_shift_m)
+				SimCombatDispatch.apply_shift_morale_drain(seg_defender, segment.defender_shift_m, edge_lengths)
+				var applied_defender := SimCombatDispatch.apply_strength_loss_with_edge(
+					seg_defender, segment.defender_damage, edge_lengths
+				)
+				var applied_attacker := SimCombatDispatch.apply_strength_loss_with_edge(
+					seg_attacker, segment.attacker_damage, edge_lengths
+				)
+				seg_attacker.record_damage_dealt(applied_defender)
+				seg_defender.record_damage_dealt(applied_attacker)
+			else:
+				accumulate_directed_shift(defender_shifts, seg_attacker, -push_normal, segment.attacker_shift_m)
+				SimCombatDispatch.apply_shift_morale_drain(seg_attacker, segment.attacker_shift_m, edge_lengths)
+				var applied_attacker := SimCombatDispatch.apply_strength_loss_with_edge(
+					seg_attacker, segment.attacker_damage, edge_lengths
+				)
+				var applied_defender := SimCombatDispatch.apply_strength_loss_with_edge(
+					seg_defender, segment.defender_damage, edge_lengths
+				)
+				seg_defender.record_damage_dealt(applied_attacker)
+				seg_attacker.record_damage_dealt(applied_defender)
+
+			var gap_ratio: float = segment.get("gap_ratio", 0.0)
+			bump_winners[seg_attacker] = segment.attacker_wins
+			seg_attacker.set_bump_state(gap_ratio, segment.attacker_wins)
+			seg_defender.set_bump_state(gap_ratio, not segment.attacker_wins)
+
+			if seg_attacker.get_state() == Unit.State.ROUTING or seg_defender.get_state() == Unit.State.ROUTING:
+				on_first_rout()
+				try_start_victory_delay(
+					seg_attacker if seg_attacker.get_state() == Unit.State.ROUTING else seg_defender
+				)
+
+		defender.set_active_contact_edges("")
+
+	for unit in units:
+		if unit.get_state() == Unit.State.REMOVED:
+			continue
+		var labels: Array[String] = contact_edge_labels.get(unit, [] as Array[String])
+		unit.set_active_contact_edges(join_edge_labels(labels))
+
+	for defender in defender_shifts.keys():
+		var shift_info: Dictionary = defender_shifts[defender]
+		var shift_vector: Vector2 = shift_info.vector
+		var shift_m := shift_vector.length() / Constants.get_float("px_per_meter")
+		if shift_m > 0.0:
+			SimCombatDispatch.apply_directed_position_shift(
+				defender,
+				shift_m,
+				shift_vector.normalized(),
+			)
+
+	for unit in bump_winners.keys():
+		if unit.get_state() == Unit.State.ROUTING:
+			unit.clear_bump_state()
+
+
+func prune_broken_contacts() -> void:
+	for unit in units:
+		if unit.get_state() == Unit.State.REMOVED or unit.get_state() == Unit.State.ROUTING:
+			continue
+		for partner in unit.get_contact_partners().duplicate():
+			if partner == null or partner.get_state() == Unit.State.REMOVED:
+				unit.remove_contact_partner(partner)
+				continue
+			if partner.get_state() == Unit.State.ROUTING:
+				unit.remove_contact_partner(partner)
+				continue
+			if (
+				SimCombatDispatch.is_head_on_pair(unit, partner)
+				and not SimCombatDispatch.has_non_front_segment_contact(unit, partner)
+			):
+				if not SimCombatDispatch.units_have_any_contact(unit, partner):
+					unit.remove_contact_partner(partner)
+
+
+func accumulate_directed_shift(
+	shift_map: Dictionary,
+	unit: SimUnitProxy,
+	normal: Vector2,
+	shift_m: float
+) -> void:
+	if shift_m <= 0.0:
+		return
+	var px_per_meter := Constants.get_float("px_per_meter")
+	if not shift_map.has(unit):
+		shift_map[unit] = {"vector": Vector2.ZERO, "edge_lengths": {}}
+	var entry: Dictionary = shift_map[unit]
+	entry.vector += normal.normalized() * shift_m * px_per_meter
+
+
+func join_edge_labels(labels: Array[String]) -> String:
+	if labels.is_empty():
+		return ""
+	var unique: Array[String] = []
+	for label in labels:
+		if label not in unique:
+			unique.append(label)
+	return ";".join(unique)
+
+
+func track_rout_state() -> void:
+	for unit in units:
+		if unit.get_state() == Unit.State.ROUTING:
+			on_first_rout()
+			try_start_victory_delay(unit)
+			return
+
+
+func try_start_victory_delay(routing_unit: SimUnitProxy) -> void:
+	if battle_phase != BattlePhase.ACTIVE:
+		return
+	if not team_fully_defeated(routing_unit.team_id):
+		return
+
+	victory_team = opponent_team(routing_unit.team_id)
+	battle_phase = BattlePhase.VICTORY_PENDING
+	victory_delay_accum = 0.0
+	for unit in units:
+		if unit.team_id == victory_team:
+			winner_id = unit.unit_id
+
+
+func team_fully_defeated(team_id: String) -> bool:
+	var has_active := false
+	for unit in units:
+		if unit.team_id != team_id:
+			continue
+		if unit.get_state() == Unit.State.REMOVED:
+			continue
+		has_active = true
+		if not unit.is_defeated_for_victory():
+			return false
+	return has_active
+
+
+func opponent_team(team_id: String) -> String:
+	return "blue" if team_id == "red" else "red"
+
+
+func update_victory_state(tick_interval: float) -> void:
+	if not headless_mode or battle_phase != BattlePhase.VICTORY_PENDING:
+		return
+
+	victory_delay_accum += tick_interval
+	if victory_delay_accum >= Constants.get_float("victory_delay_s"):
+		battle_phase = BattlePhase.VICTORY_EPILOGUE
+		watch_epilogue = true
+
+
+func declare_victory() -> void:
+	battle_phase = BattlePhase.VICTORY_EPILOGUE
+	watch_epilogue = true
+
+
+
+
+func check_epilogue_end() -> void:
+	if battle_phase == BattlePhase.ACTIVE:
+		check_legacy_battle_end()
+		return
+	if battle_phase != BattlePhase.VICTORY_EPILOGUE or not watch_epilogue:
+		return
+	if any_routing_units():
+		return
+	finish_battle()
+
+
+func any_routing_units() -> bool:
+	for unit in units:
+		if unit.get_state() == Unit.State.ROUTING:
+			return true
+	return false
+
+
+func check_legacy_battle_end() -> void:
+	var active_units: Array = []
+	for unit in units:
+		if unit.get_state() != Unit.State.REMOVED:
+			active_units.append(unit)
+	if active_units.size() > 1:
+		return
+	if active_units.size() == 1:
+		winner_id = active_units[0].unit_id
+	finish_battle()
+
+
+
+func finish_battle() -> void:
+	if battle_over:
+		return
+	battle_phase = BattlePhase.FINISHED
+	battle_over = true
+	if winner_id.is_empty():
+		for unit in units:
+			if unit.get_state() != Unit.State.REMOVED and unit.get_state() != Unit.State.ROUTING:
+				winner_id = unit.unit_id
+				break
+	log_trace_row()
+
+func log_trace_row() -> void:
+	var time_sec := sim_tick_count * (1.0 / Constants.get_float("tick_rate_per_sec"))
+	for unit in units:
+		trace_lines.append(
+			"%.1f,%s,%.4f,%.4f,%d,%.2f,%.2f,%s,%s"
+			% [
+				time_sec,
+				unit.unit_id,
+				unit.strength,
+				unit.cohesion,
+				unit.soldiers_defeated(),
+				unit.position.x,
+				unit.position.y,
+				unit.get_state_name(),
+				unit.get_active_contact_edges(),
+			]
+		)
+
+func log_trace_event(event_type: String, detail: String) -> void:
+	var time_sec := sim_tick_count * (1.0 / Constants.get_float("tick_rate_per_sec"))
+	trace_lines.append("%.1f,EVENT,%s,%s" % [time_sec, event_type, detail])
+
+func write_trace_header() -> void:
+	trace_lines.append("time_sec,unit_id,strength,cohesion,kills,pos_x,pos_y,state,contact_edges")
+
+
+
+
+func apply_contact_adhesion() -> void:
+	var processed: Array[String] = []
+	var prune_keys: Array[String] = []
+	for unit in units:
+		if unit.get_state() == Unit.State.REMOVED or unit.get_state() == Unit.State.ROUTING:
+			continue
+		for partner in unit.get_contact_partners():
+			if partner == null or partner.get_state() == Unit.State.REMOVED:
+				continue
+			if partner.get_state() == Unit.State.ROUTING:
+				continue
+			var pair_key := pair_key(unit, partner)
+			if pair_key in processed:
+				continue
+			processed.append(pair_key)
+			if SimCombatDispatch.apply_contact_adhesion_pair(unit, partner, units):
+				prune_keys.append(pair_key)
+	for unit in units:
+		if unit.get_state() == Unit.State.REMOVED or unit.get_state() == Unit.State.ROUTING:
+			continue
+		for partner in unit.get_contact_partners().duplicate():
+			if partner == null:
+				continue
+			var pair_key := pair_key(unit, partner)
+			if pair_key in prune_keys:
+				unit.remove_contact_partner(partner)
+	assert_partner_classifier_contact_invariant()
+
+
+func assert_partner_classifier_contact_invariant() -> void:
+	for unit in units:
+		if unit.get_state() == Unit.State.REMOVED or unit.get_state() == Unit.State.ROUTING:
+			continue
+		for partner in unit.get_contact_partners():
+			if partner == null or partner.get_state() == Unit.State.REMOVED:
+				continue
+			if partner.get_state() == Unit.State.ROUTING:
+				continue
+			if partner.get_state() != Unit.State.ENGAGED and partner.get_state() != Unit.State.WAVERING:
+				continue
+			if (
+				SimCombatDispatch.is_head_on_pair(unit, partner)
+				and not SimCombatDispatch.has_non_front_segment_contact(unit, partner)
+			):
+				continue
+			if SimCombatDispatch.pair_has_classifier_contact(unit, partner):
+				continue
+			if not adhesion_invariant_failed:
+				push_error(
+					"Adhesion invariant failed at tick %d: %s/%s partner-linked without classifier contact"
+					% [sim_tick_count, unit.unit_id, partner.unit_id]
+				)
+			adhesion_invariant_failed = true
+
+
+func resolve_allied_overlaps() -> void:
+	for pair in grid_sorted_pair_candidates():
+		var unit_a: SimUnitProxy = pair[0]
+		var unit_b: SimUnitProxy = pair[1]
+		if unit_a.team_id != unit_b.team_id:
+			continue
+		if not unit_moved_this_tick(unit_a) and not unit_moved_this_tick(unit_b):
+			continue
+		if not SimCombatDispatch.bounds_may_overlap(unit_a, unit_b):
+			continue
+		SimCombatDispatch.separate_allied_overlap(unit_a, unit_b)
+
+
+func pair_key(unit_a: SimUnitProxy, unit_b: SimUnitProxy) -> String:
+	if unit_a.unit_id < unit_b.unit_id:
+		return unit_a.unit_id + ":" + unit_b.unit_id
+	return unit_b.unit_id + ":" + unit_a.unit_id
+
+
+func run_overlap_assert_if_enabled() -> void:
+	if not overlap_assert_enabled():
+		return
+	assert_no_overlaps()
+
+
+func assert_no_overlaps() -> void:
+	# Non-routing pairs only (allied and enemy). Routing units are formless fugitives.
+	for pair in grid_sorted_pair_candidates():
+		var unit_a: SimUnitProxy = pair[0]
+		var unit_b: SimUnitProxy = pair[1]
+		if not SimCombatDispatch.bounds_may_overlap(unit_a, unit_b):
+			continue
+		if not SimCombatDispatch.units_overlap(unit_a, unit_b):
+			continue
+		overlap_assertion_failed = true
+		var relation := "allied" if unit_a.team_id == unit_b.team_id else "enemy"
+		push_error(
+			"Overlap detected at tick %d between %s and %s (%s)"
+			% [sim_tick_count, unit_a.unit_id, unit_b.unit_id, relation]
+		)
+
+
+
+func get_trace_text() -> String:
+	return "\n".join(trace_lines) + "\n"
+
+func capture_from_units(unit_nodes: Array) -> void:
+	units.clear()
+	for node in unit_nodes:
+		if node == null:
+			continue
+		var proxy := SimUnitProxy.from_unit(node)
+		units.append(proxy)
+	resolve_partner_links()
+
+func resolve_partner_links() -> void:
+	var by_id: Dictionary = {}
+	for u in units:
+		by_id[u.unit_id] = u
+	for u in units:
+		u.resolve_partners(by_id)
+
+func apply_render_snapshot_to_units(unit_nodes: Array) -> void:
+	var by_id: Dictionary = {}
+	for node in unit_nodes:
+		by_id[node.unit_id] = node
+	for proxy in units:
+		if by_id.has(proxy.unit_id):
+			proxy.apply_to_unit(by_id[proxy.unit_id])
+
+
+func build_render_snapshot() -> Array:
+	var snap: Array = []
+	for proxy in units:
+		snap.append(proxy.duplicate_render_state())
+	return snap
+
+
+func apply_render_snapshot(snap: Array, unit_nodes: Array) -> void:
+	var by_id: Dictionary = {}
+	for node in unit_nodes:
+		by_id[node.unit_id] = node
+	for proxy in snap:
+		if by_id.has(proxy.unit_id):
+			proxy.apply_to_unit(by_id[proxy.unit_id])
+
+func is_battle_over() -> bool:
+	return battle_over

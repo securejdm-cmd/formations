@@ -4,11 +4,17 @@ extends RefCounted
 ## Spawn helpers for SceneTree autotest drivers.
 
 
-static func instantiate_scenario(scene_path: String, seed_value: int, fast_mode: bool = true) -> Scenario01:
+static func instantiate_scenario(
+	scene_path: String,
+	seed_value: int,
+	fast_mode: bool = true,
+	use_sim_thread: bool = false,
+) -> Scenario01:
 	var packed: PackedScene = load(scene_path)
 	var scenario: Scenario01 = packed.instantiate()
 	scenario.headless_mode = true
 	scenario.fast_sim_mode = fast_mode
+	scenario.use_sim_thread = use_sim_thread
 	scenario.set_battle_seed(seed_value)
 	return scenario
 

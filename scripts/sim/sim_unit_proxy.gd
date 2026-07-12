@@ -1,0 +1,452 @@
+class_name SimUnitProxy
+extends RefCounted
+
+const SimCombatDispatch := preload("res://scripts/sim/sim_combat_dispatch.gd")
+
+var unit_id: String = ""
+var team_id: String = ""
+var profile: Dictionary = {}
+var position: Vector2 = Vector2.ZERO
+var facing: Vector2 = Vector2.RIGHT
+var strength: float = 100.0
+var cohesion: float = 100.0
+var current_order: Unit.Order = Unit.Order.HOLD
+var march_target: Vector2 = Vector2.ZERO
+var pushing_power: float = 0.0
+var speed_stat: float = 0.0
+var damage_dealt: float = 0.0
+var _contact_partners: Array = []
+var _partner_ids: Array[String] = []
+var _active_contact_edges: String = ""
+var _edge_cohesion_drain_totals: Dictionary = {
+	"front": 0.0, "left": 0.0, "right": 0.0, "rear": 0.0,
+}
+var _state: Unit.State = Unit.State.HOLD
+var _bump_gap_ratio: float = 0.0
+var _bump_is_winner: bool = false
+var _rally_elapsed_sec: float = 0.0
+var _rallies_this_battle: int = 0
+var _rallied_hold: bool = false
+var _rally_reform_remaining_sec: float = 0.0
+var _pending_rout_event: bool = false
+var _crack_intensity: float = 0.0
+
+
+static func from_unit(unit: Unit) -> SimUnitProxy:
+	var p := SimUnitProxy.new()
+	p.unit_id = unit.unit_id
+	p.team_id = unit.team_id
+	p.profile = unit.profile.duplicate(true)
+	p.position = unit.position
+	p.facing = unit.facing
+	p.strength = unit.strength
+	p.cohesion = unit.cohesion
+	p.current_order = unit.current_order
+	p.march_target = unit.march_target
+	p.pushing_power = unit.pushing_power
+	p.speed_stat = unit.speed_stat
+	p.damage_dealt = unit.damage_dealt
+	p._state = unit.get_state()
+	p._active_contact_edges = unit.get_active_contact_edges()
+	p._edge_cohesion_drain_totals = unit.get_edge_cohesion_drain_totals()
+	p._bump_gap_ratio = unit._bump_gap_ratio
+	p._bump_is_winner = unit._bump_is_winner
+	p._rally_elapsed_sec = unit._rally_elapsed_sec
+	p._rallies_this_battle = unit._rallies_this_battle
+	p._rallied_hold = unit.is_rallied_hold()
+	p._rally_reform_remaining_sec = unit._rally_reform_remaining_sec
+	p._pending_rout_event = unit._pending_rout_event
+	p._crack_intensity = unit._crack_intensity
+	for partner in unit.get_contact_partners():
+		if partner != null:
+			p._partner_ids.append(partner.unit_id)
+	return p
+
+
+func duplicate_render_state() -> SimUnitProxy:
+	var p := SimUnitProxy.new()
+	p.unit_id = unit_id
+	p.team_id = team_id
+	p.profile = profile.duplicate(true)
+	p.position = position
+	p.facing = facing
+	p.strength = strength
+	p.cohesion = cohesion
+	p.current_order = current_order
+	p.march_target = march_target
+	p.pushing_power = pushing_power
+	p.speed_stat = speed_stat
+	p.damage_dealt = damage_dealt
+	p._partner_ids = _partner_ids.duplicate()
+	p._active_contact_edges = _active_contact_edges
+	p._edge_cohesion_drain_totals = _edge_cohesion_drain_totals.duplicate()
+	p._state = _state
+	p._bump_gap_ratio = _bump_gap_ratio
+	p._bump_is_winner = _bump_is_winner
+	p._rally_elapsed_sec = _rally_elapsed_sec
+	p._rallies_this_battle = _rallies_this_battle
+	p._rallied_hold = _rallied_hold
+	p._rally_reform_remaining_sec = _rally_reform_remaining_sec
+	p._pending_rout_event = _pending_rout_event
+	p._crack_intensity = _crack_intensity
+	return p
+
+
+func resolve_partners(by_id: Dictionary) -> void:
+	_contact_partners.clear()
+	for pid in _partner_ids:
+		if by_id.has(pid):
+			var partner = by_id[pid]
+			if partner not in _contact_partners:
+				_contact_partners.append(partner)
+
+
+func apply_to_unit(unit: Unit) -> void:
+	unit.position = position
+	unit.facing = facing
+	unit.rotation = facing.angle()
+	unit.strength = strength
+	unit.cohesion = cohesion
+	unit.current_order = current_order
+	unit.march_target = march_target
+	unit.damage_dealt = damage_dealt
+	unit._bump_gap_ratio = _bump_gap_ratio
+	unit._bump_is_winner = _bump_is_winner
+	unit._rally_elapsed_sec = _rally_elapsed_sec
+	unit._rallies_this_battle = _rallies_this_battle
+	unit._rally_reform_remaining_sec = _rally_reform_remaining_sec
+	unit._pending_rout_event = _pending_rout_event
+	unit._crack_intensity = _crack_intensity
+	unit._edge_cohesion_drain_totals = _edge_cohesion_drain_totals.duplicate()
+	unit.set_active_contact_edges(_active_contact_edges)
+	_set_unit_state(unit, _state)
+
+
+func _set_unit_state(unit: Unit, new_state: Unit.State) -> void:
+	if unit.get_state() == new_state:
+		return
+	match new_state:
+		Unit.State.MARCHING:
+			unit._set_state(Unit.State.MARCHING)
+		Unit.State.ENGAGED:
+			unit._set_state(Unit.State.ENGAGED)
+		Unit.State.WAVERING:
+			unit._set_state(Unit.State.WAVERING)
+		Unit.State.ROUTING:
+			unit._set_state(Unit.State.ROUTING)
+		Unit.State.RALLYING:
+			unit._set_state(Unit.State.RALLYING)
+		Unit.State.HOLD:
+			unit._set_state(Unit.State.HOLD)
+		Unit.State.REMOVED:
+			unit.mark_removed()
+
+
+func _sync_unit_partners(unit: Unit) -> void:
+	var existing := unit.get_contact_partners()
+	for p in existing:
+		if p != null and p.unit_id not in _partner_ids:
+			unit.remove_contact_partner(p)
+	var by_id: Dictionary = {}
+	for u in _contact_partners:
+		by_id[u.unit_id] = u
+	for pid in _partner_ids:
+		if by_id.has(pid):
+			continue
+		for scene_unit in unit.get_tree().get_nodes_in_group("units") if unit.is_inside_tree() else []:
+			pass
+	# Partner sync via scenario apply pass — partners updated in capture_from_units each tick
+
+
+func get_state() -> Unit.State:
+	return _state
+
+
+func get_state_name() -> String:
+	match _state:
+		Unit.State.MARCHING: return "marching"
+		Unit.State.ENGAGED: return "engaged"
+		Unit.State.WAVERING: return "wavering"
+		Unit.State.ROUTING: return "routing"
+		Unit.State.RALLYING: return "rallying"
+		Unit.State.HOLD: return "hold"
+		Unit.State.REMOVED: return "removed"
+	return "unknown"
+
+
+func effective_depth_m() -> float:
+	var depth_m := float(profile.get("formation_depth_m", Constants.get_float("default_infantry_block_depth_m")))
+	return depth_m * (strength / Constants.get_float("strength_max"))
+
+
+func effective_frontage_m() -> float:
+	return float(profile.get("formation_frontage_m", Constants.get_float("default_infantry_block_frontage_m")))
+
+
+func full_depth_m() -> float:
+	return float(profile.get("formation_depth_m", Constants.get_float("default_infantry_block_depth_m")))
+
+
+func soldiers_defeated() -> int:
+	var men_per_strength := Constants.get_float("men_per_full_unit") / Constants.get_float("strength_max")
+	return int(round(damage_dealt * men_per_strength))
+
+
+func record_damage_dealt(strength_damage: float) -> void:
+	if strength_damage > 0.0:
+		damage_dealt += strength_damage
+
+
+func add_crack_intensity_from_damage(strength_damage: float) -> void:
+	var strength_max := Constants.get_float("strength_max")
+	_crack_intensity = clampf(
+		_crack_intensity + strength_damage / strength_max,
+		0.0,
+		1.0,
+	)
+
+
+func get_display_name() -> String:
+	return str(profile.get("display_name", unit_id))
+
+
+func get_results_state_label() -> String:
+	match _state:
+		Unit.State.ROUTING: return "routed"
+		Unit.State.REMOVED:
+			return "destroyed" if strength <= 0.0 else "routed"
+		_: return "fighting"
+
+
+func speed_m_per_sec() -> float:
+	return speed_stat * Constants.get_float("speed_stat_meters_per_10s") / 10.0
+
+
+func set_bump_state(gap_ratio: float, is_winner: bool) -> void:
+	_bump_gap_ratio = gap_ratio
+	_bump_is_winner = is_winner
+
+
+func clear_bump_state() -> void:
+	_bump_gap_ratio = 0.0
+	_bump_is_winner = false
+
+
+func apply_cohesion_drain(amount: float, edge_name: String = "") -> void:
+	if amount <= 0.0 or _state == Unit.State.REMOVED:
+		return
+	cohesion = maxf(cohesion - amount, 0.0)
+	if not edge_name.is_empty() and _edge_cohesion_drain_totals.has(edge_name):
+		_edge_cohesion_drain_totals[edge_name] += amount
+	_refresh_morale_state()
+
+
+func update_marching(delta: float, enemies: Array = []) -> void:
+	if _state != Unit.State.MARCHING:
+		return
+	var speed_px := speed_m_per_sec() * Constants.get_float("px_per_meter")
+	var to_target := march_target - position
+	var move_px := speed_px * delta
+	if to_target.length() <= move_px:
+		position = march_target
+		if enemies.is_empty():
+			_set_state(Unit.State.HOLD)
+		return
+	for enemy in enemies:
+		if not SimCombatDispatch.could_have_contact(self, enemy):
+			continue
+		if SimCombatDispatch.units_have_contact(self, enemy) or SimCombatDispatch.units_have_contact(enemy, self):
+			return
+		move_px = SimCombatDispatch.clamp_march_distance(self, enemy, move_px)
+		if move_px <= 0.0:
+			return
+	position += to_target.normalized() * move_px
+
+
+func has_trait(trait_name: String) -> bool:
+	for entry in profile.get("traits", []):
+		if str(entry).to_upper() == trait_name.to_upper():
+			return true
+	return false
+
+
+func get_rallies_remaining() -> int:
+	return maxi(0, Constants.get_int("rally_per_battle_limit") - _rallies_this_battle)
+
+
+func is_defeated_for_victory() -> bool:
+	if _state == Unit.State.REMOVED:
+		return true
+	if _state == Unit.State.ROUTING:
+		if has_trait("RALLY") and get_rallies_remaining() > 0:
+			return false
+		return true
+	return false
+
+
+func is_rallied_hold() -> bool:
+	return _rallied_hold and _state == Unit.State.HOLD
+
+
+func consume_pending_rout_event() -> bool:
+	if not _pending_rout_event:
+		return false
+	_pending_rout_event = false
+	return true
+
+
+func reset_rally_timer() -> void:
+	_rally_elapsed_sec = 0.0
+
+
+func update_routing(delta: float, enemies: Array = []) -> void:
+	if _state == Unit.State.RALLYING:
+		_rally_reform_remaining_sec -= delta
+		if _rally_reform_remaining_sec <= 0.0:
+			_set_state(Unit.State.HOLD)
+		return
+	if _state != Unit.State.ROUTING:
+		return
+	clear_bump_state()
+	position += _flee_direction() * speed_m_per_sec() * Constants.get_float("rout_flee_speed_pct") * Constants.get_float("px_per_meter") * delta
+	_check_edge_removal()
+	if not has_trait("RALLY") or _rallies_this_battle >= Constants.get_int("rally_per_battle_limit"):
+		return
+	if _enemy_within_pursuit_radius(enemies):
+		_rally_elapsed_sec = 0.0
+		return
+	_rally_elapsed_sec += delta
+	if _rally_elapsed_sec >= Constants.get_float("t_rally_sec"):
+		_complete_rally(enemies)
+
+
+func _enemy_within_pursuit_radius(enemies: Array) -> bool:
+	for enemy in enemies:
+		if enemy == null or enemy.get_state() == Unit.State.REMOVED:
+			continue
+		if SimCombatDispatch.enemy_blocks_rally_distance_m(self, enemy):
+			return true
+	return false
+
+
+func _complete_rally(enemies: Array) -> void:
+	_rallies_this_battle += 1
+	_rally_elapsed_sec = 0.0
+	cohesion = Constants.get_float("rally_cohesion_reset")
+	current_order = Unit.Order.HOLD
+	_rallied_hold = true
+	_face_nearest_threat(enemies)
+	_set_state(Unit.State.RALLYING)
+	_rally_reform_remaining_sec = 1.0
+
+
+func _face_nearest_threat(enemies: Array) -> void:
+	var nearest = null
+	var nearest_dist := INF
+	for enemy in enemies:
+		if enemy == null or enemy.get_state() == Unit.State.REMOVED:
+			continue
+		var dist := SimCombatDispatch.center_distance_m(self, enemy)
+		if dist < nearest_dist:
+			nearest_dist = dist
+			nearest = enemy
+	if nearest == null:
+		return
+	var to_enemy: Vector2 = nearest.position - position
+	if to_enemy.length_squared() > 0.0001:
+		facing = to_enemy.normalized()
+
+
+func add_contact_partner(partner) -> void:
+	if partner == null or partner == self:
+		return
+	if partner in _contact_partners:
+		return
+	_contact_partners.append(partner)
+	if partner.unit_id not in _partner_ids:
+		_partner_ids.append(partner.unit_id)
+	if _state != Unit.State.ROUTING and _state != Unit.State.REMOVED and _state != Unit.State.RALLYING:
+		_set_state(Unit.State.ENGAGED)
+
+
+func remove_contact_partner(partner) -> void:
+	if partner == null:
+		return
+	_contact_partners.erase(partner)
+	_partner_ids.erase(partner.unit_id)
+	if _contact_partners.is_empty():
+		clear_bump_state()
+		if _state == Unit.State.ENGAGED or _state == Unit.State.WAVERING:
+			_set_state(Unit.State.MARCHING if current_order == Unit.Order.MARCH_TO else Unit.State.HOLD)
+
+
+func has_contact_with(other) -> bool:
+	return other in _contact_partners
+
+
+func get_contact_partners() -> Array:
+	return _contact_partners.duplicate()
+
+
+func set_active_contact_edges(label: String) -> void:
+	_active_contact_edges = label
+
+
+func get_active_contact_edges() -> String:
+	return _active_contact_edges
+
+
+func get_edge_cohesion_drain_totals() -> Dictionary:
+	return _edge_cohesion_drain_totals.duplicate()
+
+
+func enter_rout() -> void:
+	var partners := _contact_partners.duplicate()
+	_contact_partners.clear()
+	_partner_ids.clear()
+	for partner in partners:
+		if partner == null:
+			continue
+		partner.remove_contact_partner(self)
+		partner.clear_bump_state()
+		if partner.get_state() == Unit.State.ENGAGED or partner.get_state() == Unit.State.WAVERING:
+			if partner.get_contact_partners().is_empty():
+				partner.current_order = Unit.Order.HOLD
+				partner._set_state(Unit.State.HOLD)
+	clear_bump_state()
+	_rally_elapsed_sec = 0.0
+	_pending_rout_event = true
+	_set_state(Unit.State.ROUTING)
+
+
+func mark_removed() -> void:
+	_set_state(Unit.State.REMOVED)
+
+
+func _set_state(new_state: Unit.State) -> void:
+	if _state == new_state:
+		return
+	_state = new_state
+
+
+func _refresh_morale_state() -> void:
+	if _state == Unit.State.ROUTING or _state == Unit.State.REMOVED or _state == Unit.State.RALLYING:
+		return
+	if cohesion < Constants.get_float("rout_threshold"):
+		enter_rout()
+		return
+	if _state == Unit.State.ENGAGED and cohesion < Constants.get_float("waver_threshold"):
+		_set_state(Unit.State.WAVERING)
+	elif _state == Unit.State.WAVERING and cohesion >= Constants.get_float("waver_threshold"):
+		_set_state(Unit.State.ENGAGED)
+
+
+func _flee_direction() -> Vector2:
+	return -facing.normalized()
+
+
+func _check_edge_removal() -> void:
+	var half_width_px := Constants.get_float("battlefield_width_m") * Constants.get_float("px_per_meter") * 0.5
+	var half_height_px := Constants.get_float("battlefield_height_m") * Constants.get_float("px_per_meter") * 0.5
+	if absf(position.x) >= half_width_px or absf(position.y) >= half_height_px:
+		mark_removed()

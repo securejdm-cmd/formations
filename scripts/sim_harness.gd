@@ -44,3 +44,7 @@ static func trace_bytes(scenario: Scenario01) -> PackedByteArray:
 
 static func traces_match(a: Scenario01, b: Scenario01) -> bool:
 	return trace_bytes(a) == trace_bytes(b)
+
+
+static func run_threaded_to_completion(scenario: Scenario01, extra_ticks: int = 0) -> void:
+	scenario.run_simulation_threaded_to_completion(extra_ticks)

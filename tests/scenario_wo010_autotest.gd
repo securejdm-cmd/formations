@@ -103,6 +103,20 @@ func _run_fast_certification() -> void:
 	else:
 		print("[WO-010] Fast-mode certification PASS (seed %d trace byte-identical)" % CERT_SEED)
 
+	var threaded: Scenario01 = _sim_runner.instantiate_scenario(
+		"res://tests/scenario_01.tscn", CERT_SEED, false, true
+	)
+	_sim_runner.attach_and_wait_ready(self, threaded)
+	_sim_harness.run_threaded_to_completion(threaded)
+	var threaded_trace: String = threaded.get_trace_text()
+	threaded.free()
+
+	if threaded_trace != fast_trace:
+		push_error("Threaded certification failed: threaded vs fast trace differ (seed %d)" % CERT_SEED)
+		_exit_code = 1
+	else:
+		print("[WO-011] Threaded certification PASS (seed %d trace byte-identical)" % CERT_SEED)
+
 	_mode = "s1_regression"
 	_seed_idx = 0
 	_spawn_and_run()
@@ -165,6 +179,8 @@ func _spawn_and_run() -> void:
 
 	var path := "res://tests/%s.tscn" % scene
 	_scenario = _sim_runner.instantiate_scenario(path, seed_value, _mode != "perf_40")
+	if _mode == "perf_40":
+		_scenario.use_sim_thread = true
 	if scene == "scenario_04":
 		match _s4_modes[_s4_mode_idx]:
 			"front":
@@ -479,8 +495,25 @@ func _check_scenario_08(single_damage: float) -> void:
 
 
 func _check_perf_40() -> void:
+	var sim_stats: Dictionary = _perf_stats.get("sim_thread", {})
 	print(
-		"[WO-010] Perf40 min_fps=%.1f avg_fps=%.1f avg_tick_ms=%.3f p95_tick_ms=%.3f ticks=%d"
+		"[WO-011] Perf40 sim_thread avg_tick_ms=%.3f p95_tick_ms=%.3f max_tick_ms=%.3f ticks=%d"
+		% [
+			sim_stats.get("avg_tick_ms", 0.0),
+			sim_stats.get("p95_tick_ms", 0.0),
+			sim_stats.get("max_tick_ms", 0.0),
+			sim_stats.get("tick_count", 0),
+		]
+	)
+	if sim_stats.get("p95_tick_ms", 999.0) > 50.0:
+		push_error(
+			"WO-011 perf gate FAIL: sim-thread p95_tick_ms=%.3f exceeds 50ms budget"
+			% sim_stats.get("p95_tick_ms", 0.0)
+		)
+		_exit_code = 1
+	print(
+		"[WO-011] Perf40 environmental actuals (cloud, not designer-desktop gate): "
+		+ "min_fps=%.1f avg_fps=%.1f avg_tick_ms=%.3f p95_tick_ms=%.3f ticks=%d"
 		% [
 			_perf_stats.get("min_fps", 0.0),
 			_perf_stats.get("avg_fps", 0.0),
@@ -489,10 +522,6 @@ func _check_perf_40() -> void:
 			_perf_stats.get("tick_count", 0),
 		]
 	)
-	print("[WO-010] Perf40 environmental actuals (not gate): min_fps=%.1f avg_fps=%.1f" % [
-		_perf_stats.get("min_fps", 0.0),
-		_perf_stats.get("avg_fps", 0.0),
-	])
 
 
 func _report_perf_scale() -> void:

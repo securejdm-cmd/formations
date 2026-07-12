@@ -4,6 +4,8 @@ extends Node2D
 const UNIT_SCENE := preload("res://scenes/unit.tscn")
 const TRACE_DIR := "res://tests/traces/"
 const _TickProfiler := preload("res://scripts/tick_profiler.gd")
+const _SimBattleCore := preload("res://scripts/sim/sim_battle_core.gd")
+const _SimThreadController := preload("res://scripts/sim/sim_thread_controller.gd")
 
 enum BattlePhase { ACTIVE, VICTORY_PENDING, VICTORY_EPILOGUE, FINISHED }
 
@@ -11,6 +13,8 @@ enum BattlePhase { ACTIVE, VICTORY_PENDING, VICTORY_EPILOGUE, FINISHED }
 @export var headless_mode: bool = false
 ## When true (with headless_mode), autotest harness drives ticks via SimHarness — no _process loop.
 @export var fast_sim_mode: bool = false
+## WO-011: worker-thread sim at 10 Hz (realtime only; fast-mode path stays on main thread).
+@export var use_sim_thread: bool = false
 
 var _units: Array[Unit] = []
 var _tick_accumulator: float = 0.0
@@ -33,6 +37,9 @@ var _grid_cell_size_px: float = 1.0
 var _grid_cells: Dictionary = {}
 var _current_tick_interval: float = 0.1
 var _tick_start_positions: Dictionary = {}
+var _sim_core = null
+var _sim_thread = null
+var _threaded_battle_finished: bool = false
 
 @onready var _camera: Camera2D = $Camera2D
 @onready var _ground: ColorRect = $Ground
@@ -64,14 +71,115 @@ func _ready() -> void:
 
 	if auto_run:
 		_battle_start_time_msec = Time.get_ticks_msec()
-		_write_trace_header()
-		_log_trace_row()
-	if headless_mode:
+		if _sim_thread_enabled():
+			_setup_sim_thread()
+		else:
+			_write_trace_header()
+			_log_trace_row()
+	elif _sim_thread_enabled():
+		_setup_sim_thread()
+	if headless_mode and not _sim_thread_enabled():
 		set_process(false)
+
+
+func _exit_tree() -> void:
+	if _sim_thread != null:
+		_sim_thread.stop()
+		_sim_thread = null
+		_sim_core = null
+
+
+func _sim_thread_enabled() -> bool:
+	return use_sim_thread and not fast_sim_mode
+
+
+func _sim_thread_active() -> bool:
+	return _sim_thread_enabled() and _sim_thread != null
+
+
+func _setup_sim_thread() -> void:
+	_sim_core = _SimBattleCore.new()
+	_sim_core.configure_rng(_battle_seed)
+	_sim_core.headless_mode = headless_mode
+	_sim_core.fast_sim_mode = fast_sim_mode
+	if auto_run:
+		_sim_core.write_trace_header()
+	_sim_core.capture_from_units(_units)
+	if auto_run:
+		_sim_core.log_trace_row()
+	_sim_thread = _SimThreadController.new()
+	_sim_thread.start(_sim_core, not headless_mode)
+
+
+func _sync_state_from_core() -> void:
+	if _sim_core == null:
+		return
+	_sim_tick_count = _sim_core.sim_tick_count
+	_battle_over = _sim_core.battle_over
+	_battle_phase = _sim_core.battle_phase as BattlePhase
+	_victory_team = _sim_core.victory_team
+	if headless_mode:
+		_victory_delay_accum = _sim_core.victory_delay_accum
+	_watch_epilogue = _sim_core.watch_epilogue
+	_trace_lines = _sim_core.trace_lines
+	_first_contact_tick = _sim_core.first_contact_tick
+	_first_rout_tick = _sim_core.first_rout_tick
+	_overlap_assertion_failed = _sim_core.overlap_assertion_failed
+	_adhesion_invariant_failed = _sim_core.adhesion_invariant_failed
+	_winner = null
+	if not _sim_core.winner_id.is_empty():
+		for unit in _units:
+			if unit.unit_id == _sim_core.winner_id:
+				_winner = unit
+				break
+
+
+func wait_for_threaded_completion() -> void:
+	if _sim_thread == null:
+		return
+	_sim_thread.wait_for_completion()
+	_sync_state_from_core()
+	if auto_run and headless_mode and _battle_over and not _threaded_battle_finished:
+		_threaded_battle_finished = true
+		_write_trace_file()
+		_print_summary()
+
+
+func run_simulation_threaded_to_completion(extra_ticks: int = 0) -> void:
+	wait_for_threaded_completion()
+	if extra_ticks > 0:
+		push_warning("Scenario01: extra_ticks ignored on threaded sim path")
+
+
+func _process_threaded_frame(delta: float) -> void:
+	var was_over := _battle_over
+	_sync_state_from_core()
+	if _battle_over:
+		if not was_over:
+			if auto_run:
+				_write_trace_file()
+			_print_summary()
+			if not headless_mode:
+				_show_results_if_needed()
+		return
+
+	if not headless_mode and _battle_phase == BattlePhase.VICTORY_PENDING:
+		_victory_delay_accum += delta
+		if _victory_delay_accum >= Constants.get_float("victory_delay_s"):
+			_declare_victory()
+		if _sim_thread != null:
+			_sim_thread.apply_snapshot_to_units(_units)
+		return
+
+	if _sim_thread != null:
+		_sim_thread.apply_snapshot_to_units(_units)
 
 
 func simulate_realtime_step(delta: float = -1.0) -> void:
 	var step := delta if delta > 0.0 else CombatResolver.tick_interval()
+	if _sim_thread_active():
+		_process_threaded_frame(step)
+		return
 	_process(step)
 
 
@@ -81,6 +189,9 @@ func run_simulation_fast(extra_ticks: int = 0) -> void:
 
 
 func _process(delta: float) -> void:
+	if _sim_thread_active():
+		_process_threaded_frame(delta)
+		return
 	if _battle_over:
 		return
 	if not headless_mode and _battle_phase == BattlePhase.VICTORY_PENDING:
@@ -99,6 +210,8 @@ func _process(delta: float) -> void:
 
 
 func advance_one_tick() -> void:
+	if _sim_thread_active():
+		return
 	if _battle_over:
 		return
 
@@ -764,18 +877,28 @@ func _update_victory_state(tick_interval: float) -> void:
 
 func _declare_victory() -> void:
 	_battle_phase = BattlePhase.VICTORY_EPILOGUE
+	if _sim_core != null:
+		_sim_core.battle_phase = _SimBattleCore.BattlePhase.VICTORY_EPILOGUE
 	if headless_mode:
 		_watch_epilogue = true
+		if _sim_core != null:
+			_sim_core.watch_epilogue = true
 		return
 	_results_overlay.show_victory(_victory_team)
 
 
 func _on_skip_epilogue() -> void:
-	_finish_battle()
+	if _sim_core != null:
+		_sim_core.finish_battle()
+		_sync_state_from_core()
+	else:
+		_finish_battle()
 
 
 func _on_watch_epilogue() -> void:
 	_watch_epilogue = true
+	if _sim_core != null:
+		_sim_core.watch_epilogue = true
 
 
 func _check_epilogue_end() -> void:
@@ -1050,6 +1173,8 @@ func _print_summary() -> void:
 
 
 func get_trace_text() -> String:
+	if _sim_core != null:
+		return _sim_core.get_trace_text()
 	return "\n".join(_trace_lines) + "\n"
 
 
@@ -1072,7 +1197,33 @@ func had_adhesion_invariant_failure() -> bool:
 
 
 func is_battle_over() -> bool:
+	if _sim_thread_active() and _sim_core != null:
+		return _sim_core.battle_over
 	return _battle_over
+
+
+func get_sim_thread_tick_stats() -> Dictionary:
+	if _sim_thread == null:
+		return {}
+	var tick_times_usec: Array = _sim_thread.get_tick_times_usec()
+	if tick_times_usec.is_empty():
+		return {"tick_count": 0}
+	var tick_times_ms: Array[float] = []
+	for usec in tick_times_usec:
+		tick_times_ms.append(float(usec) / 1000.0)
+	tick_times_ms.sort()
+	var tick_sum := 0.0
+	for t in tick_times_ms:
+		tick_sum += t
+	var p95_idx := int(floor(float(tick_times_ms.size() - 1) * 0.95))
+	return {
+		"tick_count": tick_times_ms.size(),
+		"min_tick_ms": tick_times_ms[0],
+		"avg_tick_ms": tick_sum / float(tick_times_ms.size()),
+		"max_tick_ms": tick_times_ms[-1],
+		"p95_tick_ms": tick_times_ms[p95_idx],
+		"last_tick_ms": float(_sim_thread.get_last_tick_usec()) / 1000.0,
+	}
 
 
 func get_unit_kill_totals() -> Dictionary:

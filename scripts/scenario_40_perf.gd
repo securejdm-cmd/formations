@@ -104,4 +104,5 @@ func get_perf_stats() -> Dictionary:
 		"max_tick_ms": max_tick,
 		"p95_tick_ms": p95_tick,
 		"tick_count": tick_times.size(),
+		"sim_thread": get_sim_thread_tick_stats(),
 	}
