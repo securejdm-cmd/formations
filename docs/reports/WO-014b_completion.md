@@ -1,9 +1,9 @@
-# COMPLETION REPORT — WO-014b — Date 2026-07-13 — Commit COMMIT_STAMP
+# COMPLETION REPORT — WO-014b — Date 2026-07-13 — Commit ee611b46d6f7a2e6254d511a54b4df85fafb231a
 
 **Work order:** WO-014b (ranged scale sweep + certification on WO-014 branch)  
 **Branch:** `cursor/wo-014-ranged-combat-fd84`  
 **Date:** 2026-07-13  
-**Commit:** `COMMIT_STAMP`  
+**Commit:** `ee611b46d6f7a2e6254d511a54b4df85fafb231a`  
 **Fresh path:** this file is `docs/reports/WO-014b_completion.md` (does not reuse `WO-014_completion.md`)  
 **Evidence (this run):** `docs/reports/evidence_wo014b_r2/`
 
