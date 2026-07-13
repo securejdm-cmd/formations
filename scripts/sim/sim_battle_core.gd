@@ -4,7 +4,6 @@ extends RefCounted
 const _TickProfiler := preload("res://scripts/tick_profiler.gd")
 const SimUnitProxy := preload("res://scripts/sim/sim_unit_proxy.gd")
 const SimRngBridge := preload("res://scripts/sim/sim_rng_bridge.gd")
-const SimCombatDispatch := preload("res://scripts/sim/sim_combat_dispatch.gd")
 const SimRng := preload("res://scripts/sim/sim_rng.gd")
 
 enum BattlePhase { ACTIVE, VICTORY_PENDING, VICTORY_EPILOGUE, FINISHED }
@@ -30,6 +29,7 @@ var headless_mode: bool = true
 var fast_sim_mode: bool = false
 var battle_seed: int = 0
 var _rng: SimRng = SimRng.new()
+var shock_floater_callback: Callable = Callable()
 
 
 func configure_rng(seed_value: int) -> void:
@@ -47,7 +47,7 @@ func advance_one_tick() -> void:
 func begin_sim_tick(tick_interval: float) -> void:
 	current_tick_interval = tick_interval
 	SimRngBridge.set_worker_rng(_rng)
-	SimEdgeContact.begin_tick(sim_tick_count)
+	EdgeContact.begin_tick(sim_tick_count)
 	capture_tick_start_positions()
 
 
@@ -319,16 +319,16 @@ func try_begin_engagement(unit: SimUnitProxy) -> void:
 			continue
 		if other.team_id == unit.team_id:
 			continue
-		if not SimCombatDispatch.units_have_any_contact(unit, other):
+		if not CombatResolver.units_have_any_contact(unit, other):
 			continue
 
 		unit.add_contact_partner(other)
 		other.add_contact_partner(unit)
 		if (
-			SimCombatDispatch.is_head_on_pair(unit, other)
-			and not SimCombatDispatch.has_non_front_segment_contact(unit, other)
+			CombatResolver.is_head_on_pair(unit, other)
+			and not EdgeContact.has_non_front_segment_contact(unit, other)
 		):
-			SimCombatDispatch.snap_pair_to_contact(unit, other)
+			CombatResolver.snap_pair_to_contact(unit, other)
 		on_first_contact()
 
 
@@ -343,15 +343,15 @@ func try_passive_engagement() -> void:
 				continue
 			if other.get_state() == Unit.State.ROUTING or other.get_state() == Unit.State.RALLYING:
 				continue
-			if not SimCombatDispatch.units_have_any_contact(unit, other):
+			if not CombatResolver.units_have_any_contact(unit, other):
 				continue
 			unit.add_contact_partner(other)
 			other.add_contact_partner(unit)
 			if (
-				SimCombatDispatch.is_head_on_pair(unit, other)
-				and not SimCombatDispatch.has_non_front_segment_contact(unit, other)
+				CombatResolver.is_head_on_pair(unit, other)
+				and not EdgeContact.has_non_front_segment_contact(unit, other)
 			):
-				SimCombatDispatch.snap_pair_to_contact(unit, other)
+				CombatResolver.snap_pair_to_contact(unit, other)
 			on_first_contact()
 
 
@@ -372,7 +372,7 @@ func apply_neighbor_rout_shock(routing_unit: SimUnitProxy) -> void:
 			continue
 		if ally.get_state() == Unit.State.REMOVED:
 			continue
-		if SimCombatDispatch.center_distance_m(ally, routing_unit) > radius_m:
+		if CombatResolver.center_distance_m(ally, routing_unit) > radius_m:
 			continue
 		ally.apply_cohesion_drain(shock)
 		spawn_shock_floater(ally, shock)
@@ -382,8 +382,9 @@ func apply_neighbor_rout_shock(routing_unit: SimUnitProxy) -> void:
 		)
 
 
-func spawn_shock_floater(_unit: SimUnitProxy, _amount: float) -> void:
-	pass
+func spawn_shock_floater(unit: SimUnitProxy, amount: float) -> void:
+	if shock_floater_callback.is_valid():
+		shock_floater_callback.call(unit, amount)
 
 
 
@@ -392,12 +393,12 @@ func pursuit_tick() -> void:
 		if routing_unit.get_state() != Unit.State.ROUTING:
 			continue
 		for enemy in enemies_for(routing_unit):
-			if not SimCombatDispatch.can_apply_pursuit(enemy):
+			if not CombatResolver.can_apply_pursuit(enemy):
 				continue
-			if not SimCombatDispatch.is_within_pursuit_contact(enemy, routing_unit):
+			if not CombatResolver.is_within_pursuit_contact(enemy, routing_unit):
 				continue
-			var damage := SimCombatDispatch.calc_pursuit_damage(enemy)
-			var applied := SimCombatDispatch.apply_strength_loss(routing_unit, damage)
+			var damage := CombatResolver.calc_pursuit_damage(enemy)
+			var applied := CombatResolver.apply_strength_loss(routing_unit, damage)
 			routing_unit.reset_rally_timer()
 			enemy.record_damage_dealt(applied)
 			log_trace_event(
@@ -441,25 +442,25 @@ func combat_tick() -> void:
 			if partner.get_state() == Unit.State.ROUTING:
 				continue
 
-			if not SimCombatDispatch.is_head_on_pair(unit, partner):
+			if not CombatResolver.is_head_on_pair(unit, partner):
 				continue
-			if not SimCombatDispatch.units_have_front_contact(unit, partner):
+			if not CombatResolver.units_have_front_contact(unit, partner):
 				continue
-			if SimCombatDispatch.has_non_front_segment_contact(unit, partner):
+			if EdgeContact.has_non_front_segment_contact(unit, partner):
 				continue
 
-			var pair_key := pair_key(unit, partner)
-			if pair_key in processed_head_on:
+			var pk := pair_key(unit, partner)
+			if pk in processed_head_on:
 				continue
-			processed_head_on.append(pair_key)
+			processed_head_on.append(pk)
 
-			var result := SimCombatDispatch.resolve_engagement(unit, partner)
-			SimCombatDispatch.apply_ground_shift(unit, result.shift_a_m)
-			SimCombatDispatch.apply_ground_shift(partner, result.shift_b_m)
+			var result := CombatResolver.resolve_engagement(unit, partner)
+			CombatResolver.apply_ground_shift(unit, result.shift_a_m)
+			CombatResolver.apply_ground_shift(partner, result.shift_b_m)
 
-			var applied_to_unit := SimCombatDispatch.apply_strength_loss(unit, result.damage_a)
+			var applied_to_unit := CombatResolver.apply_strength_loss(unit, result.damage_a)
 			partner.record_damage_dealt(applied_to_unit)
-			var applied_to_partner := SimCombatDispatch.apply_strength_loss(partner, result.damage_b)
+			var applied_to_partner := CombatResolver.apply_strength_loss(partner, result.damage_b)
 			unit.record_damage_dealt(applied_to_partner)
 
 			unit.set_bump_state(result.gap_ratio, result.a_is_winner)
@@ -480,16 +481,16 @@ func combat_tick() -> void:
 				continue
 			if attacker.get_state() == Unit.State.ROUTING:
 				continue
-			if SimCombatDispatch.is_head_on_pair(attacker, defender):
-				if not SimCombatDispatch.has_non_front_segment_contact(attacker, defender):
+			if CombatResolver.is_head_on_pair(attacker, defender):
+				if not EdgeContact.has_non_front_segment_contact(attacker, defender):
 					continue
 
-			var pair_key := pair_key(attacker, defender)
-			if pair_key in processed_segments:
+			var pk := pair_key(attacker, defender)
+			if pk in processed_segments:
 				continue
-			processed_segments.append(pair_key)
+			processed_segments.append(pk)
 
-			var orientation := SimCombatDispatch.pick_segment_orientation(attacker, defender)
+			var orientation := EdgeContact.pick_segment_orientation(attacker, defender)
 			var seg_attacker: SimUnitProxy = orientation.get("attacker")
 			var seg_defender: SimUnitProxy = orientation.get("defender")
 			var contact: Dictionary = orientation.get("contact", {})
@@ -502,37 +503,37 @@ func combat_tick() -> void:
 					contact_edge_labels[seg_defender] = [] as Array[String]
 				(contact_edge_labels[seg_defender] as Array[String]).append(edge_label)
 
-			var segment := SimCombatDispatch.resolve_contact_segment(seg_attacker, seg_defender, contact)
+			var segment := CombatResolver.resolve_contact_segment(seg_attacker, seg_defender, contact)
 			var edge_lengths: Dictionary = segment.get("edge_lengths_m", {})
 			var push_normal: Vector2 = segment.get("push_normal", seg_defender.facing)
 
 			if is_equal_approx(segment.attacker_push, segment.defender_push):
-				var dmg_attacker := SimCombatDispatch.apply_strength_loss_with_edge(
+				var dmg_attacker := CombatResolver.apply_strength_loss_with_edge(
 					seg_attacker, segment.attacker_damage, edge_lengths
 				)
-				var dmg_defender := SimCombatDispatch.apply_strength_loss_with_edge(
+				var dmg_defender := CombatResolver.apply_strength_loss_with_edge(
 					seg_defender, segment.defender_damage, edge_lengths
 				)
 				seg_defender.record_damage_dealt(dmg_attacker)
 				seg_attacker.record_damage_dealt(dmg_defender)
 			elif segment.attacker_wins:
 				accumulate_directed_shift(defender_shifts, seg_defender, push_normal, segment.defender_shift_m)
-				SimCombatDispatch.apply_shift_morale_drain(seg_defender, segment.defender_shift_m, edge_lengths)
-				var applied_defender := SimCombatDispatch.apply_strength_loss_with_edge(
+				CombatResolver.apply_shift_morale_drain(seg_defender, segment.defender_shift_m, edge_lengths)
+				var applied_defender := CombatResolver.apply_strength_loss_with_edge(
 					seg_defender, segment.defender_damage, edge_lengths
 				)
-				var applied_attacker := SimCombatDispatch.apply_strength_loss_with_edge(
+				var applied_attacker := CombatResolver.apply_strength_loss_with_edge(
 					seg_attacker, segment.attacker_damage, edge_lengths
 				)
 				seg_attacker.record_damage_dealt(applied_defender)
 				seg_defender.record_damage_dealt(applied_attacker)
 			else:
 				accumulate_directed_shift(defender_shifts, seg_attacker, -push_normal, segment.attacker_shift_m)
-				SimCombatDispatch.apply_shift_morale_drain(seg_attacker, segment.attacker_shift_m, edge_lengths)
-				var applied_attacker := SimCombatDispatch.apply_strength_loss_with_edge(
+				CombatResolver.apply_shift_morale_drain(seg_attacker, segment.attacker_shift_m, edge_lengths)
+				var applied_attacker := CombatResolver.apply_strength_loss_with_edge(
 					seg_attacker, segment.attacker_damage, edge_lengths
 				)
-				var applied_defender := SimCombatDispatch.apply_strength_loss_with_edge(
+				var applied_defender := CombatResolver.apply_strength_loss_with_edge(
 					seg_defender, segment.defender_damage, edge_lengths
 				)
 				seg_defender.record_damage_dealt(applied_attacker)
@@ -562,7 +563,7 @@ func combat_tick() -> void:
 		var shift_vector: Vector2 = shift_info.vector
 		var shift_m := shift_vector.length() / Constants.get_float("px_per_meter")
 		if shift_m > 0.0:
-			SimCombatDispatch.apply_directed_position_shift(
+			CombatResolver.apply_directed_position_shift(
 				defender,
 				shift_m,
 				shift_vector.normalized(),
@@ -585,10 +586,10 @@ func prune_broken_contacts() -> void:
 				unit.remove_contact_partner(partner)
 				continue
 			if (
-				SimCombatDispatch.is_head_on_pair(unit, partner)
-				and not SimCombatDispatch.has_non_front_segment_contact(unit, partner)
+				CombatResolver.is_head_on_pair(unit, partner)
+				and not EdgeContact.has_non_front_segment_contact(unit, partner)
 			):
-				if not SimCombatDispatch.units_have_any_contact(unit, partner):
+				if not CombatResolver.units_have_any_contact(unit, partner):
 					unit.remove_contact_partner(partner)
 
 
@@ -755,20 +756,20 @@ func apply_contact_adhesion() -> void:
 				continue
 			if partner.get_state() == Unit.State.ROUTING:
 				continue
-			var pair_key := pair_key(unit, partner)
-			if pair_key in processed:
+			var pk := pair_key(unit, partner)
+			if pk in processed:
 				continue
-			processed.append(pair_key)
-			if SimCombatDispatch.apply_contact_adhesion_pair(unit, partner, units):
-				prune_keys.append(pair_key)
+			processed.append(pk)
+			if CombatResolver.apply_contact_adhesion_pair(unit, partner, units):
+				prune_keys.append(pk)
 	for unit in units:
 		if unit.get_state() == Unit.State.REMOVED or unit.get_state() == Unit.State.ROUTING:
 			continue
 		for partner in unit.get_contact_partners().duplicate():
 			if partner == null:
 				continue
-			var pair_key := pair_key(unit, partner)
-			if pair_key in prune_keys:
+			var pk2 := pair_key(unit, partner)
+			if pk2 in prune_keys:
 				unit.remove_contact_partner(partner)
 	assert_partner_classifier_contact_invariant()
 
@@ -785,11 +786,11 @@ func assert_partner_classifier_contact_invariant() -> void:
 			if partner.get_state() != Unit.State.ENGAGED and partner.get_state() != Unit.State.WAVERING:
 				continue
 			if (
-				SimCombatDispatch.is_head_on_pair(unit, partner)
-				and not SimCombatDispatch.has_non_front_segment_contact(unit, partner)
+				CombatResolver.is_head_on_pair(unit, partner)
+				and not EdgeContact.has_non_front_segment_contact(unit, partner)
 			):
 				continue
-			if SimCombatDispatch.pair_has_classifier_contact(unit, partner):
+			if CombatResolver.pair_has_classifier_contact(unit, partner):
 				continue
 			if not adhesion_invariant_failed:
 				push_error(
@@ -807,9 +808,9 @@ func resolve_allied_overlaps() -> void:
 			continue
 		if not unit_moved_this_tick(unit_a) and not unit_moved_this_tick(unit_b):
 			continue
-		if not SimCombatDispatch.bounds_may_overlap(unit_a, unit_b):
+		if not FormationGeometry.bounds_may_overlap(unit_a, unit_b):
 			continue
-		SimCombatDispatch.separate_allied_overlap(unit_a, unit_b)
+		CombatResolver.separate_allied_overlap(unit_a, unit_b)
 
 
 func pair_key(unit_a: SimUnitProxy, unit_b: SimUnitProxy) -> String:
@@ -829,9 +830,9 @@ func assert_no_overlaps() -> void:
 	for pair in grid_sorted_pair_candidates():
 		var unit_a: SimUnitProxy = pair[0]
 		var unit_b: SimUnitProxy = pair[1]
-		if not SimCombatDispatch.bounds_may_overlap(unit_a, unit_b):
+		if not FormationGeometry.bounds_may_overlap(unit_a, unit_b):
 			continue
-		if not SimCombatDispatch.units_overlap(unit_a, unit_b):
+		if not CombatResolver.units_overlap(unit_a, unit_b):
 			continue
 		overlap_assertion_failed = true
 		var relation := "allied" if unit_a.team_id == unit_b.team_id else "enemy"
@@ -846,12 +847,20 @@ func get_trace_text() -> String:
 	return "\n".join(trace_lines) + "\n"
 
 func capture_from_units(unit_nodes: Array) -> void:
-	units.clear()
+	var existing: Dictionary = {}
+	for proxy in units:
+		existing[proxy.unit_id] = proxy
+	var next: Array = []
 	for node in unit_nodes:
 		if node == null:
 			continue
-		var proxy := SimUnitProxy.from_unit(node)
-		units.append(proxy)
+		if existing.has(node.unit_id):
+			var proxy: SimUnitProxy = existing[node.unit_id]
+			proxy.refresh_from_unit(node)
+			next.append(proxy)
+		else:
+			next.append(SimUnitProxy.from_unit(node))
+	units = next
 	resolve_partner_links()
 
 func resolve_partner_links() -> void:
@@ -867,7 +876,7 @@ func apply_render_snapshot_to_units(unit_nodes: Array) -> void:
 		by_id[node.unit_id] = node
 	for proxy in units:
 		if by_id.has(proxy.unit_id):
-			proxy.apply_to_unit(by_id[proxy.unit_id])
+			proxy.apply_to_unit(by_id[proxy.unit_id], unit_nodes)
 
 
 func build_render_snapshot() -> Array:
@@ -883,7 +892,7 @@ func apply_render_snapshot(snap: Array, unit_nodes: Array) -> void:
 		by_id[node.unit_id] = node
 	for proxy in snap:
 		if by_id.has(proxy.unit_id):
-			proxy.apply_to_unit(by_id[proxy.unit_id])
+			proxy.apply_to_unit(by_id[proxy.unit_id], unit_nodes)
 
 func is_battle_over() -> bool:
 	return battle_over

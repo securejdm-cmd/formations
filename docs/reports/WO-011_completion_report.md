@@ -6,7 +6,7 @@
 
 ## Summary
 
-Implemented authoritative 10 Hz simulation on a worker thread using plain `SimUnitProxy` / `SimBattleCore` data structures. The main thread reads double-buffered render snapshots (one-tick latency accepted). The headless fast-mode `advance_one_tick()` path on `Scenario01` is unchanged.
+Implemented authoritative 10 Hz simulation on a worker thread using plain `SimUnitProxy` / `SimBattleCore` data structures. The main thread reads double-buffered render snapshots (one-tick latency accepted). **WO-012 update:** headless fast-mode `advance_one_tick()` now delegates to the same `SimBattleCore` single-threaded; legacy Scenario01 combat path removed.
 
 ## Architecture
 
@@ -52,7 +52,7 @@ Full autotest suite exit code 0 (S3–S8 included).
 |----------|--------|-------|
 | S1 threaded (2 blocks) | ~2824 ticks in ~1.3s wall | ~0.5 ms avg worker tick |
 | S40 fast path (WO-010c) | ~21 ms avg tick | Baseline before threading |
-| S40 threaded | p95 sim-thread tick in `perf_40` autotest | Gate: p95 ≤ 50 ms |
+| S40 threaded | **p95 sim-thread tick = 28.163 ms** (2038 worker ticks, seed 1000) | Gate: p95 ≤ 50 ms — PASS (cloud VM) |
 
 Designer-desktop render FPS ≥60 is not measurable headless; logged as environmental per TD §6.
 

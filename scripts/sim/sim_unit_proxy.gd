@@ -1,8 +1,6 @@
 class_name SimUnitProxy
 extends RefCounted
 
-const SimCombatDispatch := preload("res://scripts/sim/sim_combat_dispatch.gd")
-
 var unit_id: String = ""
 var team_id: String = ""
 var profile: Dictionary = {}
@@ -63,6 +61,36 @@ static func from_unit(unit: Unit) -> SimUnitProxy:
 	return p
 
 
+func refresh_from_unit(unit: Unit) -> void:
+	team_id = unit.team_id
+	profile = unit.profile.duplicate(true)
+	position = unit.position
+	facing = unit.facing
+	strength = unit.strength
+	cohesion = unit.cohesion
+	current_order = unit.current_order
+	march_target = unit.march_target
+	pushing_power = unit.pushing_power
+	speed_stat = unit.speed_stat
+	damage_dealt = unit.damage_dealt
+	_state = unit.get_state()
+	_active_contact_edges = unit.get_active_contact_edges()
+	_edge_cohesion_drain_totals = unit.get_edge_cohesion_drain_totals()
+	_bump_gap_ratio = unit._bump_gap_ratio
+	_bump_is_winner = unit._bump_is_winner
+	_rally_elapsed_sec = unit._rally_elapsed_sec
+	_rallies_this_battle = unit._rallies_this_battle
+	_rallied_hold = unit.is_rallied_hold()
+	_rally_reform_remaining_sec = unit._rally_reform_remaining_sec
+	_pending_rout_event = unit._pending_rout_event
+	_crack_intensity = unit._crack_intensity
+	_partner_ids.clear()
+	_contact_partners.clear()
+	for partner in unit.get_contact_partners():
+		if partner != null and partner.unit_id != unit_id:
+			_partner_ids.append(partner.unit_id)
+
+
 func duplicate_render_state() -> SimUnitProxy:
 	var p := SimUnitProxy.new()
 	p.unit_id = unit_id
@@ -101,7 +129,7 @@ func resolve_partners(by_id: Dictionary) -> void:
 				_contact_partners.append(partner)
 
 
-func apply_to_unit(unit: Unit) -> void:
+func apply_to_unit(unit: Unit, all_units: Array = []) -> void:
 	unit.position = position
 	unit.facing = facing
 	unit.rotation = facing.angle()
@@ -120,6 +148,25 @@ func apply_to_unit(unit: Unit) -> void:
 	unit._edge_cohesion_drain_totals = _edge_cohesion_drain_totals.duplicate()
 	unit.set_active_contact_edges(_active_contact_edges)
 	_set_unit_state(unit, _state)
+	_sync_unit_partners_to_nodes(unit, all_units)
+
+
+func _sync_unit_partners_to_nodes(unit: Unit, all_units: Array) -> void:
+	if all_units.is_empty():
+		return
+	var by_id: Dictionary = {}
+	for node in all_units:
+		if node != null:
+			by_id[node.unit_id] = node
+	for partner in unit.get_contact_partners().duplicate():
+		if partner == null or partner.unit_id not in _partner_ids:
+			unit.remove_contact_partner(partner)
+	for pid in _partner_ids:
+		if pid == unit.unit_id or not by_id.has(pid):
+			continue
+		var partner: Unit = by_id[pid]
+		if not unit.has_contact_with(partner):
+			unit.add_contact_partner(partner)
 
 
 func _set_unit_state(unit: Unit, new_state: Unit.State) -> void:
@@ -253,11 +300,11 @@ func update_marching(delta: float, enemies: Array = []) -> void:
 			_set_state(Unit.State.HOLD)
 		return
 	for enemy in enemies:
-		if not SimCombatDispatch.could_have_contact(self, enemy):
+		if not CombatResolver.could_have_contact(self, enemy):
 			continue
-		if SimCombatDispatch.units_have_contact(self, enemy) or SimCombatDispatch.units_have_contact(enemy, self):
+		if EdgeContact.units_have_contact(self, enemy) or EdgeContact.units_have_contact(enemy, self):
 			return
-		move_px = SimCombatDispatch.clamp_march_distance(self, enemy, move_px)
+		move_px = CombatResolver.clamp_march_distance(self, enemy, move_px)
 		if move_px <= 0.0:
 			return
 	position += to_target.normalized() * move_px
@@ -324,7 +371,7 @@ func _enemy_within_pursuit_radius(enemies: Array) -> bool:
 	for enemy in enemies:
 		if enemy == null or enemy.get_state() == Unit.State.REMOVED:
 			continue
-		if SimCombatDispatch.enemy_blocks_rally_distance_m(self, enemy):
+		if CombatResolver.enemy_blocks_rally_distance_m(self, enemy):
 			return true
 	return false
 
@@ -346,7 +393,7 @@ func _face_nearest_threat(enemies: Array) -> void:
 	for enemy in enemies:
 		if enemy == null or enemy.get_state() == Unit.State.REMOVED:
 			continue
-		var dist := SimCombatDispatch.center_distance_m(self, enemy)
+		var dist := CombatResolver.center_distance_m(self, enemy)
 		if dist < nearest_dist:
 			nearest_dist = dist
 			nearest = enemy

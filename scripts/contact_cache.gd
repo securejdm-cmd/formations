@@ -13,14 +13,14 @@ static func begin_tick(tick_id: int) -> void:
 		_tick_id = tick_id
 
 
-static func pose_hash(unit: Unit) -> int:
-	var p := unit.position
-	var f := unit.facing
+static func pose_hash(unit: Variant) -> int:
+	var p: Vector2 = unit.position
+	var f: Vector2 = unit.facing
 	return hash([p.x, p.y, f.x, f.y])
 
 
-static func lookup(attacker: Unit, defender: Unit):
-	var key := attacker.unit_id + ">" + defender.unit_id
+static func lookup(attacker: Variant, defender: Variant):
+	var key: String = attacker.unit_id + ">" + defender.unit_id
 	if not _entries.has(key):
 		return null
 	var entry: Dictionary = _entries[key]
@@ -32,8 +32,8 @@ static func lookup(attacker: Unit, defender: Unit):
 	return null
 
 
-static func store(attacker: Unit, defender: Unit, contact: Dictionary) -> void:
-	var key := attacker.unit_id + ">" + defender.unit_id
+static func store(attacker: Variant, defender: Variant, contact: Dictionary) -> void:
+	var key: String = attacker.unit_id + ">" + defender.unit_id
 	_entries[key] = {
 		"pose_a": pose_hash(attacker),
 		"pose_b": pose_hash(defender),
