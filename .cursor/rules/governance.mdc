@@ -148,3 +148,12 @@ Completion reports must include the **exact autotest invocation commands** and t
 - A work order’s implementation (or corrective code) and its `/docs/reports/WO-XXX_completion.md` update must land in **one atomic commit**.
 - If report generation is a separate workflow step from coding, finish it **before** committing — do not push code while leaving a stale completion report on the branch tip.
 - Report headers must include the commit hash the report describes (see Completion Attestation). Stale tip reports are a shipping defect.
+
+## Autotest PASS/FAIL Meta-Assertion (governance amendment)
+
+The **45-count PASS/FAIL meta-assertion** in `tests/scenario_wo010_autotest.gd` is a **permanent required check**.
+
+- Every gated scenario/cert check must emit exactly one `PASS` or `FAIL` line via `_record_check` (or equivalent). A failing check must **never** print `PASS`.
+- On process exit **0**, emitted PASS count must equal `EXPECTED_GREEN_PASS_COUNT` (currently **45**) and FAIL count must be **0**.
+- On process exit **≠ 0**, FAIL count must be **> 0**. Divergence between printed PASS/FAIL and exit code is a shipping defect.
+- When adding or removing gated checks, update `EXPECTED_GREEN_PASS_COUNT` in the same commit and regenerate the completion report evidence accordingly.
