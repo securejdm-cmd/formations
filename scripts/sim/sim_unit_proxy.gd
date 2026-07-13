@@ -28,6 +28,9 @@ var _rallied_hold: bool = false
 var _rally_reform_remaining_sec: float = 0.0
 var _pending_rout_event: bool = false
 var _crack_intensity: float = 0.0  # Legacy sync field; crack band is strength%-driven (render-only).
+var _ammo_remaining: int = -1
+var _reload_timer: float = 0.0
+var _dead_zone_panic_done: bool = false
 
 
 static func from_unit(unit: Unit) -> SimUnitProxy:
@@ -55,6 +58,9 @@ static func from_unit(unit: Unit) -> SimUnitProxy:
 	p._rally_reform_remaining_sec = unit._rally_reform_remaining_sec
 	p._pending_rout_event = unit._pending_rout_event
 	p._crack_intensity = 0.0
+	p._init_ranged_state_from_profile()
+	if unit.ammo_remaining >= 0:
+		p._ammo_remaining = unit.ammo_remaining
 	for partner in unit.get_contact_partners():
 		if partner != null:
 			p._partner_ids.append(partner.unit_id)
@@ -84,6 +90,8 @@ func refresh_from_unit(unit: Unit) -> void:
 	_rally_reform_remaining_sec = unit._rally_reform_remaining_sec
 	_pending_rout_event = unit._pending_rout_event
 	_crack_intensity = 0.0
+	if _ammo_remaining < 0:
+		_init_ranged_state_from_profile()
 	_partner_ids.clear()
 	_contact_partners.clear()
 	for partner in unit.get_contact_partners():
@@ -117,6 +125,9 @@ func duplicate_render_state() -> SimUnitProxy:
 	p._rally_reform_remaining_sec = _rally_reform_remaining_sec
 	p._pending_rout_event = _pending_rout_event
 	p._crack_intensity = _crack_intensity
+	p._ammo_remaining = _ammo_remaining
+	p._reload_timer = _reload_timer
+	p._dead_zone_panic_done = _dead_zone_panic_done
 	return p
 
 
@@ -145,6 +156,7 @@ func apply_to_unit(unit: Unit, all_units: Array = []) -> void:
 	unit._rally_reform_remaining_sec = _rally_reform_remaining_sec
 	unit._pending_rout_event = _pending_rout_event
 	unit._edge_cohesion_drain_totals = _edge_cohesion_drain_totals.duplicate()
+	unit.ammo_remaining = _ammo_remaining
 	unit.set_active_contact_edges(_active_contact_edges)
 	unit._rallied_hold = _rallied_hold
 	_set_unit_state(unit, _state)
@@ -440,6 +452,55 @@ func get_active_contact_edges() -> String:
 
 func get_edge_cohesion_drain_totals() -> Dictionary:
 	return _edge_cohesion_drain_totals.duplicate()
+
+
+func is_ranged_combatant() -> bool:
+	return CombatResolver.is_ranged_unit(self)
+
+
+func ammo_volleys_remaining() -> int:
+	return _ammo_remaining
+
+
+func consume_ammo_volley() -> void:
+	if _ammo_remaining > 0:
+		_ammo_remaining -= 1
+
+
+func reset_reload_timer() -> void:
+	_reload_timer = float(profile.get("reload_s", 0.0))
+
+
+func tick_reload(delta: float) -> void:
+	if _reload_timer > 0.0:
+		_reload_timer = maxf(_reload_timer - delta, 0.0)
+
+
+func reload_ready() -> bool:
+	return _reload_timer <= 0.0
+
+
+func dead_zone_panic_done() -> bool:
+	return _dead_zone_panic_done
+
+
+func mark_dead_zone_panic_done() -> void:
+	_dead_zone_panic_done = true
+
+
+func set_ammo_volleys(count: int) -> void:
+	_ammo_remaining = count
+
+
+func _init_ranged_state_from_profile() -> void:
+	if not CombatResolver.is_ranged_unit(self):
+		_ammo_remaining = -1
+		_reload_timer = 0.0
+		_dead_zone_panic_done = false
+		return
+	_ammo_remaining = int(profile.get("ammo_volleys", 0))
+	_reload_timer = 0.0
+	_dead_zone_panic_done = false
 
 
 func enter_rout() -> void:

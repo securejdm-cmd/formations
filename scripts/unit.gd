@@ -29,6 +29,7 @@ var _edge_cohesion_drain_totals: Dictionary = {
 var pushing_power: float = 0.0
 var speed_stat: float = 0.0
 var damage_dealt: float = 0.0
+var ammo_remaining: int = -1
 
 var _state: State = State.HOLD
 var _base_team_color: Color = Color.RED
@@ -45,6 +46,7 @@ var _rally_reform_remaining_sec: float = 0.0
 var _pending_rout_event: bool = false
 var _render_camera: Camera2D = null
 var _rout_flicker_time: float = 0.0
+var _impact_flicker_time: float = 0.0
 
 @onready var _visual_root: Node2D = $VisualRoot
 @onready var _body: ColorRect = $VisualRoot/Body
@@ -74,6 +76,10 @@ func configure(id: String, team: String, profile_data: Dictionary, spawn_positio
 	cohesion = Constants.get_float("cohesion_max")
 	pushing_power = float(profile.get("pushing_power", 0.0))
 	speed_stat = float(profile.get("speed", 0.0))
+	if float(profile.get("ranged_damage", 0.0)) > 0.0 and float(profile.get("range", 0.0)) > 0.0:
+		ammo_remaining = int(profile.get("ammo_volleys", 0))
+	else:
+		ammo_remaining = -1
 
 	_base_team_color = Color(0.85, 0.2, 0.2) if team_id == "red" else Color(0.2, 0.35, 0.85)
 	_body.color = _base_team_color
@@ -451,7 +457,12 @@ func _process(delta: float) -> void:
 	_update_dimensions()
 	_update_waver_flicker(delta)
 	_update_rout_flicker(delta)
+	_update_impact_flicker(delta)
 	_update_bump_visual(delta)
+
+
+func trigger_volley_impact() -> void:
+	_impact_flicker_time = 0.22
 
 
 func _set_state(new_state: State) -> void:
@@ -687,3 +698,11 @@ func _update_rout_flicker(delta: float) -> void:
 	_rout_flicker_time += delta
 	var alpha := 0.32 + 0.08 * sin(_rout_flicker_time * 9.0)
 	_body.modulate = Color(1.0, 1.0, 1.0, alpha)
+
+
+func _update_impact_flicker(delta: float) -> void:
+	if _impact_flicker_time <= 0.0:
+		return
+	_impact_flicker_time = maxf(_impact_flicker_time - delta, 0.0)
+	var pulse: float = _impact_flicker_time / 0.22
+	_body.modulate = Color(1.0, 0.92, 0.75, 1.0).lerp(Color.WHITE, 1.0 - pulse)

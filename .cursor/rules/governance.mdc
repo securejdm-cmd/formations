@@ -122,3 +122,29 @@ Use this format for report footers (substitute `<branch>` with the PR branch nam
 - Previous report: https://raw.githubusercontent.com/<org>/<repo>/main/docs/reports/WO-XXX_completion.md
 - Trace (if cited): https://raw.githubusercontent.com/<org>/<repo>/<branch>/tests/traces/<filename>.csv
 ```
+
+## Completion Attestation (governance amendment)
+
+Every **completion claim** (chat summary or report stating a work order is complete) must end with **all three** of:
+
+1. **Branch name** — the feature branch containing the committed corrections
+2. **Commit hash** — the full SHA of the latest commit that contains those corrections
+3. **Raw report URL** — a full `raw.githubusercontent.com` URL to the updated completion report on that branch
+
+A completion statement that omits any of the three is **not a completion**. Do not treat prior chat summaries as evidence of completion without this attestation block.
+
+## Execution Evidence (governance amendment)
+
+Completion reports must include the **exact autotest invocation commands** and their **exit summaries** (exit code + key PASS/FAIL lines) for every numerical result claimed.
+
+- Numbers without an execution record are **claims, not results**.
+- Store command + exit evidence in the completion report body (or committed log artifacts under `/docs/reports/` linked from the report).
+- Regenerated figures must come from the execution named in the report; do not repeat previously claimed numbers unless that run reproduced them — report discrepancies explicitly.
+
+## Atomic Code+Report Commit (governance amendment)
+
+**No code commit for a work order without its report updated in the same commit.**
+
+- A work order’s implementation (or corrective code) and its `/docs/reports/WO-XXX_completion.md` update must land in **one atomic commit**.
+- If report generation is a separate workflow step from coding, finish it **before** committing — do not push code while leaving a stale completion report on the branch tip.
+- Report headers must include the commit hash the report describes (see Completion Attestation). Stale tip reports are a shipping defect.

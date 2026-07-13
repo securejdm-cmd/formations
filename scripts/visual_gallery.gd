@@ -48,6 +48,7 @@ func _build_exhibits() -> void:
 	_spawn_crack_progression_row(profile, origin, px)
 	_spawn_engaged_pair(profile, origin + Vector2(0.0, ROW_SPACING_PX), px)
 	_spawn_state_row(profile, origin + Vector2(0.0, ROW_SPACING_PX * 2.0), px)
+	_spawn_volley_arc_exhibit(origin + Vector2(0.0, ROW_SPACING_PX * 3.0), px)
 
 
 func _spawn_crack_progression_row(profile: Dictionary, origin: Vector2, px: float) -> void:
@@ -117,6 +118,30 @@ func _spawn_state_row(profile: Dictionary, origin: Vector2, px: float) -> void:
 	_add_caption_below_unit(rallied, "Rallied HOLD")
 
 	_stat_card.show_for_unit(waver)
+
+
+func _spawn_volley_arc_exhibit(origin: Vector2, px: float) -> void:
+	var archer_profile := UnitProfileLoader.load_profile("test_archer")
+	var shooter: Unit = UNIT_SCENE.instantiate()
+	add_child(shooter)
+	shooter.configure("volley_shooter", "red", archer_profile, origin + Vector2(-60.0, 0.0), Vector2.RIGHT)
+	shooter.set_render_camera(_camera)
+	shooter.current_order = Unit.Order.HOLD
+	shooter._set_state(Unit.State.ENGAGED)
+	shooter._update_dimensions()
+
+	var target: Unit = UNIT_SCENE.instantiate()
+	add_child(target)
+	target.configure("volley_target", "blue", archer_profile, origin + Vector2(60.0, 0.0), Vector2.LEFT)
+	target.set_render_camera(_camera)
+	target.current_order = Unit.Order.HOLD
+	target._set_state(Unit.State.ENGAGED)
+	target._update_dimensions()
+
+	var arc := preload("res://scripts/volley_arc.gd").new()
+	add_child(arc)
+	arc.setup(shooter.position, target.position)
+	_add_caption_below_unit(shooter, "Volley arc")
 
 
 func _fire_demo_floater() -> void:
