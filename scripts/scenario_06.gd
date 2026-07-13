@@ -51,7 +51,29 @@ func _spawn_units() -> void:
 		Vector2.RIGHT,
 	)
 	_red_pursuer.set_march_to(Vector2(half_distance_px + 200.0 * px_per_meter, 0.0))
+	_red_pursuer.profile["skip_auto_engage"] = true
 	_units.append(_red_pursuer)
+
+
+func advance_one_tick() -> void:
+	super.advance_one_tick()
+	_update_pursuer_march_target()
+
+
+func advance_post_battle_tick() -> void:
+	super.advance_post_battle_tick()
+	_update_pursuer_march_target()
+
+
+func _update_pursuer_march_target() -> void:
+	if _red_pursuer == null or _blue_rally == null:
+		return
+	if _blue_rally.get_state() != Unit.State.ROUTING:
+		return
+	var px := Constants.get_float("px_per_meter")
+	var target_x := Constants.get_float("scenario_01_start_distance_m") * 0.5 * px + 200.0 * px
+	_red_pursuer.set_march_to(Vector2(target_x, 0.0))
+	_sync_core_from_units()
 
 
 func _pursuit_tick() -> void:
@@ -121,4 +143,10 @@ func get_blue_rally() -> Unit:
 
 
 func get_pursuit_tick_count() -> int:
-	return _pursuit_tick_count
+	if _pursuit_tick_count > 0:
+		return _pursuit_tick_count
+	var count := 0
+	for line in get_trace_events():
+		if ",pursuit_damage," in line:
+			count += 1
+	return count

@@ -416,9 +416,8 @@ static func calc_melee_strength_loss(
 	var damage_type: String = str(attacker.profile.get("melee_damage_type", "Slash"))
 	var class_mult: float = _ArmorMatrix.class_vs_type(armor_class, damage_type)
 	var anti_armor: float = float(attacker.profile.get("anti_armor", 0.0))
-	var effective_armor: float = (
-		maxf(armor_stat * class_mult - anti_armor, 0.0) * Constants.get_float("k_armor_scale")
-	)
+	var k_melee: float = Constants.get_float("k_melee_scale")
+	var effective_armor: float = maxf(armor_stat * class_mult - anti_armor, 0.0) * k_melee
 	var chip_floor_pct: float = Constants.get_float("chip_floor_pct")
 	var damage: float = maxf(raw_damage - effective_armor, chip_floor_pct * raw_damage)
 	if defender_is_push_loser:

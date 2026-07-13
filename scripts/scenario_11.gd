@@ -59,3 +59,21 @@ func get_plate_unit() -> Unit:
 
 func get_attacker_unit() -> Unit:
 	return _attacker_unit
+
+
+## Combat seconds from first contact until plate strength loss reaches damage_threshold.
+func get_plate_armor_breach_combat_sec(damage_threshold: float = 10.0) -> float:
+	if _plate_unit == null or _first_contact_tick < 0:
+		return -1.0
+	var strength_max: float = Constants.get_float("strength_max")
+	var contact_time: float = float(_first_contact_tick) * CombatResolver.tick_interval()
+	for line in _trace_lines:
+		var parts := line.split(",")
+		if parts.size() < 8 or parts[1] != _plate_unit.unit_id:
+			continue
+		if parts[7] in ["routing", "removed"]:
+			continue
+		var lost: float = strength_max - float(parts[2])
+		if lost + 0.0001 >= damage_threshold:
+			return maxf(float(parts[0]) - contact_time, 0.0)
+	return -1.0

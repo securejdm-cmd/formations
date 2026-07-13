@@ -51,7 +51,7 @@ static func from_unit(unit: Unit) -> SimUnitProxy:
 	p._bump_is_winner = unit._bump_is_winner
 	p._rally_elapsed_sec = unit._rally_elapsed_sec
 	p._rallies_this_battle = unit._rallies_this_battle
-	p._rallied_hold = unit.is_rallied_hold()
+	p._rallied_hold = unit._rallied_hold
 	p._rally_reform_remaining_sec = unit._rally_reform_remaining_sec
 	p._pending_rout_event = unit._pending_rout_event
 	p._crack_intensity = 0.0
@@ -80,7 +80,7 @@ func refresh_from_unit(unit: Unit) -> void:
 	_bump_is_winner = unit._bump_is_winner
 	_rally_elapsed_sec = unit._rally_elapsed_sec
 	_rallies_this_battle = unit._rallies_this_battle
-	_rallied_hold = unit.is_rallied_hold()
+	_rallied_hold = unit._rallied_hold
 	_rally_reform_remaining_sec = unit._rally_reform_remaining_sec
 	_pending_rout_event = unit._pending_rout_event
 	_crack_intensity = 0.0
@@ -146,6 +146,7 @@ func apply_to_unit(unit: Unit, all_units: Array = []) -> void:
 	unit._pending_rout_event = _pending_rout_event
 	unit._edge_cohesion_drain_totals = _edge_cohesion_drain_totals.duplicate()
 	unit.set_active_contact_edges(_active_contact_edges)
+	unit._rallied_hold = _rallied_hold
 	_set_unit_state(unit, _state)
 	_sync_unit_partners_to_nodes(unit, all_units)
 

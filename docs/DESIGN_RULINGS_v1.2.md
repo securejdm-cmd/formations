@@ -58,3 +58,6 @@ Victory declared victory_delay_s (2.5) after last enemy unit begins routing; fle
 
 ## R13. Victory vs unused rally (designer + TD; WO-010)
 A routing unit with the **RALLY** trait and `rallies_remaining > 0` does **not** count as defeated for the victory check. Victory requires every enemy unit to be removed, destroyed, or routing with no rally remaining. If victory would otherwise be declared while such a unit exists, the battle continues; a successful rally resumes the fight naturally. **STATUS: BUILT (WO-010).**
+
+## R14. Mirror-winner strength gate superseded (TD; WO-013b)
+The legacy expectation that mirror-profile fights (identical units) end with winner strength **< 50–55%** is **SUPERSEDED**. That gate mathematically contradicts the **60–75% strength_at_rout** design band, which is design law. All tuning selection rules drop the mirror-winner gate; sweeps commit on S1 mean combat ∈ [60, 90] nearest 80s and S2 strength_at_rout ∈ [60, 75] only. **STATUS: DESIGN LAW — effective WO-013b.**

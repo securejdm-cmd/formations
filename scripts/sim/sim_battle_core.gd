@@ -311,6 +311,8 @@ func update_movement(delta: float) -> void:
 func try_begin_engagement(unit: SimUnitProxy) -> void:
 	if unit.get_state() == Unit.State.ROUTING or unit.get_state() == Unit.State.RALLYING:
 		return
+	if unit.profile.get("skip_auto_engage", false):
+		return
 
 	for other in spatial_neighbors_sorted(unit):
 		if other.get_state() == Unit.State.REMOVED:

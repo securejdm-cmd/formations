@@ -2,30 +2,30 @@ extends SceneTree
 
 const ALL_SEEDS := [1000, 1001, 1002, 1003, 1004, 1005, 1006, 1007, 1008, 1009, 12345]
 const WO013_S1 := {
-	1000: {"winner": "red_1", "combat": 69.6},
-	1001: {"winner": "red_1", "combat": 70.8},
-	1002: {"winner": "blue_1", "combat": 69.4},
-	1003: {"winner": "blue_1", "combat": 75.2},
-	1004: {"winner": "red_1", "combat": 74.4},
-	1005: {"winner": "red_1", "combat": 67.6},
-	1006: {"winner": "red_1", "combat": 70.2},
-	1007: {"winner": "blue_1", "combat": 73.0},
-	1008: {"winner": "red_1", "combat": 72.4},
-	1009: {"winner": "red_1", "combat": 74.8},
-	12345: {"winner": "blue_1", "combat": 73.0},
+	1000: {"winner": "red_1", "combat": 75.8},
+	1001: {"winner": "red_1", "combat": 80.6},
+	1002: {"winner": "blue_1", "combat": 76.0},
+	1003: {"winner": "blue_1", "combat": 83.9},
+	1004: {"winner": "red_1", "combat": 83.4},
+	1005: {"winner": "red_1", "combat": 73.2},
+	1006: {"winner": "red_1", "combat": 77.0},
+	1007: {"winner": "blue_1", "combat": 82.4},
+	1008: {"winner": "red_1", "combat": 81.0},
+	1009: {"winner": "red_1", "combat": 84.6},
+	12345: {"winner": "blue_1", "combat": 81.6},
 }
 const WO013_S2 := {
-	1000: {"winner": "red_1", "combat": 58.4, "rout": 67.82},
-	1001: {"winner": "red_1", "combat": 58.4, "rout": 67.82},
-	1002: {"winner": "red_1", "combat": 58.4, "rout": 67.82},
-	1003: {"winner": "red_1", "combat": 58.4, "rout": 67.82},
-	1004: {"winner": "red_1", "combat": 58.4, "rout": 67.82},
-	1005: {"winner": "red_1", "combat": 58.4, "rout": 67.82},
-	1006: {"winner": "red_1", "combat": 58.4, "rout": 67.82},
-	1007: {"winner": "red_1", "combat": 58.4, "rout": 67.82},
-	1008: {"winner": "red_1", "combat": 58.4, "rout": 67.82},
-	1009: {"winner": "red_1", "combat": 58.4, "rout": 67.82},
-	12345: {"winner": "red_1", "combat": 58.4, "rout": 67.82},
+	1000: {"winner": "red_1", "combat": 61.2, "rout": 68.12},
+	1001: {"winner": "red_1", "combat": 61.2, "rout": 68.12},
+	1002: {"winner": "red_1", "combat": 61.2, "rout": 68.12},
+	1003: {"winner": "red_1", "combat": 61.2, "rout": 68.12},
+	1004: {"winner": "red_1", "combat": 61.2, "rout": 68.12},
+	1005: {"winner": "red_1", "combat": 61.2, "rout": 68.12},
+	1006: {"winner": "red_1", "combat": 61.2, "rout": 68.12},
+	1007: {"winner": "red_1", "combat": 61.2, "rout": 68.12},
+	1008: {"winner": "red_1", "combat": 61.2, "rout": 68.12},
+	1009: {"winner": "red_1", "combat": 61.2, "rout": 68.12},
+	12345: {"winner": "red_1", "combat": 61.2, "rout": 68.12},
 }
 
 const CORE_COLS := 8
@@ -55,6 +55,7 @@ var _sim_runner: Script
 var _s8_single_damage: float = 0.0
 var _s11_control_combat: float = 0.0
 var _s11_control_damage: float = 0.0
+var _s11_control_breach: float = -1.0
 var _s9_heavy_wins: int = 0
 var _s9_casualty_ratio: float = 0.0
 var _perf_stats: Dictionary = {}
@@ -65,7 +66,7 @@ var _perf_scale_pairs := [2, 10, 20]
 
 func _initialize() -> void:
 	var scene_smoke_exit := OS.execute(
-		"/tmp/godot/Godot_v4.3-stable_linux.x86_64",
+		"/tmp/godot/Godot_v4.4.1-stable_linux.x86_64",
 		["--headless", "--path", ProjectSettings.globalize_path("res://"), "-s", "res://tests/all_scenes_smoke_test.gd"],
 		[],
 		false
@@ -74,7 +75,7 @@ func _initialize() -> void:
 		push_error("Universal scene smoke test failed (exit %d)" % scene_smoke_exit)
 		_exit_code = 1
 	var compass_exit := OS.execute(
-		"/tmp/godot/Godot_v4.3-stable_linux.x86_64",
+		"/tmp/godot/Godot_v4.4.1-stable_linux.x86_64",
 		["--headless", "--path", ProjectSettings.globalize_path("res://"), "-s", "res://tests/edge_contact_compass_test.gd"],
 		[],
 		false
@@ -358,6 +359,7 @@ func _finish() -> void:
 		"s11_control":
 			_s11_control_combat = _scenario.get_combat_duration_sec()
 			_s11_control_damage = _scenario.get_plate_damage_taken()
+			_s11_control_breach = _scenario.get_plate_armor_breach_combat_sec(10.0)
 			_mode = "s11_anti_armor"
 			_spawn_and_run()
 		"s11_anti_armor":
@@ -567,9 +569,8 @@ func _check_s9_regression(seed_value: int) -> void:
 				push_error("S9 seed %d: heavy should out-damage light above chip-floor regime" % seed_value)
 				_exit_code = 1
 	if _s9_heavy_wins < 10 and _seed_idx + 1 >= ALL_SEEDS.size():
-		print("[WO-013] S9 NOTE: heavy wins %d/11 at k_melee=%.3f (chip-floor regime masks outcome; formula wired)" % [
-			_s9_heavy_wins, _c_float("k_melee_scale")
-		])
+		push_error("S9 heavy armor wins %d/11 (need >= 10)" % _s9_heavy_wins)
+		_exit_code = 1
 
 
 func _check_s10_chip_floor() -> void:
@@ -588,7 +589,7 @@ func _check_s10_chip_floor() -> void:
 	var plate_eff_armor: float = float(plate.profile.get("armor", 0.0)) * ArmorMatrix.class_vs_type(
 		str(plate.profile.get("armor_class", "None")),
 		str(attacker.profile.get("melee_damage_type", "Slash"))
-	) * _c_float("k_armor_scale")
+	) * _c_float("k_melee_scale")
 	var expected_chip_full: float = maxf(
 		raw_at_full - plate_eff_armor,
 		_c_float("chip_floor_pct") * raw_at_full
@@ -610,11 +611,9 @@ func _check_s10_chip_floor() -> void:
 		push_error("S10 chip-floor clamp not visible in trace")
 		_exit_code = 1
 	if winner != "blue_1":
-		print(
-			"[WO-013] S10 NOTE: winner=%s (symmetric chip-floor at k_melee=%.3f; formula+trace verified)"
-			% [winner, _c_float("k_melee_scale")]
-		)
-	print("[WO-013] S10 PASS winner=%s chip_tick=%.4f trace_floor_ok=%s" % [winner, expected_chip_full, trace_ok])
+		push_error("S10 expected plate defender blue_1 to win, got %s" % winner)
+		_exit_code = 1
+	print("[WO-013b] S10 PASS winner=%s chip_tick=%.4f trace_floor_ok=%s" % [winner, expected_chip_full, trace_ok])
 
 
 func _trace_shows_chip_floor(trace_text: String, defender_id: String, expected_tick: float) -> bool:
@@ -665,33 +664,34 @@ func _check_s11_anti_armor() -> void:
 		str(plate.profile.get("armor_class", "None")),
 		str(attacker.profile.get("melee_damage_type", "Slash"))
 	)
-	var eff_armor_ctrl: float = maxf(plate_eff - 0.0, 0.0) * _c_float("k_armor_scale")
-	var eff_armor_aa: float = maxf(plate_eff - 15.0, 0.0) * _c_float("k_armor_scale")
+	var k_melee: float = _c_float("k_melee_scale")
+	var eff_armor_ctrl: float = maxf(plate_eff - 0.0, 0.0) * k_melee
+	var eff_armor_aa: float = maxf(plate_eff - 15.0, 0.0) * k_melee
 	if eff_armor_aa + 0.0001 >= eff_armor_ctrl:
-		push_error("S11 anti_armor should reduce effective armor (ctrl=%.2f aa=%.2f)" % [
+		push_error("S11 anti_armor should reduce effective armor (ctrl=%.4f aa=%.4f)" % [
 			eff_armor_ctrl, eff_armor_aa
 		])
 		_exit_code = 1
-	var hypothetical_raw: float = 30.0
-	var dmg_ctrl: float = maxf(
-		hypothetical_raw - eff_armor_ctrl,
-		_c_float("chip_floor_pct") * hypothetical_raw
-	)
-	var dmg_aa: float = maxf(
-		hypothetical_raw - eff_armor_aa,
-		_c_float("chip_floor_pct") * hypothetical_raw
-	)
-	if dmg_aa + 0.0001 <= dmg_ctrl:
-		push_error("S11 anti_armor should increase damage above chip-floor regime")
-		_exit_code = 1
-	if aa_damage <= _s11_control_damage or aa_combat >= _s11_control_combat:
-		print(
-			"[WO-013] S11 NOTE: outcomes identical at k_melee=%.3f (ctrl=%.1fs/%.2f aa=%.1fs/%.2f); formula wired"
-			% [_c_float("k_melee_scale"), _s11_control_combat, _s11_control_damage, aa_combat, aa_damage]
+	if aa_damage <= _s11_control_damage * 1.25:
+		push_error(
+			"S11 anti_armor damage %.2f not materially above control %.2f"
+			% [aa_damage, _s11_control_damage]
 		)
+		_exit_code = 1
+	var breach_ctrl: float = _s11_control_breach if _s11_control_breach >= 0.0 else _s11_control_combat
+	var breach_aa: float = _scenario.get_plate_armor_breach_combat_sec(10.0)
+	if breach_aa < 0.0:
+		push_error("S11 anti_armor never breached plate armor in trace")
+		_exit_code = 1
+	if breach_aa + 0.15 >= breach_ctrl:
+		push_error(
+			"S11 armor breach slower: anti_armor=%.2fs vs control=%.2fs (combat %.1fs/%.1fs)"
+			% [breach_aa, breach_ctrl, aa_combat, _s11_control_combat]
+		)
+		_exit_code = 1
 	print(
-		"[WO-013] S11 PASS control=%.1fs/%.2f dmg anti_armor=%.1fs/%.2f dmg eff_armor_ctrl=%.1f aa=%.1f"
-		% [_s11_control_combat, _s11_control_damage, aa_combat, aa_damage, eff_armor_ctrl, eff_armor_aa]
+		"[WO-013b] S11 PASS control=%.1fs breach=%.2fs/%.2f dmg anti_armor=%.1fs breach=%.2fs/%.2f dmg"
+		% [_s11_control_combat, breach_ctrl, _s11_control_damage, aa_combat, breach_aa, aa_damage]
 	)
 
 

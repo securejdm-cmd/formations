@@ -26,7 +26,6 @@ func _test_constants_loaded(constants: Node) -> bool:
 		"waver_effect",
 		"rout_threshold",
 		"k_melee_scale",
-		"k_armor_scale",
 		"chip_floor_pct",
 		"push_loser_damage_factor",
 		"drain_per_strength_pct_lost",

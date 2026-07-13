@@ -271,6 +271,24 @@ func advance_one_tick() -> void:
 	_on_core_battle_finished_if_needed()
 
 
+## Extra ticks after battle_over (S5/S6 epilogue pursuit, rally hold) — sim only, no finish hooks.
+func advance_post_battle_tick() -> void:
+	if _sim_thread_active():
+		return
+	_ensure_sim_core()
+	var saved_scenario_over: bool = _battle_over
+	var saved_core_over: bool = _sim_core.battle_over
+	_battle_over = false
+	_sim_core.battle_over = false
+	_sync_core_from_units()
+	_sim_core.advance_one_tick()
+	_sync_units_from_core()
+	_dispatch_core_event_hooks()
+	_sync_state_from_core()
+	_battle_over = saved_scenario_over
+	_sim_core.battle_over = saved_core_over
+
+
 func _on_core_battle_finished_if_needed() -> void:
 	if not _battle_over or _fast_finish_handled:
 		return
