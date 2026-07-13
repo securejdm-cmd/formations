@@ -132,3 +132,11 @@ Every **completion claim** (chat summary or report stating a work order is compl
 3. **Raw report URL** — a full `raw.githubusercontent.com` URL to the updated completion report on that branch
 
 A completion statement that omits any of the three is **not a completion**. Do not treat prior chat summaries as evidence of completion without this attestation block.
+
+## Execution Evidence (governance amendment)
+
+Completion reports must include the **exact autotest invocation commands** and their **exit summaries** (exit code + key PASS/FAIL lines) for every numerical result claimed.
+
+- Numbers without an execution record are **claims, not results**.
+- Store command + exit evidence in the completion report body (or committed log artifacts under `/docs/reports/` linked from the report).
+- Regenerated figures must come from the execution named in the report; do not repeat previously claimed numbers unless that run reproduced them — report discrepancies explicitly.
