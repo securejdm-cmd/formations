@@ -105,20 +105,22 @@ Gates: S12 approach attrition ∈ **[8%, 20%]** AND S16 leather ∈ **[30%, 45%]
 
 ### Full suite evidence (standard 11 seeds where applicable)
 
+Re-run after `k_ranged_scale=0.100` commit (2026-07-13):
+
 | Check | Result |
 |-------|--------|
-| Determinism | PASS (seed 12345 A/B core-trace identical) |
-| Fast-mode certification | PASS (realtime vs fast seed 12345) |
-| Threaded certification | PASS (threaded vs fast seed 12345) |
-| Reflection / overlap+adhesion (contact coherence) | PASS (seed 1000) |
-| Universal scene smoke | PASS (covers S12–S16 + gallery) |
-| S1 melee regression (11 seeds) | PASS — core-column byte-identical to baselines |
-| S2 melee regression (11 seeds) | PASS — core-column byte-identical |
-| S3 | PASS — core-column byte-identical |
-| S9 (11 seeds) | PASS (11/11 heavy wins) |
-| S10 | PASS (chip floor) |
-| S11 | PASS (anti_armor) |
-| S12–S16 | PASS (see above) |
+| Determinism | **PASS** (seed 12345 A/B core-trace identical) |
+| Fast-mode certification | **PASS** (realtime vs fast seed 12345) |
+| Threaded certification | **PASS** (threaded vs fast seed 12345) |
+| Reflection / overlap+adhesion (contact coherence) | **PASS** (seed 1000) |
+| Universal scene smoke | **PASS** (22 scenes incl. S12–S16 + gallery) |
+| S1 melee regression (11 seeds) | **PASS** — core-column byte-identical to baselines |
+| S2 melee regression (11 seeds) | **PASS** — core-column byte-identical |
+| S3 | **PASS** — core-column byte-identical |
+| S9 (11 seeds) | **PASS** (11/11 heavy wins) |
+| S10 | **PASS** (chip floor) |
+| S11 | **PASS** (anti_armor) |
+| S12–S16 | **PASS** (S12 approach 8.04%; S16L 44.40%; S16P chip 10.80) |
 
 Melee `combat_tick()` unchanged; ranged isolated in `ranged_volley_tick()`.
 
