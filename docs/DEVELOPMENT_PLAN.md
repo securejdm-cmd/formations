@@ -157,6 +157,7 @@ Each phase ends with a **GATE**: written acceptance criteria + your hands-on pla
 **Scope**
 - Final block visual language (colors, borders, unit-type icons, elevation shading)
 - Casualty thinning, rout animations, dust/impact feedback, arrow volleys visualized
+- Crack band texture fidelity (see `docs/BACKLOG.md` P6-TEXTURE-001; reference in `docs/reference/`)
 - Map art style (parchment? satellite-documentary?), UI skin
 - Sound: ambient battle, horns for orders, narrator-style stingers (stretch)
 - Onboarding tutorial built from Phase 3–4 mechanics

@@ -5,18 +5,23 @@ extends Node2D
 const UNIT_SCENE := preload("res://scenes/unit.tscn")
 const FLOATER_SCRIPT := preload("res://scripts/shock_floater.gd")
 const GALLERY_FRONTAGE_M := 60.0
-const EXHIBIT_SPACING_PX := 160.0
-const ROW_SPACING_PX := 200.0
-const CAPTION_BELOW_PX := 72.0
+const EXHIBIT_SPACING_PX := 180.0
+const ROW_SPACING_PX := 220.0
+const CAPTION_MARGIN_PX := 36.0
+const CAPTION_WIDTH_PX := 110.0
 
 @onready var _camera: Camera2D = $Camera2D
 @onready var _shock_layer: CanvasLayer = $ShockFloaterLayer
 @onready var _stat_card = $StatCardLayer/UnitStatCard
 
+var _caption_layer: Node2D
 var _floater_timer: float = 0.0
 
 
 func _ready() -> void:
+	_caption_layer = Node2D.new()
+	_caption_layer.name = "CaptionLayer"
+	add_child(_caption_layer)
 	_stat_card.setup(_camera)
 	_build_exhibits()
 
@@ -55,11 +60,12 @@ func _spawn_crack_progression_row(profile: Dictionary, origin: Vector2, px: floa
 		unit.strength = strengths[i]
 		unit._set_state(Unit.State.ENGAGED)
 		unit.set_render_camera(_camera)
-		_add_caption_below(pos, px, "%d%% STR" % int(strengths[i]))
+		unit._update_dimensions()
+		_add_caption_below_unit(unit, "%d%% STR" % int(strengths[i]))
 
 
 func _spawn_engaged_pair(profile: Dictionary, origin: Vector2, px: float) -> void:
-	var half_gap: float = 24.0
+	var half_gap: float = 28.0
 	var red: Unit = UNIT_SCENE.instantiate()
 	add_child(red)
 	red.configure("grind_red", "red", profile, origin + Vector2(-half_gap, 0.0), Vector2.RIGHT)
@@ -67,6 +73,8 @@ func _spawn_engaged_pair(profile: Dictionary, origin: Vector2, px: float) -> voi
 	red._set_state(Unit.State.ENGAGED)
 	red.set_bump_state(1.0, true)
 	red.strength = 55.0
+	red._update_dimensions()
+	_add_caption_below_unit(red, "Grind (red)")
 
 	var blue: Unit = UNIT_SCENE.instantiate()
 	add_child(blue)
@@ -75,8 +83,8 @@ func _spawn_engaged_pair(profile: Dictionary, origin: Vector2, px: float) -> voi
 	blue._set_state(Unit.State.ENGAGED)
 	blue.set_bump_state(1.0, false)
 	blue.strength = 55.0
-
-	_add_caption_below(origin, px, "Max grind strip (55% STR)")
+	blue._update_dimensions()
+	_add_caption_below_unit(blue, "Grind (blue)")
 
 
 func _spawn_state_row(profile: Dictionary, origin: Vector2, px: float) -> void:
@@ -87,14 +95,16 @@ func _spawn_state_row(profile: Dictionary, origin: Vector2, px: float) -> void:
 	waver.strength = 80.0
 	waver.set_render_camera(_camera)
 	waver._set_state(Unit.State.WAVERING)
-	_add_caption_below(origin + Vector2(-EXHIBIT_SPACING_PX, 0.0), px, "Wavering")
+	waver._update_dimensions()
+	_add_caption_below_unit(waver, "Wavering")
 
 	var rout: Unit = UNIT_SCENE.instantiate()
 	add_child(rout)
 	rout.configure("rout", "red", profile, origin, Vector2.RIGHT)
 	rout.set_render_camera(_camera)
 	rout._set_state(Unit.State.ROUTING)
-	_add_caption_below(origin, px, "Routing")
+	rout._update_dimensions()
+	_add_caption_below_unit(rout, "Routing")
 
 	var rallied: Unit = UNIT_SCENE.instantiate()
 	add_child(rallied)
@@ -103,7 +113,8 @@ func _spawn_state_row(profile: Dictionary, origin: Vector2, px: float) -> void:
 	rallied.set_render_camera(_camera)
 	rallied._rallied_hold = true
 	rallied._set_state(Unit.State.HOLD)
-	_add_caption_below(origin + Vector2(EXHIBIT_SPACING_PX, 0.0), px, "Rallied HOLD")
+	rallied._update_dimensions()
+	_add_caption_below_unit(rallied, "Rallied HOLD")
 
 	_stat_card.show_for_unit(waver)
 
@@ -123,18 +134,20 @@ func _fire_demo_floater() -> void:
 		break
 
 
-func _add_caption_below(unit_pos: Vector2, px: float, text: String) -> void:
-	var caption_pos: Vector2 = unit_pos + Vector2(0.0, CAPTION_BELOW_PX)
-	_add_caption(caption_pos, text)
+func _add_caption_below_unit(unit: Unit, text: String) -> void:
+	var px: float = Constants.get_float("px_per_meter")
+	var half_frontage_px: float = unit.effective_frontage_m() * 0.5 * px
+	var anchor: Vector2 = unit.position + Vector2(0.0, half_frontage_px + CAPTION_MARGIN_PX)
+	_add_world_caption(anchor, text)
 
 
-func _add_caption(world_pos: Vector2, text: String) -> void:
+func _add_world_caption(anchor: Vector2, text: String) -> void:
 	var label: Label = Label.new()
-	_shock_layer.add_child(label)
+	_caption_layer.add_child(label)
 	label.text = text
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 	label.add_theme_font_size_override("font_size", 12)
 	label.add_theme_color_override("font_color", Color(0.92, 0.92, 0.94, 1.0))
-	var screen_pos: Vector2 = _camera.get_canvas_transform() * world_pos
-	label.position = screen_pos - Vector2(40.0, 0.0)
-	label.custom_minimum_size = Vector2(80.0, 0.0)
+	label.custom_minimum_size = Vector2(CAPTION_WIDTH_PX, 24.0)
+	label.position = anchor - Vector2(CAPTION_WIDTH_PX * 0.5, 0.0)
