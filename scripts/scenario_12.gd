@@ -68,6 +68,23 @@ func infantry_routed_by_missiles_only() -> bool:
 	return false
 
 
+func approach_strength_lost() -> float:
+	## Strength lost on infantry before first melee contact (missile attrition only).
+	var max_s: float = Constants.get_float("strength_max")
+	var contact_sec := INF
+	if _first_contact_tick >= 0:
+		contact_sec = float(_first_contact_tick) / Constants.get_float("tick_rate_per_sec")
+	var last := max_s
+	for line in _trace_lines:
+		var parts: PackedStringArray = line.split(",")
+		if parts.size() < 8 or parts[1] != "blue_1":
+			continue
+		if float(parts[0]) >= contact_sec - 0.001:
+			break
+		last = float(parts[2])
+	return max_s - last
+
+
 func _strength_lost(unit_id: String) -> float:
 	var max_s: float = Constants.get_float("strength_max")
 	var final_strength := max_s

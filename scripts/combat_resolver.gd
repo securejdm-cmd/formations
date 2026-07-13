@@ -696,8 +696,8 @@ static func ranged_falloff_multiplier(distance_m: float, max_range_m: float) -> 
 	return lerpf(1.0, min_pct, t)
 
 
-## Missile volley damage — same armor pipeline as melee (WO-013b); no push-loser term.
-## Casualty cohesion uses front-edge channel only (no flank multipliers in v1).
+## Missile volley damage — WO-013b coupling via k_ranged_scale (not k_melee_scale).
+## No push-loser term. Casualty cohesion: front-edge channel only (no flank multipliers in v1).
 static func calc_ranged_volley_damage(
 	attacker: Variant,
 	defender: Variant,
@@ -708,19 +708,19 @@ static func calc_ranged_volley_damage(
 	var strength_max: float = Constants.get_float("strength_max")
 	var strength_pct: float = attacker.strength / strength_max
 	var ranged_damage: float = float(attacker.profile.get("ranged_damage", 0.0))
+	var k_ranged: float = Constants.get_float("k_ranged_scale")
 	var raw_damage: float = (
 		ranged_damage
 		* strength_pct
 		* falloff
-		* Constants.get_float("k_melee_scale")
+		* k_ranged
 	)
 	var armor_class: String = str(defender.profile.get("armor_class", "None"))
 	var armor_stat: float = float(defender.profile.get("armor", 0.0))
 	var damage_type: String = str(attacker.profile.get("ranged_damage_type", "Missile"))
 	var class_mult: float = _ArmorMatrix.class_vs_type(armor_class, damage_type)
 	var anti_armor: float = float(attacker.profile.get("anti_armor", 0.0))
-	var k_melee: float = Constants.get_float("k_melee_scale")
-	var effective_armor: float = maxf(armor_stat * class_mult - anti_armor, 0.0) * k_melee
+	var effective_armor: float = maxf(armor_stat * class_mult - anti_armor, 0.0) * k_ranged
 	var chip_floor_pct: float = Constants.get_float("chip_floor_pct")
 	return maxf(raw_damage - effective_armor, chip_floor_pct * raw_damage)
 
@@ -738,8 +738,8 @@ static func calc_friendly_fire_damage(
 	var damage_type: String = str(attacker.profile.get("ranged_damage_type", "Missile"))
 	var class_mult: float = _ArmorMatrix.class_vs_type(armor_class, damage_type)
 	var anti_armor: float = float(attacker.profile.get("anti_armor", 0.0))
-	var k_melee: float = Constants.get_float("k_melee_scale")
-	var effective_armor: float = maxf(armor_stat * class_mult - anti_armor, 0.0) * k_melee
+	var k_ranged: float = Constants.get_float("k_ranged_scale")
+	var effective_armor: float = maxf(armor_stat * class_mult - anti_armor, 0.0) * k_ranged
 	var chip_floor_pct: float = Constants.get_float("chip_floor_pct")
 	return maxf(ff_raw - effective_armor, chip_floor_pct * ff_raw)
 

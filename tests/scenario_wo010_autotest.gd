@@ -219,6 +219,12 @@ func _spawn_and_run() -> void:
 		"s15_empty_quiver":
 			scene = "scenario_15"
 			seed_value = 1000
+		"s16_leather":
+			scene = "scenario_16"
+			seed_value = 1000
+		"s16_plate":
+			scene = "scenario_16"
+			seed_value = 1000
 
 	if _scenario != null:
 		_scenario.free()
@@ -259,6 +265,8 @@ func _spawn_and_run() -> void:
 			"s13_engaged":
 				_scenario.set("doctrine_mode", "FIRE_ON_ENGAGED")
 				_scenario.set("include_blocker", true)
+	elif scene == "scenario_16":
+		_scenario.set("plate_mode", _mode == "s16_plate")
 	elif scene == "scenario_14":
 		_scenario.set("control_mode", _mode == "s14_ff_control")
 
@@ -294,6 +302,8 @@ func _run_when_ready() -> void:
 		_sim_harness.run_ticks(_scenario, 2800)
 	elif _mode in ["s14_friendly_fire", "s14_ff_control"]:
 		_sim_harness.run_ticks(_scenario, 2200)
+	elif _mode in ["s16_leather", "s16_plate"]:
+		_sim_harness.run_ticks(_scenario, 2000)
 	else:
 		_sim_harness.run_to_completion(_scenario, _sim_harness.RunMode.FAST, _extra_ticks_for_mode)
 	_finish()
@@ -436,6 +446,14 @@ func _finish() -> void:
 			_spawn_and_run()
 		"s15_empty_quiver":
 			_check_s15_empty_quiver()
+			_mode = "s16_leather"
+			_spawn_and_run()
+		"s16_leather":
+			_check_s16_leather()
+			_mode = "s16_plate"
+			_spawn_and_run()
+		"s16_plate":
+			_check_s16_plate()
 			_mode = "perf_40"
 			_spawn_and_run()
 		"perf_40":
@@ -769,9 +787,13 @@ func _check_s11_anti_armor() -> void:
 
 func _check_s12_attrition() -> void:
 	var volleys: int = _scenario.count_volley_events()
+	var approach_lost: float = _scenario.approach_strength_lost()
 	var inf_lost: float = _scenario.infantry_strength_lost()
 	if volleys < 2:
 		push_error("S12 expected multiple volleys, got %d" % volleys)
+		_exit_code = 1
+	if approach_lost < 8.0 or approach_lost > 20.0:
+		push_error("S12 approach attrition %.2f%% outside [8, 20]" % approach_lost)
 		_exit_code = 1
 	if inf_lost <= 0.0:
 		push_error("S12 infantry took no missile damage")
@@ -783,8 +805,8 @@ func _check_s12_attrition() -> void:
 		push_error("S12 infantry routed by missiles before melee")
 		_exit_code = 1
 	print(
-		"[WO-014] S12 PASS volleys=%d inf_lost=%.2f panic=%s"
-		% [volleys, inf_lost, _scenario.had_dead_zone_panic()]
+		"[WO-014] S12 PASS volleys=%d approach_lost=%.2f%% total_lost=%.2f panic=%s"
+		% [volleys, approach_lost, inf_lost, _scenario.had_dead_zone_panic()]
 	)
 
 
@@ -857,6 +879,35 @@ func _check_s15_empty_quiver() -> void:
 		push_error("S15 fired volleys after ammo empty")
 		_exit_code = 1
 	print("[WO-014] S15 PASS volleys=%d ammo_empty=true" % volleys)
+
+
+func _check_s16_leather() -> void:
+	var volleys: int = _scenario.count_volley_events()
+	var lost: float = _scenario.target_strength_lost()
+	if volleys != 30:
+		push_error("S16 leather expected 30 volleys, got %d" % volleys)
+		_exit_code = 1
+	if not _scenario.had_ammo_empty():
+		push_error("S16 leather missing ammo_empty")
+		_exit_code = 1
+	if lost < 30.0 or lost > 45.0:
+		push_error("S16 leather lost %.2f%% outside [30, 45]" % lost)
+		_exit_code = 1
+	print("[WO-014] S16 leather PASS volleys=%d lost=%.2f%%" % [volleys, lost])
+
+
+func _check_s16_plate() -> void:
+	var volleys: int = _scenario.count_volley_events()
+	var lost: float = _scenario.target_strength_lost()
+	var k: float = _c_float("k_ranged_scale")
+	var expected_chip: float = 30.0 * 18.0 * k * _c_float("chip_floor_pct")
+	if volleys != 30:
+		push_error("S16 plate expected 30 volleys, got %d" % volleys)
+		_exit_code = 1
+	if absf(lost - expected_chip) > maxf(0.05 * expected_chip, 0.5):
+		push_error("S16 plate lost %.2f%% not chip-dominated (expected %.2f)" % [lost, expected_chip])
+		_exit_code = 1
+	print("[WO-014] S16 plate PASS volleys=%d lost=%.2f%% chip_expected=%.2f" % [volleys, lost, expected_chip])
 
 
 func _check_scenario_08(single_damage: float) -> void:
