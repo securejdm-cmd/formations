@@ -642,6 +642,12 @@ func get_winner_id() -> String:
 	return _winner.unit_id
 
 
+func get_winner_strength() -> float:
+	if _winner == null:
+		return -1.0
+	return _winner.strength
+
+
 func get_phase_durations_sec() -> Dictionary:
 	return _phase_durations_sec()
 

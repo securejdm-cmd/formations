@@ -397,7 +397,7 @@ func pursuit_tick() -> void:
 				continue
 			if not CombatResolver.is_within_pursuit_contact(enemy, routing_unit):
 				continue
-			var damage := CombatResolver.calc_pursuit_damage(enemy)
+			var damage := CombatResolver.calc_pursuit_damage(enemy, routing_unit)
 			var applied := CombatResolver.apply_strength_loss(routing_unit, damage)
 			routing_unit.reset_rally_timer()
 			enemy.record_damage_dealt(applied)

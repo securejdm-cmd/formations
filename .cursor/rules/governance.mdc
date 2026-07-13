@@ -21,6 +21,10 @@ If a work order is ambiguous, incomplete, contradictory, or requires a change no
 6. You are about to write a workaround, hack, or TODO.
 7. Anything makes you think "I'll just assume…" — that thought IS the trigger.
 
+## Design Authority Completeness Check (governance amendment)
+
+At the **start of every work order**, before writing code, verify that **every document cited as design authority** in the work order exists under `/docs`. If any cited document is missing, produce an Escalation Report immediately — do not proceed with implementation, data files, or tuning until the authority is committed or inlined by TD green light.
+
 ## Escalation Report Format
 
 Write the full report to `/docs/reports/WO-XXX_escalation.md` using this structure:

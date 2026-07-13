@@ -2,6 +2,8 @@
 
 Canonical index of FORMATIONS work-order reports (newest first). Raw `main` branch links.
 
+- [WO-013_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-013-real-melee-damage-fd84/docs/reports/WO-013_completion.md) — Real melee damage, armor matrix, chip floor (pending merge)
+- [WO-013_escalation.md](https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-013-real-melee-damage-fd84/docs/reports/WO-013_escalation.md) — Design authority blocker (resolved)
 - [WO-010_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/WO-010_completion.md)
 - [WO-009_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/WO-009_completion.md)
 - [MERGE_BATCH_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/MERGE_BATCH_completion.md) — WO-003 through WO-008 merge batch
