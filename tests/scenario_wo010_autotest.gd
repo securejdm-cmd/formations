@@ -62,6 +62,9 @@ var _perf_stats: Dictionary = {}
 var _perf_scale_results: Array[Dictionary] = []
 var _perf_scale_idx := 0
 var _perf_scale_pairs := [2, 10, 20]
+var _s14_ff_lost: float = 0.0
+var _s13_at70_dist: float = -1.0
+var _s13_engaged_dist: float = -1.0
 
 
 func _initialize() -> void:
@@ -195,6 +198,27 @@ func _spawn_and_run() -> void:
 		"s11_control", "s11_anti_armor":
 			scene = "scenario_11"
 			seed_value = 1000
+		"s12_attrition":
+			scene = "scenario_12"
+			seed_value = 1000
+		"s13_doctrine":
+			scene = "scenario_13"
+			seed_value = 1000
+		"s13_at70":
+			scene = "scenario_13"
+			seed_value = 1000
+		"s13_engaged":
+			scene = "scenario_13"
+			seed_value = 1000
+		"s14_friendly_fire":
+			scene = "scenario_14"
+			seed_value = 1000
+		"s14_ff_control":
+			scene = "scenario_14"
+			seed_value = 1000
+		"s15_empty_quiver":
+			scene = "scenario_15"
+			seed_value = 1000
 
 	if _scenario != null:
 		_scenario.free()
@@ -224,6 +248,19 @@ func _spawn_and_run() -> void:
 			_scenario.set("attacker_anti_armor", 0.0)
 		else:
 			_scenario.set("attacker_anti_armor", 15.0)
+	elif scene == "scenario_13":
+		match _mode:
+			"s13_doctrine":
+				_scenario.set("doctrine_mode", "FIRE_ON_SIGHT")
+				_scenario.set("include_blocker", false)
+			"s13_at70":
+				_scenario.set("doctrine_mode", "FIRE_AT_70")
+				_scenario.set("include_blocker", false)
+			"s13_engaged":
+				_scenario.set("doctrine_mode", "FIRE_ON_ENGAGED")
+				_scenario.set("include_blocker", true)
+	elif scene == "scenario_14":
+		_scenario.set("control_mode", _mode == "s14_ff_control")
 
 	root.add_child(_scenario)
 	_pending_ready = true
@@ -253,6 +290,8 @@ func _run_when_ready() -> void:
 		_perf_scale_results.append(_scenario.get_tick_perf_stats())
 	elif _mode in ["s5_rally", "s6_pursuit", "s7_cascade", "s8_blob_single", "s8_blob_triple"]:
 		_sim_harness.run_ticks(_scenario, 3500 + _extra_ticks_for_mode)
+	elif _mode == "s13_engaged":
+		_sim_harness.run_ticks(_scenario, 2800)
 	else:
 		_sim_harness.run_to_completion(_scenario, _sim_harness.RunMode.FAST, _extra_ticks_for_mode)
 	_finish()
@@ -364,6 +403,37 @@ func _finish() -> void:
 			_spawn_and_run()
 		"s11_anti_armor":
 			_check_s11_anti_armor()
+			_mode = "s12_attrition"
+			_spawn_and_run()
+		"s12_attrition":
+			_check_s12_attrition()
+			_mode = "s13_doctrine"
+			_spawn_and_run()
+		"s13_doctrine":
+			_check_s13_doctrine_sight()
+			_mode = "s13_at70"
+			_spawn_and_run()
+		"s13_at70":
+			_s13_at70_dist = _scenario.first_volley_distance_m()
+			_check_s13_doctrine_at70()
+			_mode = "s13_engaged"
+			_spawn_and_run()
+		"s13_engaged":
+			_s13_engaged_dist = _scenario.first_volley_distance_m()
+			_check_s13_doctrine_engaged()
+			_mode = "s14_friendly_fire"
+			_spawn_and_run()
+		"s14_friendly_fire":
+			_s14_ff_lost = _scenario.friendly_fire_strength_lost()
+			_check_s14_friendly_fire(false)
+			_mode = "s14_ff_control"
+			_spawn_and_run()
+		"s14_ff_control":
+			_check_s14_friendly_fire(true)
+			_mode = "s15_empty_quiver"
+			_spawn_and_run()
+		"s15_empty_quiver":
+			_check_s15_empty_quiver()
 			_mode = "perf_40"
 			_spawn_and_run()
 		"perf_40":
@@ -693,6 +763,98 @@ func _check_s11_anti_armor() -> void:
 		"[WO-013b] S11 PASS control=%.1fs breach=%.2fs/%.2f dmg anti_armor=%.1fs breach=%.2fs/%.2f dmg"
 		% [_s11_control_combat, breach_ctrl, _s11_control_damage, aa_combat, breach_aa, aa_damage]
 	)
+
+
+func _check_s12_attrition() -> void:
+	var volleys: int = _scenario.count_volley_events()
+	var inf_lost: float = _scenario.infantry_strength_lost()
+	if volleys < 2:
+		push_error("S12 expected multiple volleys, got %d" % volleys)
+		_exit_code = 1
+	if inf_lost <= 0.0:
+		push_error("S12 infantry took no missile damage")
+		_exit_code = 1
+	if not _scenario.had_dead_zone_panic():
+		push_error("S12 missing dead_zone_panic event")
+		_exit_code = 1
+	if _scenario.infantry_routed_by_missiles_only():
+		push_error("S12 infantry routed by missiles before melee")
+		_exit_code = 1
+	print(
+		"[WO-014] S12 PASS volleys=%d inf_lost=%.2f panic=%s"
+		% [volleys, inf_lost, _scenario.had_dead_zone_panic()]
+	)
+
+
+func _check_s13_doctrine_sight() -> void:
+	var d_sight: float = _scenario.first_volley_distance_m()
+	if d_sight < 0.0:
+		push_error("S13 FIRE_ON_SIGHT missing first volley")
+		_exit_code = 1
+	elif absf(d_sight - 150.0) > 8.0:
+		push_error("S13 FIRE_ON_SIGHT first volley %.1fm expected ~150m" % d_sight)
+		_exit_code = 1
+	else:
+		print("[WO-014] S13 sight PASS first_volley_m=%.1f" % d_sight)
+
+
+func _check_s13_doctrine_at70() -> void:
+	if _s13_at70_dist < 0.0:
+		push_error("S13 FIRE_AT_70 missing first volley")
+		_exit_code = 1
+	elif absf(_s13_at70_dist - 105.0) > 8.0:
+		push_error("S13 FIRE_AT_70 first volley %.1fm expected ~105m" % _s13_at70_dist)
+		_exit_code = 1
+	else:
+		print("[WO-014] S13 at70 PASS first_volley_m=%.1f" % _s13_at70_dist)
+
+
+func _check_s13_doctrine_engaged() -> void:
+	if _s13_engaged_dist < 0.0:
+		push_error("S13 FIRE_ON_ENGAGED missing first volley")
+		_exit_code = 1
+	elif _s13_at70_dist > 0.0 and _s13_engaged_dist <= _s13_at70_dist + 3.0:
+		push_error(
+			"S13 engaged first volley %.1fm should trail FIRE_AT_70 %.1fm"
+			% [_s13_engaged_dist, _s13_at70_dist]
+		)
+		_exit_code = 1
+	elif _s13_engaged_dist >= 150.0:
+		push_error("S13 FIRE_ON_ENGAGED should not open at sight range (%.1fm)" % _s13_engaged_dist)
+		_exit_code = 1
+	else:
+		print("[WO-014] S13 engaged PASS first_volley_m=%.1f" % _s13_engaged_dist)
+
+
+func _check_s14_friendly_fire(control: bool) -> void:
+	var ff_events: int = _scenario.count_friendly_fire_events()
+	if control:
+		if ff_events > 0:
+			push_error("S14 control expected zero friendly_fire events, got %d" % ff_events)
+			_exit_code = 1
+		print("[WO-014] S14 control PASS ff_events=0")
+		return
+	if ff_events <= 0:
+		push_error("S14 expected friendly_fire events")
+		_exit_code = 1
+	if _s14_ff_lost <= 0.0:
+		push_error("S14 friendly lost %.2f strength to FF" % _s14_ff_lost)
+		_exit_code = 1
+	print("[WO-014] S14 PASS ff_events=%d friendly_lost=%.2f" % [ff_events, _s14_ff_lost])
+
+
+func _check_s15_empty_quiver() -> void:
+	var volleys: int = _scenario.count_volley_events()
+	if volleys != 3:
+		push_error("S15 expected 3 volleys, got %d" % volleys)
+		_exit_code = 1
+	if not _scenario.had_ammo_empty_event():
+		push_error("S15 missing ammo_empty trace event")
+		_exit_code = 1
+	if _scenario.volleys_after_ammo_empty() > 0:
+		push_error("S15 fired volleys after ammo empty")
+		_exit_code = 1
+	print("[WO-014] S15 PASS volleys=%d ammo_empty=true" % volleys)
 
 
 func _check_scenario_08(single_damage: float) -> void:

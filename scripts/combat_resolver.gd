@@ -675,3 +675,71 @@ static func calc_pursuit_damage(pursuer: Variant, routing_unit: Variant) -> floa
 	var base_loss: float = calc_melee_strength_loss(pursuer, routing_unit, 1.0, false)
 	return base_loss * Constants.get_float("pursuit_damage_multiplier")
 
+
+static func is_ranged_unit(unit: Variant) -> bool:
+	return (
+		float(unit.profile.get("ranged_damage", 0.0)) > 0.0
+		and float(unit.profile.get("range", 0.0)) > 0.0
+	)
+
+
+static func ranged_falloff_multiplier(distance_m: float, max_range_m: float) -> float:
+	if max_range_m <= 0.0:
+		return 0.0
+	var half_range_m: float = max_range_m * 0.5
+	var min_pct: float = Constants.get_float("ranged_falloff_min_pct")
+	if distance_m <= half_range_m:
+		return 1.0
+	if distance_m >= max_range_m:
+		return min_pct
+	var t: float = (distance_m - half_range_m) / (max_range_m - half_range_m)
+	return lerpf(1.0, min_pct, t)
+
+
+## Missile volley damage — same armor pipeline as melee (WO-013b); no push-loser term.
+## Casualty cohesion uses front-edge channel only (no flank multipliers in v1).
+static func calc_ranged_volley_damage(
+	attacker: Variant,
+	defender: Variant,
+	distance_m: float
+) -> float:
+	var max_range_m: float = float(attacker.profile.get("range", 0.0))
+	var falloff: float = ranged_falloff_multiplier(distance_m, max_range_m)
+	var strength_max: float = Constants.get_float("strength_max")
+	var strength_pct: float = attacker.strength / strength_max
+	var ranged_damage: float = float(attacker.profile.get("ranged_damage", 0.0))
+	var raw_damage: float = (
+		ranged_damage
+		* strength_pct
+		* falloff
+		* Constants.get_float("k_melee_scale")
+	)
+	var armor_class: String = str(defender.profile.get("armor_class", "None"))
+	var armor_stat: float = float(defender.profile.get("armor", 0.0))
+	var damage_type: String = str(attacker.profile.get("ranged_damage_type", "Missile"))
+	var class_mult: float = _ArmorMatrix.class_vs_type(armor_class, damage_type)
+	var anti_armor: float = float(attacker.profile.get("anti_armor", 0.0))
+	var k_melee: float = Constants.get_float("k_melee_scale")
+	var effective_armor: float = maxf(armor_stat * class_mult - anti_armor, 0.0) * k_melee
+	var chip_floor_pct: float = Constants.get_float("chip_floor_pct")
+	return maxf(raw_damage - effective_armor, chip_floor_pct * raw_damage)
+
+
+static func calc_friendly_fire_damage(
+	attacker: Variant,
+	friendly: Variant,
+	rolled_volley_damage: float
+) -> float:
+	var ff_raw: float = rolled_volley_damage * Constants.get_float("friendly_fire_pct")
+	if ff_raw <= 0.0:
+		return 0.0
+	var armor_class: String = str(friendly.profile.get("armor_class", "None"))
+	var armor_stat: float = float(friendly.profile.get("armor", 0.0))
+	var damage_type: String = str(attacker.profile.get("ranged_damage_type", "Missile"))
+	var class_mult: float = _ArmorMatrix.class_vs_type(armor_class, damage_type)
+	var anti_armor: float = float(attacker.profile.get("anti_armor", 0.0))
+	var k_melee: float = Constants.get_float("k_melee_scale")
+	var effective_armor: float = maxf(armor_stat * class_mult - anti_armor, 0.0) * k_melee
+	var chip_floor_pct: float = Constants.get_float("chip_floor_pct")
+	return maxf(ff_raw - effective_armor, chip_floor_pct * ff_raw)
+

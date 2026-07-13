@@ -44,10 +44,14 @@ func _process(_delta: float) -> void:
 func _refresh_text() -> void:
 	if _unit == null:
 		return
-	_label.text = "STR %d%% · COH %d%% · ⚔ %d" % [
+	var ammo_line := ""
+	if _unit.ammo_remaining >= 0:
+		ammo_line = " · [bow] %d" % _unit.ammo_remaining
+	_label.text = "STR %d%% · COH %d%% · ⚔ %d%s" % [
 		int(round(_unit.strength_percent())),
 		int(round(_unit.cohesion_percent())),
 		_unit.soldiers_defeated(),
+		ammo_line,
 	]
 
 
