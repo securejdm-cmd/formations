@@ -105,7 +105,7 @@ Gates: S12 approach attrition ∈ **[8%, 20%]** AND S16 leather ∈ **[30%, 45%]
 
 ### Full suite evidence (standard 11 seeds where applicable)
 
-Re-run after `k_ranged_scale=0.100` commit (2026-07-13):
+Re-run after `k_ranged_scale=0.100` commit (2026-07-13); **reconfirmed full suite PASS** on GREEN LIGHT re-issue same date:
 
 | Check | Result |
 |-------|--------|
