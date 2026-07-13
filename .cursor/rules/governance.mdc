@@ -122,3 +122,13 @@ Use this format for report footers (substitute `<branch>` with the PR branch nam
 - Previous report: https://raw.githubusercontent.com/<org>/<repo>/main/docs/reports/WO-XXX_completion.md
 - Trace (if cited): https://raw.githubusercontent.com/<org>/<repo>/<branch>/tests/traces/<filename>.csv
 ```
+
+## Completion Attestation (governance amendment)
+
+Every **completion claim** (chat summary or report stating a work order is complete) must end with **all three** of:
+
+1. **Branch name** — the feature branch containing the committed corrections
+2. **Commit hash** — the full SHA of the latest commit that contains those corrections
+3. **Raw report URL** — a full `raw.githubusercontent.com` URL to the updated completion report on that branch
+
+A completion statement that omits any of the three is **not a completion**. Do not treat prior chat summaries as evidence of completion without this attestation block.
