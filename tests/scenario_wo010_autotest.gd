@@ -60,6 +60,15 @@ var _perf_scale_pairs := [2, 10, 20]
 
 
 func _initialize() -> void:
+	var scene_smoke_exit := OS.execute(
+		"/tmp/godot/Godot_v4.3-stable_linux.x86_64",
+		["--headless", "--path", ProjectSettings.globalize_path("res://"), "-s", "res://tests/all_scenes_smoke_test.gd"],
+		[],
+		false
+	)
+	if scene_smoke_exit != 0:
+		push_error("Universal scene smoke test failed (exit %d)" % scene_smoke_exit)
+		_exit_code = 1
 	var compass_exit := OS.execute(
 		"/tmp/godot/Godot_v4.3-stable_linux.x86_64",
 		["--headless", "--path", ProjectSettings.globalize_path("res://"), "-s", "res://tests/edge_contact_compass_test.gd"],

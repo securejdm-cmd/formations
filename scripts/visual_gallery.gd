@@ -40,7 +40,7 @@ func _spawn_strength_row(profile: Dictionary, origin: Vector2, px: float) -> voi
 	for i in strengths.size():
 		var unit: Unit = UNIT_SCENE.instantiate()
 		add_child(unit)
-		var pos := origin + Vector2(float(i) * 70.0 * px, 0.0)
+		var pos: Vector2 = origin + Vector2(float(i) * 70.0 * px, 0.0)
 		unit.configure("str_%d" % int(strengths[i]), "red", profile, pos, Vector2.RIGHT)
 		unit.strength = strengths[i]
 		unit.set_render_camera(_camera)
@@ -78,7 +78,7 @@ func _spawn_state_row(profile: Dictionary, origin: Vector2, px: float) -> void:
 
 	var rout: Unit = UNIT_SCENE.instantiate()
 	add_child(rout)
-	var rout_pos := origin + Vector2(0.0, 90.0 * px)
+	var rout_pos: Vector2 = origin + Vector2(0.0, 90.0 * px)
 	rout.configure("rout", "red", profile, rout_pos, Vector2.RIGHT)
 	rout.set_render_camera(_camera)
 	rout._set_state(Unit.State.ROUTING)
@@ -86,7 +86,7 @@ func _spawn_state_row(profile: Dictionary, origin: Vector2, px: float) -> void:
 
 	var rallied: Unit = UNIT_SCENE.instantiate()
 	add_child(rallied)
-	var hold_pos := origin + Vector2(0.0, 180.0 * px)
+	var hold_pos: Vector2 = origin + Vector2(0.0, 180.0 * px)
 	rallied.configure("rallied", "red", profile, hold_pos, Vector2.RIGHT)
 	rallied.cohesion = 50.0
 	rallied.set_render_camera(_camera)
@@ -99,19 +99,21 @@ func _spawn_state_row(profile: Dictionary, origin: Vector2, px: float) -> void:
 
 func _fire_demo_floater() -> void:
 	for child in get_children():
-		if child is Unit and child.unit_id == "waver":
-			var px_per_meter := Constants.get_float("px_per_meter")
-			var half_frontage_px := child.effective_frontage_m() * 0.5 * px_per_meter
-			var world_above := child.position + Vector2(0.0, -(half_frontage_px + 12.0))
-			var screen_pos := _camera.get_canvas_transform() * world_above
-			var floater: Label = FLOATER_SCRIPT.new()
-			_shock_layer.add_child(floater)
-			floater.setup(screen_pos, Constants.get_float("neighbor_rout_shock"))
-			break
+		var unit := child as Unit
+		if unit == null or unit.unit_id != "waver":
+			continue
+		var px_per_meter: float = Constants.get_float("px_per_meter")
+		var half_frontage_px: float = unit.effective_frontage_m() * 0.5 * px_per_meter
+		var world_above: Vector2 = unit.position + Vector2(0.0, -(half_frontage_px + 12.0))
+		var screen_pos: Vector2 = _camera.get_canvas_transform() * world_above
+		var floater: ShockFloater = FLOATER_SCRIPT.new()
+		_shock_layer.add_child(floater)
+		floater.setup(screen_pos, Constants.get_float("neighbor_rout_shock"))
+		break
 
 
 func _add_caption(world_pos: Vector2, text: String) -> void:
-	var label := Label.new()
+	var label: Label = Label.new()
 	_shock_layer.add_child(label)
 	label.text = text
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

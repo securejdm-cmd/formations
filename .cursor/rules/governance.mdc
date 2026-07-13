@@ -80,8 +80,16 @@ When the Technical Director approves a work order, its pull request must be mark
 
 - **One WO = one merged PR.** Each approved work order lands on `main` as a single merged pull request; do not start a subsequent work order on a branch that has not yet been integrated.
 - **Merge order:** When catching up retroactively or merging dependent work, merge in work-order sequence (WO-003, WO-004, …). Resolve conflicts in favor of the **latest approved state** for that work order.
-- **Gate on `main`:** After merges, `main` must pass the full fast-mode regression suite: compass, fast certification (seed 12345), S1/S2 eleven-seed regression, determinism, and overlap assertion.
+- **Gate on `main`:** After merges, `main` must pass the full fast-mode regression suite: **universal scene smoke** (every `.tscn` load/instantiate/one-frame), compass, fast certification (seed 12345), S1/S2 eleven-seed regression, determinism, and overlap assertion.
 - **Report:** Completion reports for merge batches must list the merge sequence and final regression result.
+
+## Universal Scene Smoke Test (governance amendment)
+
+No `.tscn` may ship without headless execution. A permanent autotest must instantiate **every** `.tscn` under `res://` (including designer-only scenes such as `tests/visual_gallery.tscn`) and fail on any script parse error or instantiation failure.
+
+- **Runner:** `tests/all_scenes_smoke_test.gd` — load → instantiate → add to tree → wait `is_node_ready()` → one frame → free.
+- **Gate:** Run before the WO-010 full regression suite (`scenario_wo010_autotest.gd` invokes it first). Exit code non-zero blocks merge.
+- **Scope:** All scenes discovered recursively; no exclusions. New scenes are covered automatically when added anywhere under `res://`.
 
 ## Report Links Footer (governance amendment)
 
