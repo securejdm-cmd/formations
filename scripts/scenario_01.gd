@@ -119,6 +119,7 @@ func _ensure_sim_core() -> void:
 	_sim_core.headless_mode = headless_mode
 	_sim_core.fast_sim_mode = fast_sim_mode
 	_sim_core.shock_floater_callback = _spawn_shock_floater_from_proxy
+	_sim_core.volley_visual_callback = _spawn_volley_visual_from_proxy
 
 
 func _dispatch_core_event_hooks() -> void:
@@ -137,6 +138,24 @@ func _spawn_shock_floater_from_proxy(proxy, amount: float) -> void:
 		if unit.unit_id == proxy.unit_id:
 			_spawn_shock_floater(unit, amount)
 			return
+
+
+func _spawn_volley_visual_from_proxy(shooter_proxy, target_proxy) -> void:
+	if headless_mode or shooter_proxy == null or target_proxy == null:
+		return
+	var shooter_unit: Unit = null
+	var target_unit: Unit = null
+	for unit in _units:
+		if unit.unit_id == shooter_proxy.unit_id:
+			shooter_unit = unit
+		if unit.unit_id == target_proxy.unit_id:
+			target_unit = unit
+	if shooter_unit == null or target_unit == null:
+		return
+	var arc := preload("res://scripts/volley_arc.gd").new()
+	add_child(arc)
+	arc.setup(shooter_unit.position, target_unit.position)
+	target_unit.trigger_volley_impact()
 
 
 func _sync_core_from_units() -> void:
@@ -269,6 +288,24 @@ func advance_one_tick() -> void:
 	_dispatch_core_event_hooks()
 	_sync_state_from_core()
 	_on_core_battle_finished_if_needed()
+
+
+## Extra ticks after battle_over (S5/S6 epilogue pursuit, rally hold) — sim only, no finish hooks.
+func advance_post_battle_tick() -> void:
+	if _sim_thread_active():
+		return
+	_ensure_sim_core()
+	var saved_scenario_over: bool = _battle_over
+	var saved_core_over: bool = _sim_core.battle_over
+	_battle_over = false
+	_sim_core.battle_over = false
+	_sync_core_from_units()
+	_sim_core.advance_one_tick()
+	_sync_units_from_core()
+	_dispatch_core_event_hooks()
+	_sync_state_from_core()
+	_battle_over = saved_scenario_over
+	_sim_core.battle_over = saved_core_over
 
 
 func _on_core_battle_finished_if_needed() -> void:
@@ -640,6 +677,12 @@ func get_winner_id() -> String:
 	if _winner == null:
 		return "none"
 	return _winner.unit_id
+
+
+func get_winner_strength() -> float:
+	if _winner == null:
+		return -1.0
+	return _winner.strength
 
 
 func get_phase_durations_sec() -> Dictionary:

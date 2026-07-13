@@ -1,0 +1,19 @@
+{
+  "id": "test_plate_target",
+  "display_name": "Test Plate Target",
+  "formation_frontage_m": 40,
+  "formation_depth_m": 15,
+  "close_damage": 25,
+  "ranged_damage": 0,
+  "armor": 20,
+  "anti_armor": 0,
+  "speed": 15,
+  "agility": 50,
+  "pushing_power": 50,
+  "retreating_skill": 30,
+  "range": 0,
+  "traits": [],
+  "armor_class": "Plate",
+  "melee_damage_type": "Slash",
+  "profile": "Medium"
+}

@@ -27,7 +27,7 @@ static func _run_fast(scenario: Scenario01, extra_ticks: int) -> void:
 	while not scenario.is_battle_over():
 		scenario.advance_one_tick()
 	for _i in extra_ticks:
-		scenario.advance_one_tick()
+		scenario.advance_post_battle_tick()
 
 
 static func _run_realtime(scenario: Scenario01, extra_ticks: int) -> void:
@@ -35,7 +35,7 @@ static func _run_realtime(scenario: Scenario01, extra_ticks: int) -> void:
 	while not scenario.is_battle_over():
 		scenario.simulate_realtime_step(interval)
 	for _i in extra_ticks:
-		scenario.simulate_realtime_step(interval)
+		scenario.advance_post_battle_tick()
 
 
 static func trace_bytes(scenario: Scenario01) -> PackedByteArray:

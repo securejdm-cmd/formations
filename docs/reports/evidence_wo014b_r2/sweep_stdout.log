@@ -1,0 +1,81 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+[WO-014 Sweep] start
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+k=0.080 S12=6.44% S16L=35.52% S16P=8.64% chip=true GATE=false
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+k=0.090 S12=7.24% S16L=39.96% S16P=9.72% chip=true GATE=false
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+k=0.100 S12=8.04% S16L=44.40% S16P=10.80% chip=true GATE=true
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+k=0.105 S12=8.45% S16L=46.62% S16P=11.34% chip=true GATE=false
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+k=0.110 S12=8.85% S16L=48.84% S16P=11.88% chip=true GATE=false
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+k=0.115 S12=9.25% S16L=51.06% S16P=12.42% chip=true GATE=false
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+k=0.120 S12=9.65% S16L=53.28% S16P=12.96% chip=true GATE=false
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+k=0.130 S12=10.46% S16L=57.72% S16P=14.04% chip=true GATE=false
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+k=0.140 S12=11.26% S16L=62.16% S16P=15.12% chip=true GATE=false
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+k=0.150 S12=12.07% S16L=66.60% S16P=16.20% chip=true GATE=false
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+k=0.160 S12=12.87% S16L=71.04% S16P=17.28% chip=true GATE=false
+[WO-014 Sweep] COMMITTED k_ranged_scale=0.100 to combat_constants.json

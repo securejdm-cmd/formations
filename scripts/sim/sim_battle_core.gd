@@ -30,6 +30,7 @@ var fast_sim_mode: bool = false
 var battle_seed: int = 0
 var _rng: SimRng = SimRng.new()
 var shock_floater_callback: Callable = Callable()
+var volley_visual_callback: Callable = Callable()
 
 
 func configure_rng(seed_value: int) -> void:
@@ -75,6 +76,7 @@ func advance_one_tick_fast(tick_interval: float) -> void:
 	rebuild_spatial_grid()
 	update_movement(tick_interval)
 	process_rout_events()
+	ranged_volley_tick(tick_interval)
 	resolve_allied_overlaps()
 	try_passive_engagement()
 	apply_contact_adhesion()
@@ -98,6 +100,7 @@ func advance_one_tick_profiled(tick_interval: float) -> void:
 	t0 = _TickProfiler.begin_section("movement")
 	update_movement(tick_interval)
 	process_rout_events()
+	ranged_volley_tick(tick_interval)
 	_TickProfiler.end_section("movement", t0)
 
 	t0 = _TickProfiler.begin_section("allied_separation")
@@ -311,6 +314,8 @@ func update_movement(delta: float) -> void:
 func try_begin_engagement(unit: SimUnitProxy) -> void:
 	if unit.get_state() == Unit.State.ROUTING or unit.get_state() == Unit.State.RALLYING:
 		return
+	if unit.profile.get("skip_auto_engage", false):
+		return
 
 	for other in spatial_neighbors_sorted(unit):
 		if other.get_state() == Unit.State.REMOVED:
@@ -318,6 +323,8 @@ func try_begin_engagement(unit: SimUnitProxy) -> void:
 		if other.get_state() == Unit.State.ROUTING or other.get_state() == Unit.State.RALLYING:
 			continue
 		if other.team_id == unit.team_id:
+			continue
+		if other.profile.get("skip_auto_engage", false):
 			continue
 		if not CombatResolver.units_have_any_contact(unit, other):
 			continue
@@ -387,6 +394,171 @@ func spawn_shock_floater(unit: SimUnitProxy, amount: float) -> void:
 		shock_floater_callback.call(unit, amount)
 
 
+func spawn_volley_visual(shooter: SimUnitProxy, target: SimUnitProxy) -> void:
+	if volley_visual_callback.is_valid():
+		volley_visual_callback.call(shooter, target)
+
+
+func ranged_volley_tick(delta: float) -> void:
+	var shooters: Array = []
+	for unit in units:
+		if unit == null or unit.get_state() == Unit.State.REMOVED:
+			continue
+		if not unit.is_ranged_combatant():
+			continue
+		shooters.append(unit)
+	shooters.sort_custom(func(a: SimUnitProxy, b: SimUnitProxy) -> bool:
+		return a.unit_id < b.unit_id
+	)
+
+	for shooter in shooters:
+		shooter.tick_reload(delta)
+		check_dead_zone_panic(shooter)
+		try_fire_volley(shooter)
+
+
+func check_dead_zone_panic(shooter: SimUnitProxy) -> void:
+	if shooter.dead_zone_panic_done():
+		return
+	if shooter.get_state() in [Unit.State.ENGAGED, Unit.State.WAVERING]:
+		return
+	var min_range_m := float(shooter.profile.get("min_range_m", 0.0))
+	if min_range_m <= 0.0:
+		return
+	for enemy in units:
+		if enemy == shooter or enemy.get_state() == Unit.State.REMOVED:
+			continue
+		if enemy.team_id == shooter.team_id:
+			continue
+		if CombatResolver.center_distance_m(shooter, enemy) >= min_range_m:
+			continue
+		var shock := Constants.get_float("dead_zone_panic_shock")
+		shooter.apply_cohesion_drain(shock, "front")
+		spawn_shock_floater(shooter, shock)
+		shooter.mark_dead_zone_panic_done()
+		log_trace_event(
+			"dead_zone_panic",
+			"unit=%s,enemy=%s,drain=%.1f" % [shooter.unit_id, enemy.unit_id, shock]
+		)
+		return
+
+
+func try_fire_volley(shooter: SimUnitProxy) -> void:
+	if shooter.ammo_volleys_remaining() <= 0:
+		return
+	if not shooter.reload_ready():
+		return
+	if unit_moved_this_tick(shooter):
+		return
+	if shooter.get_state() in [
+		Unit.State.MARCHING, Unit.State.ROUTING, Unit.State.RALLYING, Unit.State.REMOVED,
+	]:
+		return
+
+	var target: SimUnitProxy = pick_volley_target(shooter)
+	if target == null:
+		return
+
+	var distance_m := CombatResolver.center_distance_m(shooter, target)
+	var damage := CombatResolver.calc_ranged_volley_damage(shooter, target, distance_m)
+	var applied := CombatResolver.apply_strength_loss(target, damage)
+	shooter.record_damage_dealt(applied)
+	shooter.consume_ammo_volley()
+	shooter.reset_reload_timer()
+	spawn_volley_visual(shooter, target)
+	if target.get_state() == Unit.State.ROUTING:
+		on_first_rout()
+		try_start_victory_delay(target)
+
+	log_trace_event(
+		"volley",
+		"shooter=%s,target=%s,dist_m=%.1f,damage=%.4f,ammo=%d"
+		% [shooter.unit_id, target.unit_id, distance_m, applied, shooter.ammo_volleys_remaining()]
+	)
+	if shooter.ammo_volleys_remaining() <= 0:
+		log_trace_event("ammo_empty", "unit=%s" % shooter.unit_id)
+
+	apply_volley_friendly_fire(shooter, target, damage)
+
+
+func pick_volley_target(shooter: SimUnitProxy) -> SimUnitProxy:
+	var best: SimUnitProxy = null
+	var best_dist := INF
+	for enemy in units:
+		if enemy == shooter or enemy.get_state() == Unit.State.REMOVED:
+			continue
+		if enemy.team_id == shooter.team_id:
+			continue
+		if not volley_target_permitted(shooter, enemy):
+			continue
+		var dist := CombatResolver.center_distance_m(shooter, enemy)
+		if best == null:
+			best = enemy
+			best_dist = dist
+			continue
+		if dist < best_dist - 0.0001:
+			best = enemy
+			best_dist = dist
+		elif is_equal_approx(dist, best_dist) and enemy.unit_id < best.unit_id:
+			best = enemy
+	return best
+
+
+func volley_target_permitted(shooter: SimUnitProxy, target: SimUnitProxy) -> bool:
+	var max_range_m := float(shooter.profile.get("range", 0.0))
+	var min_range_m := float(shooter.profile.get("min_range_m", 0.0))
+	var dist_m := CombatResolver.center_distance_m(shooter, target)
+	if dist_m < min_range_m or dist_m > max_range_m:
+		return false
+	var doctrine := str(shooter.profile.get("fire_doctrine", "FIRE_ON_SIGHT")).to_upper()
+	match doctrine:
+		"FIRE_AT_70":
+			if dist_m > max_range_m * Constants.get_float("fire_at_range_pct"):
+				return false
+		"FIRE_ON_ENGAGED":
+			if target.get_state() not in [Unit.State.ENGAGED, Unit.State.WAVERING]:
+				return false
+			if not enemy_engaged_with_friendly(shooter, target):
+				return false
+	return true
+
+
+func enemy_engaged_with_friendly(shooter: SimUnitProxy, enemy: SimUnitProxy) -> bool:
+	for partner in enemy.get_contact_partners():
+		if partner == null or partner.get_state() == Unit.State.REMOVED:
+			continue
+		if partner.team_id == shooter.team_id:
+			return true
+	return false
+
+
+func apply_volley_friendly_fire(
+	shooter: SimUnitProxy,
+	target: SimUnitProxy,
+	rolled_damage: float
+) -> void:
+	if target.get_state() not in [Unit.State.ENGAGED, Unit.State.WAVERING]:
+		return
+	for partner in target.get_contact_partners():
+		if partner == null or partner.get_state() == Unit.State.REMOVED:
+			continue
+		if partner.team_id != shooter.team_id:
+			continue
+		var ff_damage := CombatResolver.calc_friendly_fire_damage(shooter, partner, rolled_damage)
+		if ff_damage <= 0.0:
+			continue
+		var applied := CombatResolver.apply_strength_loss(partner, ff_damage)
+		shooter.record_damage_dealt(applied)
+		log_trace_event(
+			"friendly_fire",
+			"shooter=%s,victim=%s,target=%s,damage=%.4f"
+			% [shooter.unit_id, partner.unit_id, target.unit_id, applied]
+		)
+		if partner.get_state() == Unit.State.ROUTING:
+			on_first_rout()
+			try_start_victory_delay(partner)
+
+
 
 func pursuit_tick() -> void:
 	for routing_unit in units:
@@ -397,7 +569,7 @@ func pursuit_tick() -> void:
 				continue
 			if not CombatResolver.is_within_pursuit_contact(enemy, routing_unit):
 				continue
-			var damage := CombatResolver.calc_pursuit_damage(enemy)
+			var damage := CombatResolver.calc_pursuit_damage(enemy, routing_unit)
 			var applied := CombatResolver.apply_strength_loss(routing_unit, damage)
 			routing_unit.reset_rally_timer()
 			enemy.record_damage_dealt(applied)
@@ -720,8 +892,11 @@ func finish_battle() -> void:
 func log_trace_row() -> void:
 	var time_sec := sim_tick_count * (1.0 / Constants.get_float("tick_rate_per_sec"))
 	for unit in units:
+		var ammo_field := ""
+		if unit.is_ranged_combatant():
+			ammo_field = ",ammo=%d" % unit.ammo_volleys_remaining()
 		trace_lines.append(
-			"%.1f,%s,%.4f,%.4f,%d,%.2f,%.2f,%s,%s"
+			"%.1f,%s,%.4f,%.4f,%d,%.2f,%.2f,%s,%s%s"
 			% [
 				time_sec,
 				unit.unit_id,
@@ -732,6 +907,7 @@ func log_trace_row() -> void:
 				unit.position.y,
 				unit.get_state_name(),
 				unit.get_active_contact_edges(),
+				ammo_field,
 			]
 		)
 

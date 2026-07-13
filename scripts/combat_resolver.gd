@@ -2,6 +2,7 @@ class_name CombatResolver
 extends RefCounted
 
 const _TickProfiler := preload("res://scripts/tick_profiler.gd")
+const _ArmorMatrix := preload("res://scripts/armor_matrix.gd")
 
 
 static func contact_epsilon_m() -> float:
@@ -353,8 +354,8 @@ static func resolve_engagement(unit_a: Variant, unit_b: Variant) -> Dictionary:
 	}
 
 	if is_equal_approx(push_a, push_b):
-		result.damage_a = _calc_strength_loss(push_b, false)
-		result.damage_b = _calc_strength_loss(push_a, false)
+		result.damage_a = calc_melee_strength_loss(unit_b, unit_a, 1.0, false)
+		result.damage_b = calc_melee_strength_loss(unit_a, unit_b, 1.0, false)
 		return result
 
 	var a_wins: Variant = push_a > push_b
@@ -366,12 +367,12 @@ static func resolve_engagement(unit_a: Variant, unit_b: Variant) -> Dictionary:
 
 	if a_wins:
 		result.shift_b_m = shift_m
-		result.damage_a = _calc_strength_loss(push_b, false)
-		result.damage_b = _calc_strength_loss(push_a, true)
+		result.damage_a = calc_melee_strength_loss(unit_b, unit_a, 1.0, false)
+		result.damage_b = calc_melee_strength_loss(unit_a, unit_b, 1.0, true)
 	else:
 		result.shift_a_m = shift_m
-		result.damage_a = _calc_strength_loss(push_b, true)
-		result.damage_b = _calc_strength_loss(push_a, false)
+		result.damage_a = calc_melee_strength_loss(unit_b, unit_a, 1.0, true)
+		result.damage_b = calc_melee_strength_loss(unit_a, unit_b, 1.0, false)
 
 	return result
 
@@ -395,11 +396,33 @@ static func _calc_ground_shift_m(winner_push: float, loser_push: float) -> float
 	return gap_ratio * Constants.get_float("push_ground_shift_max_m_per_tick")
 
 
-static func _calc_strength_loss(opponent_push_score: float, is_push_loser: bool) -> float:
-	var loss: Variant = Constants.get_float("k_dmg") * opponent_push_score
-	if is_push_loser:
-		loss *= Constants.get_float("push_loser_damage_factor")
-	return loss
+static func calc_melee_strength_loss(
+	attacker: Variant,
+	defender: Variant,
+	contact_frontage_pct: float,
+	defender_is_push_loser: bool
+) -> float:
+	var strength_max: float = Constants.get_float("strength_max")
+	var strength_pct: float = attacker.strength / strength_max
+	var close_damage: float = float(attacker.profile.get("close_damage", 0.0))
+	var raw_damage: float = (
+		close_damage
+		* strength_pct
+		* contact_frontage_pct
+		* Constants.get_float("k_melee_scale")
+	)
+	var armor_class: String = str(defender.profile.get("armor_class", "None"))
+	var armor_stat: float = float(defender.profile.get("armor", 0.0))
+	var damage_type: String = str(attacker.profile.get("melee_damage_type", "Slash"))
+	var class_mult: float = _ArmorMatrix.class_vs_type(armor_class, damage_type)
+	var anti_armor: float = float(attacker.profile.get("anti_armor", 0.0))
+	var k_melee: float = Constants.get_float("k_melee_scale")
+	var effective_armor: float = maxf(armor_stat * class_mult - anti_armor, 0.0) * k_melee
+	var chip_floor_pct: float = Constants.get_float("chip_floor_pct")
+	var damage: float = maxf(raw_damage - effective_armor, chip_floor_pct * raw_damage)
+	if defender_is_push_loser:
+		damage *= Constants.get_float("push_loser_damage_factor")
+	return damage
 
 
 static func is_head_on_pair(unit_a: Variant, unit_b: Variant) -> bool:
@@ -419,7 +442,7 @@ static func resolve_contact_segment(attacker: Variant, defender: Variant, contac
 	# Worked per-tick example (SIDE flank, constants from combat_constants.json):
 	#   contact left=15m → attacker_frontage_pct=1.0 (depth), defender_edge_pct≈0.375
 	#   If attacker wins: shift≈0.06m → shift_drain=0.06×0.8×edge_mult_side_shift(2.0)≈0.096
-	#   casualty_drain from k_dmg×push → cohesion × edge_mult_side_casualty(1.5) on left edge.
+	#   casualty_drain from melee formula → cohesion × edge_mult_side_casualty(1.5) on left edge.
 	var frontage_pct: float = contact.get("attacker_frontage_pct", 1.0)
 	var defender_edge_pct: float = contact.get("defender_edge_pct", 1.0)
 	var edge_lengths: Dictionary = contact.get("edge_lengths_m", {})
@@ -442,8 +465,8 @@ static func resolve_contact_segment(attacker: Variant, defender: Variant, contac
 	}
 
 	if is_equal_approx(push_attacker, push_defender):
-		result.attacker_damage = _calc_strength_loss(push_defender, false)
-		result.defender_damage = _calc_strength_loss(push_attacker, false)
+		result.attacker_damage = calc_melee_strength_loss(defender, attacker, defender_edge_pct, false)
+		result.defender_damage = calc_melee_strength_loss(attacker, defender, frontage_pct, false)
 		return result
 
 	var attacker_wins: Variant = push_attacker > push_defender
@@ -455,12 +478,12 @@ static func resolve_contact_segment(attacker: Variant, defender: Variant, contac
 
 	if attacker_wins:
 		result.defender_shift_m = shift_m
-		result.attacker_damage = _calc_strength_loss(push_defender, false)
-		result.defender_damage = _calc_strength_loss(push_attacker, true)
+		result.attacker_damage = calc_melee_strength_loss(defender, attacker, defender_edge_pct, false)
+		result.defender_damage = calc_melee_strength_loss(attacker, defender, frontage_pct, true)
 	else:
 		result.attacker_shift_m = shift_m
-		result.attacker_damage = _calc_strength_loss(push_defender, true)
-		result.defender_damage = _calc_strength_loss(push_attacker, false)
+		result.attacker_damage = calc_melee_strength_loss(defender, attacker, defender_edge_pct, true)
+		result.defender_damage = calc_melee_strength_loss(attacker, defender, frontage_pct, false)
 
 	return result
 
@@ -648,11 +671,75 @@ static func enemy_blocks_rally_distance_m(unit: Variant, enemy: Variant) -> bool
 	return false
 
 
-static func calc_pursuit_damage(pursuer: Variant) -> float:
-	var close_damage: Variant = float(pursuer.profile.get("close_damage", 0.0))
+static func calc_pursuit_damage(pursuer: Variant, routing_unit: Variant) -> float:
+	var base_loss: float = calc_melee_strength_loss(pursuer, routing_unit, 1.0, false)
+	return base_loss * Constants.get_float("pursuit_damage_multiplier")
+
+
+static func is_ranged_unit(unit: Variant) -> bool:
 	return (
-		close_damage
-		* Constants.get_float("pursuit_damage_multiplier")
-		* Constants.get_float("k_dmg")
+		float(unit.profile.get("ranged_damage", 0.0)) > 0.0
+		and float(unit.profile.get("range", 0.0)) > 0.0
 	)
+
+
+static func ranged_falloff_multiplier(distance_m: float, max_range_m: float) -> float:
+	if max_range_m <= 0.0:
+		return 0.0
+	var half_range_m: float = max_range_m * 0.5
+	var min_pct: float = Constants.get_float("ranged_falloff_min_pct")
+	if distance_m <= half_range_m:
+		return 1.0
+	if distance_m >= max_range_m:
+		return min_pct
+	var t: float = (distance_m - half_range_m) / (max_range_m - half_range_m)
+	return lerpf(1.0, min_pct, t)
+
+
+## Missile volley damage — WO-013b coupling via k_ranged_scale (not k_melee_scale).
+## No push-loser term. Casualty cohesion: front-edge channel only (no flank multipliers in v1).
+static func calc_ranged_volley_damage(
+	attacker: Variant,
+	defender: Variant,
+	distance_m: float
+) -> float:
+	var max_range_m: float = float(attacker.profile.get("range", 0.0))
+	var falloff: float = ranged_falloff_multiplier(distance_m, max_range_m)
+	var strength_max: float = Constants.get_float("strength_max")
+	var strength_pct: float = attacker.strength / strength_max
+	var ranged_damage: float = float(attacker.profile.get("ranged_damage", 0.0))
+	var k_ranged: float = Constants.get_float("k_ranged_scale")
+	var raw_damage: float = (
+		ranged_damage
+		* strength_pct
+		* falloff
+		* k_ranged
+	)
+	var armor_class: String = str(defender.profile.get("armor_class", "None"))
+	var armor_stat: float = float(defender.profile.get("armor", 0.0))
+	var damage_type: String = str(attacker.profile.get("ranged_damage_type", "Missile"))
+	var class_mult: float = _ArmorMatrix.class_vs_type(armor_class, damage_type)
+	var anti_armor: float = float(attacker.profile.get("anti_armor", 0.0))
+	var effective_armor: float = maxf(armor_stat * class_mult - anti_armor, 0.0) * k_ranged
+	var chip_floor_pct: float = Constants.get_float("chip_floor_pct")
+	return maxf(raw_damage - effective_armor, chip_floor_pct * raw_damage)
+
+
+static func calc_friendly_fire_damage(
+	attacker: Variant,
+	friendly: Variant,
+	rolled_volley_damage: float
+) -> float:
+	var ff_raw: float = rolled_volley_damage * Constants.get_float("friendly_fire_pct")
+	if ff_raw <= 0.0:
+		return 0.0
+	var armor_class: String = str(friendly.profile.get("armor_class", "None"))
+	var armor_stat: float = float(friendly.profile.get("armor", 0.0))
+	var damage_type: String = str(attacker.profile.get("ranged_damage_type", "Missile"))
+	var class_mult: float = _ArmorMatrix.class_vs_type(armor_class, damage_type)
+	var anti_armor: float = float(attacker.profile.get("anti_armor", 0.0))
+	var k_ranged: float = Constants.get_float("k_ranged_scale")
+	var effective_armor: float = maxf(armor_stat * class_mult - anti_armor, 0.0) * k_ranged
+	var chip_floor_pct: float = Constants.get_float("chip_floor_pct")
+	return maxf(ff_raw - effective_armor, chip_floor_pct * ff_raw)
 

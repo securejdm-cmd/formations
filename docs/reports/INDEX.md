@@ -2,6 +2,12 @@
 
 Canonical index of FORMATIONS work-order reports (newest first). Raw `main` branch links.
 
+- [WO-015_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-015-s6-harness-fd84/docs/reports/WO-015_completion.md) — WO-015 S6 harness repair (pending merge)
+- [WO-014b_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-014-ranged-combat-fd84/docs/reports/WO-014b_completion.md) — WO-014b fresh report path (sweep/S12–S16/suite; pending merge)
+- [WO-014_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-014-ranged-combat-fd84/docs/reports/WO-014_completion.md) — WO-014 v2 evidence regeneration (pending merge)
+- [WO-013b_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-013b-armor-scale-rebalance-fd84/docs/reports/WO-013b_completion.md) — Armor coupling, stat rebalance, R14 (pending merge)
+- [WO-013_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-013-real-melee-damage-fd84/docs/reports/WO-013_completion.md) — Real melee damage baseline
+- [WO-013_escalation.md](https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-013-real-melee-damage-fd84/docs/reports/WO-013_escalation.md) — Design authority blocker (resolved)
 - [WO-010_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/WO-010_completion.md)
 - [WO-009_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/WO-009_completion.md)
 - [MERGE_BATCH_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/MERGE_BATCH_completion.md) — WO-003 through WO-008 merge batch
