@@ -1,9 +1,9 @@
-# COMPLETION REPORT — WO-014 — Date 2026-07-13 — Commit COMMIT_STAMP
+# COMPLETION REPORT — WO-014 — Date 2026-07-13 — Commit fd42b539436fb766f4a58388f9b6aac9baa812de
 
 **Work order:** WO-014 / WO-014b  
 **Branch:** `cursor/wo-014-ranged-combat-fd84`  
 **Date:** 2026-07-13  
-**Commit:** `COMMIT_STAMP`  
+**Commit:** `fd42b539436fb766f4a58388f9b6aac9baa812de`  
 **Source of figures:** `docs/reports/evidence_wo014b/` (sweep / smoke / suite logs on this branch)
 
 ---
