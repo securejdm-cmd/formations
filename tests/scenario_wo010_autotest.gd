@@ -38,9 +38,16 @@ const S4_BLEND_TOLERANCE := 0.5
 const S4_CONTACT_BALANCE_MAX_M := 6.0
 const S8_BLOB_RATIO_MAX := 2.0
 const SCENARIO_EXTRA_TICKS := 120
+## Gated PASS lines emitted when every check is green (WO-015).
+## Compass, Fast+Threaded cert, S1×11, S2×11, Determinism, S3, Overlap, S4, S5–S8, S9,
+## S10–S11, S12, S13×3, S14×2, S15, S16×2 = 45
+const EXPECTED_GREEN_PASS_COUNT := 45
 
 var _scenario: Scenario01 = null
 var _exit_code := 0
+var _check_pass_count := 0
+var _check_fail_count := 0
+var _s9_ok := true
 var _mode := "fast_cert"
 var _seed_idx := 0
 var _s4_mode_idx := 0
@@ -65,6 +72,7 @@ var _perf_scale_pairs := [2, 10, 20]
 var _s14_ff_lost: float = 0.0
 var _s13_at70_dist: float = -1.0
 var _s13_engaged_dist: float = -1.0
+var _extra_ticks_for_mode := 0
 
 
 func _initialize() -> void:
@@ -76,7 +84,7 @@ func _initialize() -> void:
 	)
 	if scene_smoke_exit != 0:
 		push_error("Universal scene smoke test failed (exit %d)" % scene_smoke_exit)
-		_exit_code = 1
+		_record_check("[WO-010] SceneSmoke gate", false, "exit %d" % scene_smoke_exit)
 	var compass_exit := OS.execute(
 		"/tmp/godot/Godot_v4.4.1-stable_linux.x86_64",
 		["--headless", "--path", ProjectSettings.globalize_path("res://"), "-s", "res://tests/edge_contact_compass_test.gd"],
@@ -85,9 +93,9 @@ func _initialize() -> void:
 	)
 	if compass_exit != 0:
 		push_error("Compass test failed (exit %d)" % compass_exit)
-		_exit_code = 1
+		_record_check("[WO-010] Compass test", false, "exit %d" % compass_exit)
 	else:
-		print("[WO-010] Compass test PASS (32/32)")
+		_record_check("[WO-010] Compass test", true, "(32/32)")
 	call_deferred("_kickoff")
 
 
@@ -116,9 +124,13 @@ func _run_fast_certification() -> void:
 
 	if _cert_realtime_trace != fast_trace:
 		push_error("Fast-mode certification failed: realtime vs fast trace differ (seed %d)" % CERT_SEED)
-		_exit_code = 1
+		_record_check("[WO-010] Fast-mode certification", false, "seed %d" % CERT_SEED)
 	else:
-		print("[WO-010] Fast-mode certification PASS (seed %d trace byte-identical)" % CERT_SEED)
+		_record_check(
+			"[WO-010] Fast-mode certification",
+			true,
+			"(seed %d trace byte-identical)" % CERT_SEED,
+		)
 
 	var threaded: Scenario01 = _sim_runner.instantiate_scenario(
 		"res://tests/scenario_01.tscn", CERT_SEED, false, true
@@ -130,9 +142,13 @@ func _run_fast_certification() -> void:
 
 	if threaded_trace != fast_trace:
 		push_error("Threaded certification failed: threaded vs fast trace differ (seed %d)" % CERT_SEED)
-		_exit_code = 1
+		_record_check("[WO-011] Threaded certification", false, "seed %d" % CERT_SEED)
 	else:
-		print("[WO-011] Threaded certification PASS (seed %d trace byte-identical)" % CERT_SEED)
+		_record_check(
+			"[WO-011] Threaded certification",
+			true,
+			"(seed %d trace byte-identical)" % CERT_SEED,
+		)
 
 	_mode = "s1_regression"
 	_seed_idx = 0
@@ -276,9 +292,6 @@ func _spawn_and_run() -> void:
 	call_deferred("_run_when_ready")
 
 
-var _extra_ticks_for_mode := 0
-
-
 func _run_when_ready() -> void:
 	if _scenario == null or not _scenario.is_node_ready():
 		call_deferred("_run_when_ready")
@@ -336,9 +349,9 @@ func _finish() -> void:
 			_determinism_b = _core_trace(_scenario.get_trace_text())
 			if _determinism_a != _determinism_b:
 				push_error("Determinism failed")
-				_exit_code = 1
+				_record_check("[WO-010] Determinism", false)
 			else:
-				print("[WO-010] Determinism PASS")
+				_record_check("[WO-010] Determinism", true)
 			_mode = "scenario_03"
 			_spawn_and_run()
 		"scenario_03":
@@ -390,6 +403,7 @@ func _finish() -> void:
 			_mode = "s9_regression"
 			_seed_idx = 0
 			_s9_heavy_wins = 0
+			_s9_ok = true
 			_spawn_and_run()
 		"s9_regression":
 			_check_s9_regression(ALL_SEEDS[_seed_idx])
@@ -397,10 +411,17 @@ func _finish() -> void:
 			if _seed_idx < ALL_SEEDS.size():
 				_spawn_and_run()
 			else:
-				print("[WO-013] S9 PASS heavy_wins=%d/11 casualty_ratio_seed1000=%.3f" % [
-					_s9_heavy_wins,
-					_s9_casualty_ratio,
-				])
+				var s9_ok := _s9_ok and _s9_heavy_wins >= 10
+				if not s9_ok and _s9_heavy_wins < 10:
+					push_error("S9 heavy armor wins %d/11 (need >= 10)" % _s9_heavy_wins)
+				_record_check(
+					"[WO-013] S9",
+					s9_ok,
+					"heavy_wins=%d/11 casualty_ratio_seed1000=%.3f" % [
+						_s9_heavy_wins,
+						_s9_casualty_ratio,
+					],
+				)
 				_mode = "s10_chip_floor"
 				_spawn_and_run()
 		"s10_chip_floor":
@@ -469,24 +490,29 @@ func _finish() -> void:
 				_report_perf_scale()
 				if _scenario != null:
 					_scenario.free()
-				quit(_exit_code)
+				_reconcile_and_quit()
 
 
 func _check_s1_regression(seed_value: int) -> void:
 	var phases: Dictionary = _scenario.get_phase_durations_sec()
 	var winner: String = _scenario.get_winner_id()
 	var expected: Dictionary = WO013_S1[seed_value]
+	var ok := true
 	if winner != expected.winner:
 		push_error("S1 winner flip seed %d: %s vs %s" % [seed_value, winner, expected.winner])
-		_exit_code = 1
+		ok = false
 	if absf(phases.combat_sec - expected.combat) > 0.15:
 		push_error("S1 combat drift seed %d: %.1f vs %.1f" % [seed_value, phases.combat_sec, expected.combat])
-		_exit_code = 1
+		ok = false
 	var baseline := _load_baseline_trace("scenario_01_%d.csv" % seed_value)
 	if not baseline.is_empty() and _core_trace(_scenario.get_trace_text()) != _core_trace(baseline):
 		push_error("S1 trace drift seed %d (not byte-identical to baseline)" % seed_value)
-		_exit_code = 1
-	print("[WO-010] S1 seed %d PASS winner=%s combat=%.1fs" % [seed_value, winner, phases.combat_sec])
+		ok = false
+	_record_check(
+		"[WO-010] S1 seed %d" % seed_value,
+		ok,
+		"winner=%s combat=%.1fs" % [winner, phases.combat_sec],
+	)
 
 
 func _check_s2_regression(seed_value: int) -> void:
@@ -494,20 +520,25 @@ func _check_s2_regression(seed_value: int) -> void:
 	var winner: String = _scenario.get_winner_id()
 	var rout: float = _scenario.get_strength_at_rout()
 	var expected: Dictionary = WO013_S2[seed_value]
+	var ok := true
 	if winner != expected.winner:
 		push_error("S2 winner flip seed %d" % seed_value)
-		_exit_code = 1
+		ok = false
 	if absf(phases.combat_sec - expected.combat) > 0.15:
 		push_error("S2 combat drift seed %d" % seed_value)
-		_exit_code = 1
+		ok = false
 	if absf(rout - expected.rout) > 0.15:
 		push_error("S2 rout drift seed %d" % seed_value)
-		_exit_code = 1
+		ok = false
 	var baseline := _load_baseline_trace("scenario_02_%d.csv" % seed_value)
 	if not baseline.is_empty() and _core_trace(_scenario.get_trace_text()) != _core_trace(baseline):
 		push_error("S2 trace drift seed %d (not byte-identical to baseline)" % seed_value)
-		_exit_code = 1
-	print("[WO-010] S2 seed %d PASS combat=%.1fs rout=%.2f" % [seed_value, phases.combat_sec, rout])
+		ok = false
+	_record_check(
+		"[WO-010] S2 seed %d" % seed_value,
+		ok,
+		"combat=%.1fs rout=%.2f" % [phases.combat_sec, rout],
+	)
 
 
 func _check_scenario_03() -> void:
@@ -516,110 +547,131 @@ func _check_scenario_03() -> void:
 	var rout: float = _scenario.get_blue_a_strength_at_rout()
 	var drains: Dictionary = _scenario.get_blue_a_edge_drains()
 	var ratio: float = phases.combat_sec / s1_ref if s1_ref > 0.0 else 0.0
+	var ok := true
 	if rout <= 67.0:
 		push_error("S3 blue strength_at_rout %.2f not > 67%%" % rout)
-		_exit_code = 1
+		ok = false
 	if drains.get("left", 0.0) <= 0.0:
 		push_error("S3 missing LEFT edge drain")
-		_exit_code = 1
+		ok = false
 	if _scenario.had_overlap_failure() or _scenario.had_adhesion_invariant_failure():
 		push_error("S3 invariant/overlap failure")
-		_exit_code = 1
+		ok = false
 	var baseline := _load_baseline_trace("scenario_03_1000.csv")
 	if not baseline.is_empty() and _core_trace(_scenario.get_trace_text()) != _core_trace(baseline):
 		push_error("S3 trace drift (not byte-identical to baseline)")
-		_exit_code = 1
-	print("[WO-013] S3 PASS ratio=%.3f rout=%.2f (ratio band deferred to TD)" % [ratio, rout])
+		ok = false
+	_record_check(
+		"[WO-013] S3",
+		ok,
+		"ratio=%.3f rout=%.2f (ratio band deferred to TD)" % [ratio, rout],
+	)
 
 
 func _check_s4_labels_and_ratio() -> void:
 	var expected_labels := {"front": "front", "side": "left", "corner": "front+left"}
+	var ok := true
 	for row in _s4_results:
 		var expected: String = expected_labels.get(row.mode, "")
 		if row.edge != expected:
 			push_error("S4 %s edge label '%s' expected '%s'" % [row.mode, row.edge, expected])
-			_exit_code = 1
+			ok = false
 	var front_d: float = _s4_results[0].drain_per_sec
 	var side_d: float = _s4_results[1].drain_per_sec
 	var corner_d: float = _s4_results[2].drain_per_sec
 	if not (front_d < corner_d and corner_d < side_d):
 		push_error("S4 ordering failed")
-		_exit_code = 1
+		ok = false
+	_record_check(
+		"[WO-010] S4",
+		ok,
+		"front=%.3f corner=%.3f side=%.3f" % [front_d, corner_d, side_d],
+	)
 
 
 func _check_reflection_pair(seed_value: int) -> void:
+	var ok := true
 	if _scenario.had_overlap_failure():
 		push_error("Overlap on seed %d" % seed_value)
-		_exit_code = 1
+		ok = false
 	elif _scenario.had_adhesion_invariant_failure():
 		push_error("Adhesion invariant failed on seed %d" % seed_value)
-		_exit_code = 1
-	else:
-		print("[WO-010] Overlap/adhesion seed %d PASS" % seed_value)
-
+		ok = false
+	_record_check("[WO-010] Overlap/adhesion seed %d" % seed_value, ok)
 
 
 func _check_scenario_05() -> void:
 	var standard: Unit = _scenario.get_blue_standard()
 	var rally: Unit = _scenario.get_blue_rally()
+	var ok := true
 	if standard.get_state() != Unit.State.REMOVED:
 		push_error("S5 standard unit did not exit map (state=%s)" % standard.get_state_name())
-		_exit_code = 1
+		ok = false
 	if rally.get_state() != Unit.State.HOLD or not rally.is_rallied_hold():
 		push_error("S5 rally unit expected rallied HOLD, got %s" % rally.get_state_name())
-		_exit_code = 1
+		ok = false
 	if not rally.is_rallied_hold():
 		push_error("S5 rally unit missing rallied-hold flag")
-		_exit_code = 1
+		ok = false
 	if absf(rally.cohesion - 50.0) > 0.5:
 		push_error("S5 rally cohesion %.2f expected 50" % rally.cohesion)
-		_exit_code = 1
+		ok = false
 	if rally.current_order != Unit.Order.HOLD:
 		push_error("S5 rally unit resumed stale order")
-		_exit_code = 1
+		ok = false
 	var trace: String = _scenario.get_trace_text()
 	if "blue_rally" not in trace or "rallying" not in trace:
 		push_error("S5 trace missing rally timeline (routing→rallying→holding)")
-		_exit_code = 1
-	print(
-		"[WO-010] S5 PASS standard=%s rally=%s cohesion=%.1f"
-		% [standard.get_state_name(), rally.get_state_name(), rally.cohesion]
+		ok = false
+	_record_check(
+		"[WO-010] S5",
+		ok,
+		"standard=%s rally=%s cohesion=%.1f"
+		% [standard.get_state_name(), rally.get_state_name(), rally.cohesion],
 	)
 
 
 func _check_scenario_06() -> void:
 	var rally: Unit = _scenario.get_blue_rally()
+	var ok := true
 	if rally.get_state() == Unit.State.HOLD and rally.is_rallied_hold():
 		push_error("S6 rally entered HOLD despite pursuit")
-		_exit_code = 1
+		ok = false
 	elif rally.get_state() not in [Unit.State.ROUTING, Unit.State.RALLYING, Unit.State.REMOVED]:
 		push_error("S6 rally unit state unexpected: %s" % rally.get_state_name())
-		_exit_code = 1
+		ok = false
 	if _scenario.get_pursuit_tick_count() <= 0:
 		push_error("S6 no pursuit damage ticks logged")
-		_exit_code = 1
-	print(
-		"[WO-010] S6 PASS rally=%s pursuit_ticks=%d strength=%.2f"
-		% [rally.get_state_name(), _scenario.get_pursuit_tick_count(), rally.strength]
+		ok = false
+	_record_check(
+		"[WO-010] S6",
+		ok,
+		"rally=%s pursuit_ticks=%d strength=%.2f"
+		% [rally.get_state_name(), _scenario.get_pursuit_tick_count(), rally.strength],
 	)
 
 
 func _check_scenario_07() -> void:
 	var shocks: Array = _scenario.get_shock_events()
+	var ok := true
 	if shocks.size() < 2:
 		push_error("S7 expected 2 neighbor shock events, got %d" % shocks.size())
-		_exit_code = 1
+		ok = false
 	for row in shocks:
 		if absf(float(row.drain) - 15.0) > 0.1:
 			push_error("S7 shock drain %.1f expected 15" % row.drain)
-			_exit_code = 1
+			ok = false
 	var tipped := false
 	for neighbor in _scenario.get_red_neighbors():
 		if neighbor == null:
 			continue
 		if neighbor.get_state() == Unit.State.WAVERING:
 			tipped = true
-	print("[WO-010] S7 PASS shocks=%d shock_tips_wavering=%s" % [shocks.size(), tipped])
+	_record_check(
+		"[WO-010] S7",
+		ok,
+		"shocks=%d shock_tips_wavering=%s" % [shocks.size(), tipped],
+	)
 
 
 func _check_s9_regression(seed_value: int) -> void:
@@ -645,7 +697,7 @@ func _check_s9_regression(seed_value: int) -> void:
 				push_error("S9 seed %d: heavy effective armor %.2f should exceed light %.2f" % [
 					seed_value, heavy_armor_eff, light_armor_eff
 				])
-				_exit_code = 1
+				_s9_ok = false
 			var hypothetical_raw: float = 25.0
 			var heavy_dmg_at_raw: float = maxf(
 				hypothetical_raw - light_armor_eff,
@@ -657,22 +709,20 @@ func _check_s9_regression(seed_value: int) -> void:
 			)
 			if heavy_dmg_at_raw + 0.0001 < light_dmg_at_raw:
 				push_error("S9 seed %d: heavy should out-damage light above chip-floor regime" % seed_value)
-				_exit_code = 1
-	if _s9_heavy_wins < 10 and _seed_idx + 1 >= ALL_SEEDS.size():
-		push_error("S9 heavy armor wins %d/11 (need >= 10)" % _s9_heavy_wins)
-		_exit_code = 1
+				_s9_ok = false
 
 
 func _check_s10_chip_floor() -> void:
 	var winner: String = _scenario.get_winner_id()
+	var ok := true
 	if winner.is_empty():
 		push_error("S10 battle did not resolve a winner")
-		_exit_code = 1
+		ok = false
 	var attacker: Unit = _scenario.get_attacker_unit()
 	var plate: Unit = _scenario.get_plate_unit()
 	if attacker == null or plate == null:
 		push_error("S10 missing units")
-		_exit_code = 1
+		_record_check("[WO-013b] S10", false, "missing units")
 		return
 	var strength_max: float = _c_float("strength_max")
 	var raw_at_full: float = float(attacker.profile.get("close_damage", 0.0)) * _c_float("k_melee_scale")
@@ -688,22 +738,26 @@ func _check_s10_chip_floor() -> void:
 		push_error("S10 plate effective armor %.2f should exceed raw %.4f (chip-floor proof setup)" % [
 			plate_eff_armor, raw_at_full
 		])
-		_exit_code = 1
+		ok = false
 	var saved_strength: float = attacker.strength
 	attacker.strength = strength_max
 	var expected_chip_live: float = CombatResolver.calc_melee_strength_loss(attacker, plate, 1.0, false)
 	attacker.strength = saved_strength
 	if absf(expected_chip_live - expected_chip_full) > 0.0001:
 		push_error("S10 resolver chip mismatch live=%.4f full=%.4f" % [expected_chip_live, expected_chip_full])
-		_exit_code = 1
+		ok = false
 	var trace_ok := _trace_shows_chip_floor(_scenario.get_trace_text(), plate.unit_id, expected_chip_full)
 	if not trace_ok:
 		push_error("S10 chip-floor clamp not visible in trace")
-		_exit_code = 1
+		ok = false
 	if winner != "blue_1":
 		push_error("S10 expected plate defender blue_1 to win, got %s" % winner)
-		_exit_code = 1
-	print("[WO-013b] S10 PASS winner=%s chip_tick=%.4f trace_floor_ok=%s" % [winner, expected_chip_full, trace_ok])
+		ok = false
+	_record_check(
+		"[WO-013b] S10",
+		ok,
+		"winner=%s chip_tick=%.4f trace_floor_ok=%s" % [winner, expected_chip_full, trace_ok],
+	)
 
 
 func _trace_shows_chip_floor(trace_text: String, defender_id: String, expected_tick: float) -> bool:
@@ -746,9 +800,10 @@ func _check_s11_anti_armor() -> void:
 	var aa_damage: float = _scenario.get_plate_damage_taken()
 	var plate: Unit = _scenario.get_plate_unit()
 	var attacker: Unit = _scenario.get_attacker_unit()
+	var ok := true
 	if plate == null or attacker == null:
 		push_error("S11 missing units")
-		_exit_code = 1
+		_record_check("[WO-013b] S11", false, "missing units")
 		return
 	var plate_eff: float = float(plate.profile.get("armor", 0.0)) * ArmorMatrix.class_vs_type(
 		str(plate.profile.get("armor_class", "None")),
@@ -761,27 +816,29 @@ func _check_s11_anti_armor() -> void:
 		push_error("S11 anti_armor should reduce effective armor (ctrl=%.4f aa=%.4f)" % [
 			eff_armor_ctrl, eff_armor_aa
 		])
-		_exit_code = 1
+		ok = false
 	if aa_damage <= _s11_control_damage * 1.25:
 		push_error(
 			"S11 anti_armor damage %.2f not materially above control %.2f"
 			% [aa_damage, _s11_control_damage]
 		)
-		_exit_code = 1
+		ok = false
 	var breach_ctrl: float = _s11_control_breach if _s11_control_breach >= 0.0 else _s11_control_combat
 	var breach_aa: float = _scenario.get_plate_armor_breach_combat_sec(10.0)
 	if breach_aa < 0.0:
 		push_error("S11 anti_armor never breached plate armor in trace")
-		_exit_code = 1
+		ok = false
 	if breach_aa + 0.15 >= breach_ctrl:
 		push_error(
 			"S11 armor breach slower: anti_armor=%.2fs vs control=%.2fs (combat %.1fs/%.1fs)"
 			% [breach_aa, breach_ctrl, aa_combat, _s11_control_combat]
 		)
-		_exit_code = 1
-	print(
-		"[WO-013b] S11 PASS control=%.1fs breach=%.2fs/%.2f dmg anti_armor=%.1fs breach=%.2fs/%.2f dmg"
-		% [_s11_control_combat, breach_ctrl, _s11_control_damage, aa_combat, breach_aa, aa_damage]
+		ok = false
+	_record_check(
+		"[WO-013b] S11",
+		ok,
+		"control=%.1fs breach=%.2fs/%.2f dmg anti_armor=%.1fs breach=%.2fs/%.2f dmg"
+		% [_s11_control_combat, breach_ctrl, _s11_control_damage, aa_combat, breach_aa, aa_damage],
 	)
 
 
@@ -789,111 +846,121 @@ func _check_s12_attrition() -> void:
 	var volleys: int = _scenario.count_volley_events()
 	var approach_lost: float = _scenario.approach_strength_lost()
 	var inf_lost: float = _scenario.infantry_strength_lost()
+	var ok := true
 	if volleys < 2:
 		push_error("S12 expected multiple volleys, got %d" % volleys)
-		_exit_code = 1
+		ok = false
 	if approach_lost < 8.0 or approach_lost > 20.0:
 		push_error("S12 approach attrition %.2f%% outside [8, 20]" % approach_lost)
-		_exit_code = 1
+		ok = false
 	if inf_lost <= 0.0:
 		push_error("S12 infantry took no missile damage")
-		_exit_code = 1
+		ok = false
 	if not _scenario.had_dead_zone_panic():
 		push_error("S12 missing dead_zone_panic event")
-		_exit_code = 1
+		ok = false
 	if _scenario.infantry_routed_by_missiles_only():
 		push_error("S12 infantry routed by missiles before melee")
-		_exit_code = 1
-	print(
-		"[WO-014] S12 PASS volleys=%d approach_lost=%.2f%% total_lost=%.2f panic=%s"
-		% [volleys, approach_lost, inf_lost, _scenario.had_dead_zone_panic()]
+		ok = false
+	_record_check(
+		"[WO-014] S12",
+		ok,
+		"volleys=%d approach_lost=%.2f%% total_lost=%.2f panic=%s"
+		% [volleys, approach_lost, inf_lost, _scenario.had_dead_zone_panic()],
 	)
 
 
 func _check_s13_doctrine_sight() -> void:
 	var d_sight: float = _scenario.first_volley_distance_m()
+	var ok := true
 	if d_sight < 0.0:
 		push_error("S13 FIRE_ON_SIGHT missing first volley")
-		_exit_code = 1
+		ok = false
 	elif absf(d_sight - 150.0) > 8.0:
 		push_error("S13 FIRE_ON_SIGHT first volley %.1fm expected ~150m" % d_sight)
-		_exit_code = 1
-	else:
-		print("[WO-014] S13 sight PASS first_volley_m=%.1f" % d_sight)
+		ok = false
+	_record_check("[WO-014] S13 sight", ok, "first_volley_m=%.1f" % d_sight)
 
 
 func _check_s13_doctrine_at70() -> void:
+	var ok := true
 	if _s13_at70_dist < 0.0:
 		push_error("S13 FIRE_AT_70 missing first volley")
-		_exit_code = 1
+		ok = false
 	elif absf(_s13_at70_dist - 105.0) > 8.0:
 		push_error("S13 FIRE_AT_70 first volley %.1fm expected ~105m" % _s13_at70_dist)
-		_exit_code = 1
-	else:
-		print("[WO-014] S13 at70 PASS first_volley_m=%.1f" % _s13_at70_dist)
+		ok = false
+	_record_check("[WO-014] S13 at70", ok, "first_volley_m=%.1f" % _s13_at70_dist)
 
 
 func _check_s13_doctrine_engaged() -> void:
+	var ok := true
 	if _s13_engaged_dist < 0.0:
 		push_error("S13 FIRE_ON_ENGAGED missing first volley")
-		_exit_code = 1
+		ok = false
 	elif _s13_at70_dist > 0.0 and _s13_engaged_dist <= _s13_at70_dist + 3.0:
 		push_error(
 			"S13 engaged first volley %.1fm should trail FIRE_AT_70 %.1fm"
 			% [_s13_engaged_dist, _s13_at70_dist]
 		)
-		_exit_code = 1
+		ok = false
 	elif _s13_engaged_dist >= 150.0:
 		push_error("S13 FIRE_ON_ENGAGED should not open at sight range (%.1fm)" % _s13_engaged_dist)
-		_exit_code = 1
-	else:
-		print("[WO-014] S13 engaged PASS first_volley_m=%.1f" % _s13_engaged_dist)
+		ok = false
+	_record_check("[WO-014] S13 engaged", ok, "first_volley_m=%.1f" % _s13_engaged_dist)
 
 
 func _check_s14_friendly_fire(control: bool) -> void:
 	var ff_events: int = _scenario.count_friendly_fire_events()
+	var ok := true
 	if control:
 		if ff_events > 0:
 			push_error("S14 control expected zero friendly_fire events, got %d" % ff_events)
-			_exit_code = 1
-		print("[WO-014] S14 control PASS ff_events=0")
+			ok = false
+		_record_check("[WO-014] S14 control", ok, "ff_events=0")
 		return
 	if ff_events <= 0:
 		push_error("S14 expected friendly_fire events")
-		_exit_code = 1
+		ok = false
 	if _s14_ff_lost <= 0.0:
 		push_error("S14 friendly lost %.2f strength to FF" % _s14_ff_lost)
-		_exit_code = 1
-	print("[WO-014] S14 PASS ff_events=%d friendly_lost=%.2f" % [ff_events, _s14_ff_lost])
+		ok = false
+	_record_check(
+		"[WO-014] S14",
+		ok,
+		"ff_events=%d friendly_lost=%.2f" % [ff_events, _s14_ff_lost],
+	)
 
 
 func _check_s15_empty_quiver() -> void:
 	var volleys: int = _scenario.count_volley_events()
+	var ok := true
 	if volleys != 3:
 		push_error("S15 expected 3 volleys, got %d" % volleys)
-		_exit_code = 1
+		ok = false
 	if not _scenario.had_ammo_empty_event():
 		push_error("S15 missing ammo_empty trace event")
-		_exit_code = 1
+		ok = false
 	if _scenario.volleys_after_ammo_empty() > 0:
 		push_error("S15 fired volleys after ammo empty")
-		_exit_code = 1
-	print("[WO-014] S15 PASS volleys=%d ammo_empty=true" % volleys)
+		ok = false
+	_record_check("[WO-014] S15", ok, "volleys=%d ammo_empty=true" % volleys)
 
 
 func _check_s16_leather() -> void:
 	var volleys: int = _scenario.count_volley_events()
 	var lost: float = _scenario.target_strength_lost()
+	var ok := true
 	if volleys != 30:
 		push_error("S16 leather expected 30 volleys, got %d" % volleys)
-		_exit_code = 1
+		ok = false
 	if not _scenario.had_ammo_empty():
 		push_error("S16 leather missing ammo_empty")
-		_exit_code = 1
+		ok = false
 	if lost < 30.0 or lost > 45.0:
 		push_error("S16 leather lost %.2f%% outside [30, 45]" % lost)
-		_exit_code = 1
-	print("[WO-014] S16 leather PASS volleys=%d lost=%.2f%%" % [volleys, lost])
+		ok = false
+	_record_check("[WO-014] S16 leather", ok, "volleys=%d lost=%.2f%%" % [volleys, lost])
 
 
 func _check_s16_plate() -> void:
@@ -901,28 +968,36 @@ func _check_s16_plate() -> void:
 	var lost: float = _scenario.target_strength_lost()
 	var k: float = _c_float("k_ranged_scale")
 	var expected_chip: float = 30.0 * 18.0 * k * _c_float("chip_floor_pct")
+	var ok := true
 	if volleys != 30:
 		push_error("S16 plate expected 30 volleys, got %d" % volleys)
-		_exit_code = 1
+		ok = false
 	if absf(lost - expected_chip) > maxf(0.05 * expected_chip, 0.5):
 		push_error("S16 plate lost %.2f%% not chip-dominated (expected %.2f)" % [lost, expected_chip])
-		_exit_code = 1
-	print("[WO-014] S16 plate PASS volleys=%d lost=%.2f%% chip_expected=%.2f" % [volleys, lost, expected_chip])
+		ok = false
+	_record_check(
+		"[WO-014] S16 plate",
+		ok,
+		"volleys=%d lost=%.2f%% chip_expected=%.2f" % [volleys, lost, expected_chip],
+	)
 
 
 func _check_scenario_08(single_damage: float) -> void:
 	var triple_damage: float = _scenario.get_defender_damage_taken()
 	var ratio: float = triple_damage / single_damage if single_damage > 0.0 else 0.0
-	print(
-		"[WO-010] S8 single_damage=%.2f triple_damage=%.2f ratio=%.3f"
-		% [single_damage, triple_damage, ratio]
-	)
+	var ok := true
 	if single_damage <= 0.0 or triple_damage <= 0.0:
 		push_error("S8 zero damage recorded")
-		_exit_code = 1
+		ok = false
 	if ratio > S8_BLOB_RATIO_MAX:
 		push_error("S8 blob ratio %.3f exceeds cap %.1f (not frontage-capped)" % [ratio, S8_BLOB_RATIO_MAX])
-		_exit_code = 1
+		ok = false
+	_record_check(
+		"[WO-010] S8",
+		ok,
+		"single_damage=%.2f triple_damage=%.2f ratio=%.3f"
+		% [single_damage, triple_damage, ratio],
+	)
 
 
 func _check_perf_40() -> void:
@@ -936,12 +1011,13 @@ func _check_perf_40() -> void:
 			sim_stats.get("tick_count", 0),
 		]
 	)
+	var ok := true
 	if sim_stats.get("p95_tick_ms", 999.0) > 50.0:
 		push_error(
 			"WO-011 perf gate FAIL: sim-thread p95_tick_ms=%.3f exceeds 50ms budget"
 			% sim_stats.get("p95_tick_ms", 0.0)
 		)
-		_exit_code = 1
+		ok = false
 	print(
 		"[WO-011] Perf40 environmental actuals (cloud, not designer-desktop gate): "
 		+ "min_fps=%.1f avg_fps=%.1f avg_tick_ms=%.3f p95_tick_ms=%.3f ticks=%d"
@@ -953,6 +1029,45 @@ func _check_perf_40() -> void:
 			_perf_stats.get("tick_count", 0),
 		]
 	)
+	# Perf env is observational on cloud — do not gate PASS count on it.
+	if not ok:
+		_exit_code = 1
+
+
+func _record_check(tag: String, ok: bool, detail: String = "") -> void:
+	var suffix := ("" if detail.is_empty() else (" " + detail))
+	if ok:
+		_check_pass_count += 1
+		print("%s PASS%s" % [tag, suffix])
+	else:
+		_check_fail_count += 1
+		_exit_code = 1
+		print("%s FAIL%s" % [tag, suffix])
+
+
+func _reconcile_and_quit() -> void:
+	# Meta-assertion: PASS/FAIL emissions must reconcile with process exit.
+	if _exit_code == 0:
+		if _check_fail_count != 0:
+			push_error(
+				"WO-015 meta: exit 0 but FAIL count=%d (PASS/exit divergence)" % _check_fail_count
+			)
+			_exit_code = 1
+		if _check_pass_count != EXPECTED_GREEN_PASS_COUNT:
+			push_error(
+				"WO-015 meta: PASS count=%d expected %d"
+				% [_check_pass_count, EXPECTED_GREEN_PASS_COUNT]
+			)
+			_exit_code = 1
+	else:
+		if _check_fail_count == 0:
+			push_error("WO-015 meta: exit 1 but FAIL count=0 (PASS printed without FAIL)")
+			# Keep exit 1; already failing suite.
+	print(
+		"[WO-015] Meta PASS=%d FAIL=%d expected_green_pass=%d exit=%d"
+		% [_check_pass_count, _check_fail_count, EXPECTED_GREEN_PASS_COUNT, _exit_code]
+	)
+	quit(_exit_code)
 
 
 func _report_perf_scale() -> void:

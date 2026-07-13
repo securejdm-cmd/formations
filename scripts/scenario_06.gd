@@ -41,17 +41,20 @@ func _spawn_units() -> void:
 	red_striker.set_march_to(Vector2(half_distance_px, 0.0))
 	_units.append(red_striker)
 
+	# Duplicate profile before skip_auto_engage — shared dict would also mark
+	# red_striker, and WO-014 partner-side skip then prevents blue_rally engagement.
+	var pursuer_profile: Dictionary = striker_profile.duplicate(true)
+	pursuer_profile["skip_auto_engage"] = true
 	_red_pursuer = UNIT_SCENE.instantiate()
 	add_child(_red_pursuer)
 	_red_pursuer.configure(
 		"red_pursuer",
 		"red",
-		striker_profile,
+		pursuer_profile,
 		Vector2(-half_distance_px - 100.0 * px_per_meter, 0.0),
 		Vector2.RIGHT,
 	)
 	_red_pursuer.set_march_to(Vector2(half_distance_px + 200.0 * px_per_meter, 0.0))
-	_red_pursuer.profile["skip_auto_engage"] = true
 	_units.append(_red_pursuer)
 
 
