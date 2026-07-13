@@ -27,7 +27,7 @@ var _rallies_this_battle: int = 0
 var _rallied_hold: bool = false
 var _rally_reform_remaining_sec: float = 0.0
 var _pending_rout_event: bool = false
-var _crack_intensity: float = 0.0
+var _crack_intensity: float = 0.0  # Legacy sync field; crack band is strength%-driven (render-only).
 
 
 static func from_unit(unit: Unit) -> SimUnitProxy:
@@ -54,7 +54,7 @@ static func from_unit(unit: Unit) -> SimUnitProxy:
 	p._rallied_hold = unit.is_rallied_hold()
 	p._rally_reform_remaining_sec = unit._rally_reform_remaining_sec
 	p._pending_rout_event = unit._pending_rout_event
-	p._crack_intensity = unit._crack_intensity
+	p._crack_intensity = 0.0
 	for partner in unit.get_contact_partners():
 		if partner != null:
 			p._partner_ids.append(partner.unit_id)
@@ -83,7 +83,7 @@ func refresh_from_unit(unit: Unit) -> void:
 	_rallied_hold = unit.is_rallied_hold()
 	_rally_reform_remaining_sec = unit._rally_reform_remaining_sec
 	_pending_rout_event = unit._pending_rout_event
-	_crack_intensity = unit._crack_intensity
+	_crack_intensity = 0.0
 	_partner_ids.clear()
 	_contact_partners.clear()
 	for partner in unit.get_contact_partners():
@@ -144,7 +144,6 @@ func apply_to_unit(unit: Unit, all_units: Array = []) -> void:
 	unit._rallies_this_battle = _rallies_this_battle
 	unit._rally_reform_remaining_sec = _rally_reform_remaining_sec
 	unit._pending_rout_event = _pending_rout_event
-	unit._crack_intensity = _crack_intensity
 	unit._edge_cohesion_drain_totals = _edge_cohesion_drain_totals.duplicate()
 	unit.set_active_contact_edges(_active_contact_edges)
 	_set_unit_state(unit, _state)
@@ -244,13 +243,8 @@ func record_damage_dealt(strength_damage: float) -> void:
 		damage_dealt += strength_damage
 
 
-func add_crack_intensity_from_damage(strength_damage: float) -> void:
-	var strength_max := Constants.get_float("strength_max")
-	_crack_intensity = clampf(
-		_crack_intensity + strength_damage / strength_max,
-		0.0,
-		1.0,
-	)
+func add_crack_intensity_from_damage(_strength_damage: float) -> void:
+	pass
 
 
 func get_display_name() -> String:

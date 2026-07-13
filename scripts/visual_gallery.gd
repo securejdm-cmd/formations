@@ -1,9 +1,13 @@
 extends Node2D
 
-## WO-010 designer hand-confirm gallery — forced visual states, no simulation.
+## Designer hand-confirm gallery — forced visual states, no simulation.
 
 const UNIT_SCENE := preload("res://scenes/unit.tscn")
 const FLOATER_SCRIPT := preload("res://scripts/shock_floater.gd")
+const GALLERY_FRONTAGE_M := 60.0
+const EXHIBIT_SPACING_PX := 160.0
+const ROW_SPACING_PX := 200.0
+const CAPTION_BELOW_PX := 72.0
 
 @onready var _camera: Camera2D = $Camera2D
 @onready var _shock_layer: CanvasLayer = $ShockFloaterLayer
@@ -24,75 +28,82 @@ func _process(delta: float) -> void:
 		_fire_demo_floater()
 
 
+func _gallery_profile() -> Dictionary:
+	var profile := UnitProfileLoader.load_profile("test_infantry").duplicate()
+	profile["formation_frontage_m"] = GALLERY_FRONTAGE_M
+	return profile
+
+
 func _build_exhibits() -> void:
-	var profile := UnitProfileLoader.load_profile("test_infantry")
-	var px := Constants.get_float("px_per_meter")
-	var spacing := 120.0 * px
-	var y0 := -2.5 * spacing
+	var profile := _gallery_profile()
+	var px: float = Constants.get_float("px_per_meter")
+	var col_w: float = EXHIBIT_SPACING_PX
+	var origin := Vector2(-2.0 * col_w, -ROW_SPACING_PX)
 
-	_spawn_strength_row(profile, Vector2(-3.5 * spacing, y0), px)
-	_spawn_engaged_pair(profile, Vector2(0.0, y0), px)
-	_spawn_state_row(profile, Vector2(3.5 * spacing, y0), px)
+	_spawn_crack_progression_row(profile, origin, px)
+	_spawn_engaged_pair(profile, origin + Vector2(0.0, ROW_SPACING_PX), px)
+	_spawn_state_row(profile, origin + Vector2(0.0, ROW_SPACING_PX * 2.0), px)
 
 
-func _spawn_strength_row(profile: Dictionary, origin: Vector2, px: float) -> void:
-	var strengths := [100.0, 75.0, 50.0, 25.0]
+func _spawn_crack_progression_row(profile: Dictionary, origin: Vector2, px: float) -> void:
+	var strengths := [100.0, 90.0, 70.0, 50.0, 30.0]
 	for i in strengths.size():
+		var pos: Vector2 = origin + Vector2(float(i) * EXHIBIT_SPACING_PX, 0.0)
 		var unit: Unit = UNIT_SCENE.instantiate()
 		add_child(unit)
-		var pos: Vector2 = origin + Vector2(float(i) * 70.0 * px, 0.0)
-		unit.configure("str_%d" % int(strengths[i]), "red", profile, pos, Vector2.RIGHT)
+		unit.configure("crack_%d" % int(strengths[i]), "red", profile, pos, Vector2.RIGHT)
 		unit.strength = strengths[i]
+		unit._set_state(Unit.State.ENGAGED)
 		unit.set_render_camera(_camera)
-		_add_caption(pos + Vector2(0.0, 55.0 * px), "%d%% STR" % int(strengths[i]))
+		_add_caption_below(pos, px, "%d%% STR" % int(strengths[i]))
 
 
 func _spawn_engaged_pair(profile: Dictionary, origin: Vector2, px: float) -> void:
+	var half_gap: float = 24.0
 	var red: Unit = UNIT_SCENE.instantiate()
 	add_child(red)
-	red.configure("grind_red", "red", profile, origin + Vector2(-20.0 * px, 0.0), Vector2.RIGHT)
+	red.configure("grind_red", "red", profile, origin + Vector2(-half_gap, 0.0), Vector2.RIGHT)
 	red.set_render_camera(_camera)
 	red._set_state(Unit.State.ENGAGED)
 	red.set_bump_state(1.0, true)
-	red.add_crack_intensity_from_damage(80.0)
+	red.strength = 55.0
 
 	var blue: Unit = UNIT_SCENE.instantiate()
 	add_child(blue)
-	blue.configure("grind_blue", "blue", profile, origin + Vector2(20.0 * px, 0.0), Vector2.LEFT)
+	blue.configure("grind_blue", "blue", profile, origin + Vector2(half_gap, 0.0), Vector2.LEFT)
 	blue.set_render_camera(_camera)
 	blue._set_state(Unit.State.ENGAGED)
 	blue.set_bump_state(1.0, false)
-	blue.add_crack_intensity_from_damage(80.0)
+	blue.strength = 55.0
 
-	_add_caption(origin + Vector2(0.0, 55.0 * px), "Max grind + fissures")
+	_add_caption_below(origin, px, "Max grind strip (55% STR)")
 
 
 func _spawn_state_row(profile: Dictionary, origin: Vector2, px: float) -> void:
 	var waver: Unit = UNIT_SCENE.instantiate()
 	add_child(waver)
-	waver.configure("waver", "red", profile, origin, Vector2.RIGHT)
+	waver.configure("waver", "red", profile, origin + Vector2(-EXHIBIT_SPACING_PX, 0.0), Vector2.RIGHT)
 	waver.cohesion = 25.0
+	waver.strength = 80.0
 	waver.set_render_camera(_camera)
 	waver._set_state(Unit.State.WAVERING)
-	_add_caption(origin + Vector2(0.0, 55.0 * px), "Wavering")
+	_add_caption_below(origin + Vector2(-EXHIBIT_SPACING_PX, 0.0), px, "Wavering")
 
 	var rout: Unit = UNIT_SCENE.instantiate()
 	add_child(rout)
-	var rout_pos: Vector2 = origin + Vector2(0.0, 90.0 * px)
-	rout.configure("rout", "red", profile, rout_pos, Vector2.RIGHT)
+	rout.configure("rout", "red", profile, origin, Vector2.RIGHT)
 	rout.set_render_camera(_camera)
 	rout._set_state(Unit.State.ROUTING)
-	_add_caption(rout_pos + Vector2(0.0, 55.0 * px), "Routing (constant width)")
+	_add_caption_below(origin, px, "Routing")
 
 	var rallied: Unit = UNIT_SCENE.instantiate()
 	add_child(rallied)
-	var hold_pos: Vector2 = origin + Vector2(0.0, 180.0 * px)
-	rallied.configure("rallied", "red", profile, hold_pos, Vector2.RIGHT)
+	rallied.configure("rallied", "red", profile, origin + Vector2(EXHIBIT_SPACING_PX, 0.0), Vector2.RIGHT)
 	rallied.cohesion = 50.0
 	rallied.set_render_camera(_camera)
 	rallied._rallied_hold = true
 	rallied._set_state(Unit.State.HOLD)
-	_add_caption(hold_pos + Vector2(0.0, 55.0 * px), "Rallied HOLD")
+	_add_caption_below(origin + Vector2(EXHIBIT_SPACING_PX, 0.0), px, "Rallied HOLD")
 
 	_stat_card.show_for_unit(waver)
 
@@ -112,11 +123,18 @@ func _fire_demo_floater() -> void:
 		break
 
 
+func _add_caption_below(unit_pos: Vector2, px: float, text: String) -> void:
+	var caption_pos: Vector2 = unit_pos + Vector2(0.0, CAPTION_BELOW_PX)
+	_add_caption(caption_pos, text)
+
+
 func _add_caption(world_pos: Vector2, text: String) -> void:
 	var label: Label = Label.new()
 	_shock_layer.add_child(label)
 	label.text = text
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.add_theme_font_size_override("font_size", 12)
-	label.add_theme_color_override("font_color", Color(1, 1, 1, 0.9))
-	label.position = _camera.get_canvas_transform() * world_pos
+	label.add_theme_color_override("font_color", Color(0.92, 0.92, 0.94, 1.0))
+	var screen_pos: Vector2 = _camera.get_canvas_transform() * world_pos
+	label.position = screen_pos - Vector2(40.0, 0.0)
+	label.custom_minimum_size = Vector2(80.0, 0.0)
