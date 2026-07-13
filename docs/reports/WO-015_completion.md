@@ -1,9 +1,9 @@
-# COMPLETION REPORT — WO-015 — Date 2026-07-13 — Commit COMMIT_STAMP
+# COMPLETION REPORT — WO-015 — Date 2026-07-13 — Commit 866acde227ade7a037019191256a8df408d4782b
 
 **Work order:** WO-015 — S6 regression repair + harness PASS/FAIL integrity  
 **Branch:** `cursor/wo-015-s6-harness-fd84`  
 **Date:** 2026-07-13  
-**Commit:** `COMMIT_STAMP`  
+**Commit:** `866acde227ade7a037019191256a8df408d4782b`  
 **Base:** WO-014 tip (`cursor/wo-014-ranged-combat-fd84`) — merge of WO-014 held until this greens the suite  
 **Evidence:** `docs/reports/evidence_wo015/`
 
