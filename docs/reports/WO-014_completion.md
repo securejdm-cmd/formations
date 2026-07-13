@@ -71,6 +71,17 @@ Uses existing `k_melee_scale`, `chip_floor_pct`, `min_range_m` / `reload_s` / `a
 
 ---
 
+## Acceptance Criteria (WO-014)
+
+- [x] Volley pipeline through armor matrix verified with hand-traced examples (Missile vs Leather AND vs Plate)
+- [x] S12-S15 pass; volley counts, first-volley ranges, FF percentages, ammo states in traces
+- [x] Melee-only regression (S1 core trace byte-identical seed 1000; `combat_tick()` untouched)
+- [x] Scene smoke PASS (21 scenes); gallery volley arc exhibit
+- [x] New constants in `combat_constants.json`; documented in report
+- [x] Report with Links footer; merge on TD approval
+
+---
+
 ## Links
 
 - [WO-014 work order](https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-014-ranged-combat-fd84/docs/work_orders/WORK_ORDER_014.md)

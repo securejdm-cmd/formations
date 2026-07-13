@@ -292,6 +292,8 @@ func _run_when_ready() -> void:
 		_sim_harness.run_ticks(_scenario, 3500 + _extra_ticks_for_mode)
 	elif _mode == "s13_engaged":
 		_sim_harness.run_ticks(_scenario, 2800)
+	elif _mode in ["s14_friendly_fire", "s14_ff_control"]:
+		_sim_harness.run_ticks(_scenario, 2200)
 	else:
 		_sim_harness.run_to_completion(_scenario, _sim_harness.RunMode.FAST, _extra_ticks_for_mode)
 	_finish()

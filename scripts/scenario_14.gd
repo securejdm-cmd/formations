@@ -12,6 +12,7 @@ func _spawn_units() -> void:
 		archer_profile["fire_doctrine"] = "FIRE_ON_ENGAGED"
 	else:
 		archer_profile["fire_doctrine"] = "FIRE_ON_SIGHT"
+		archer_profile["ammo_volleys"] = 12
 
 	var infantry_profile := UnitProfileLoader.load_profile("test_infantry")
 	var px := Constants.get_float("px_per_meter")
@@ -24,23 +25,6 @@ func _spawn_units() -> void:
 	archer._set_state(Unit.State.HOLD)
 	_units.append(archer)
 
-	var friendly: Unit = UNIT_SCENE.instantiate()
-	add_child(friendly)
-	friendly.configure("red_melee", "red", infantry_profile, Vector2(-10.0 * px, 0.0), Vector2.RIGHT)
-	friendly.current_order = Unit.Order.HOLD
-	friendly._set_state(Unit.State.HOLD)
-	_units.append(friendly)
-
-	var enemy: Unit = UNIT_SCENE.instantiate()
-	add_child(enemy)
-	enemy.configure("blue_scrum", "blue", infantry_profile, Vector2(10.0 * px, 0.0), Vector2.LEFT)
-	enemy.current_order = Unit.Order.HOLD
-	enemy._set_state(Unit.State.HOLD)
-	_units.append(enemy)
-
-	friendly.add_contact_partner(enemy)
-	enemy.add_contact_partner(friendly)
-
 	if control_mode:
 		var reinforcement: Unit = UNIT_SCENE.instantiate()
 		add_child(reinforcement)
@@ -48,14 +32,32 @@ func _spawn_units() -> void:
 			"blue_reinforcement",
 			"blue",
 			infantry_profile,
-			Vector2(180.0 * px, 80.0),
+			Vector2(80.0 * px, 0.0),
 			Vector2.LEFT,
 		)
-		reinforcement.set_march_to(Vector2(120.0 * px, 80.0))
+		reinforcement.set_march_to(Vector2(20.0 * px, 0.0))
 		_units.append(reinforcement)
 	else:
-		# Main run: archer has line of fire on engaged scrum target only.
-		pass
+		var friendly: Unit = UNIT_SCENE.instantiate()
+		add_child(friendly)
+		friendly.configure("red_melee", "red", infantry_profile, Vector2(-10.0 * px, 0.0), Vector2.RIGHT)
+		friendly.current_order = Unit.Order.HOLD
+		friendly._set_state(Unit.State.HOLD)
+		_units.append(friendly)
+
+		var enemy: Unit = UNIT_SCENE.instantiate()
+		add_child(enemy)
+		enemy.configure("blue_scrum", "blue", infantry_profile, Vector2(10.0 * px, 0.0), Vector2.LEFT)
+		enemy.current_order = Unit.Order.HOLD
+		enemy._set_state(Unit.State.HOLD)
+		_units.append(enemy)
+
+		friendly.add_contact_partner(enemy)
+		enemy.add_contact_partner(friendly)
+		if CombatResolver.is_head_on_pair(friendly, enemy):
+			CombatResolver.snap_pair_to_contact(friendly, enemy)
+		friendly._set_state(Unit.State.ENGAGED)
+		enemy._set_state(Unit.State.ENGAGED)
 
 	for unit in _units:
 		unit.set_render_camera(_camera)
