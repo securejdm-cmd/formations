@@ -188,6 +188,71 @@ static func faces_threat(defender: Variant, attacker: Variant) -> bool:
 	return defender.facing.normalized().dot(to_attacker.normalized()) > 0.5
 
 
+static func is_charging_threat(attacker: Variant, defender: Variant) -> bool:
+	## Cheap front-arc charge threat (no full classification). Closing in SI m/s.
+	if attacker == null or defender == null:
+		return false
+	if not faces_threat(defender, attacker):
+		return false
+	var closing_si := closing_speed_into_defender(attacker, defender) * si_scale()
+	return closing_si >= Constants.get_float("charge_min_speed")
+
+
+static func own_speed_allows_instinctive(defender: Variant) -> bool:
+	var top := top_speed_m_s(defender)
+	var cap := top * Constants.get_float("brace_max_own_speed_pct")
+	var spd: float = float(defender.current_speed_m_s) if "current_speed_m_s" in defender else 0.0
+	return spd <= cap + 0.001
+
+
+static func is_engaged_with_other(defender: Variant, exclude_attacker: Variant) -> bool:
+	if defender == null or not defender.has_method("get_contact_partners"):
+		return false
+	for partner in defender.get_contact_partners():
+		if partner == null:
+			continue
+		if exclude_attacker != null and partner == exclude_attacker:
+			continue
+		if str(partner.team_id) == str(defender.team_id):
+			continue
+		var st = partner.get_state() if partner.has_method("get_state") else -1
+		if st == Unit.State.REMOVED:
+			continue
+		return true
+	return false
+
+
+static func threat_front_sec_of(defender: Variant) -> float:
+	if defender == null:
+		return 0.0
+	if "threat_front_sec" in defender:
+		return float(defender.threat_front_sec)
+	if "_threat_front_sec" in defender:
+		return float(defender._threat_front_sec)
+	return 0.0
+
+
+## R16 brace tier at impact. Returns {tier, mult, name}.
+static func resolve_brace_tier(attacker: Variant, defender: Variant, edge_name: String) -> Dictionary:
+	# Tier 2 — Pierce set-to-receive.
+	if is_pierce(defender) and defender.has_method("is_braced") and defender.is_braced():
+		return {"tier": 2, "mult": 0.0, "name": "set_to_receive"}
+	# Tier 1 — Instinctive (frontal only).
+	var front := str(edge_name) == EdgeContact.EDGE_FRONT
+	if (
+		front
+		and threat_front_sec_of(defender) + 0.001 >= Constants.get_float("brace_reaction_s")
+		and not is_engaged_with_other(defender, attacker)
+		and own_speed_allows_instinctive(defender)
+	):
+		return {
+			"tier": 1,
+			"mult": Constants.get_float("instinctive_brace_mult"),
+			"name": "instinctive",
+		}
+	return {"tier": 3, "mult": 1.0, "name": "unaware"}
+
+
 static func charge_amp_of(unit: Variant) -> float:
 	if unit == null:
 		return 1.0

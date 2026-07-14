@@ -1,12 +1,13 @@
-class_name Scenario22
+class_name Scenario26
 extends Scenario01
 
-## Frontal charge vs fresh facing infantry — R15 stagger (waver band), hold (not routed by shock).
+## S26 — Late front-arc entry (~0.5s): reaction window unmet → no Tier 1, full shock.
 
-const TRACE_PREFIX := "scenario_22"
+const TRACE_PREFIX := "scenario_26"
 
 var _cavalry: Unit = null
 var _infantry: Unit = null
+var _turned_to_face: bool = false
 
 
 func _spawn_units() -> void:
@@ -25,8 +26,8 @@ func _spawn_units() -> void:
 
 	_infantry = UNIT_SCENE.instantiate()
 	add_child(_infantry)
-	# Facing the charger (braced-facing / frontal posture).
-	_infantry.configure("blue_inf", "blue", inf_profile, Vector2(half, 0.0), Vector2.LEFT)
+	# Face away until late turn so threat_front_sec cannot reach brace_reaction_s.
+	_infantry.configure("blue_inf", "blue", inf_profile, Vector2(half, 0.0), Vector2.RIGHT)
 	_infantry.current_order = Unit.Order.HOLD
 	_infantry._set_state(Unit.State.HOLD)
 	_infantry.current_speed_m_s = 0.0
@@ -36,6 +37,32 @@ func _spawn_units() -> void:
 		unit.set_render_camera(_camera)
 
 
+func advance_one_tick() -> void:
+	_maybe_turn_infantry()
+	super.advance_one_tick()
+
+
+func advance_post_battle_tick() -> void:
+	_maybe_turn_infantry()
+	super.advance_post_battle_tick()
+
+
+func _maybe_turn_infantry() -> void:
+	if _turned_to_face or _cavalry == null or _infantry == null:
+		return
+	var px := Constants.get_float("px_per_meter")
+	var gap_m := absf(_cavalry.position.x - _infantry.position.x) / px
+	# ~0.5s before impact at cavalry ~4 sim-m/s.
+	if gap_m <= 15.5:
+		_infantry.facing = Vector2.LEFT
+		_infantry.rotation = _infantry.facing.angle()
+		_infantry._threat_front_sec = 0.0
+		_infantry._brace_hold_sec = 0.0
+		_infantry._braced = false
+		_turned_to_face = true
+		_sync_core_from_units()
+
+
 func _write_trace_file() -> void:
 	var file_path := TRACE_DIR + TRACE_PREFIX + "_%d.csv" % _battle_seed
 	var file := FileAccess.open(file_path, FileAccess.WRITE)
@@ -43,7 +70,7 @@ func _write_trace_file() -> void:
 		return
 	for line in _trace_lines:
 		file.store_line(line)
-	print("[Scenario 22] Trace written: %s" % file_path)
+	print("[Scenario 26] Trace written: %s" % file_path)
 
 
 func get_charge_events() -> Array:
@@ -62,23 +89,7 @@ func primary_charge_event() -> Dictionary:
 
 
 func infantry_cohesion() -> float:
-	if _infantry == null:
-		return -1.0
-	return _infantry.cohesion
-
-
-func infantry_state_name() -> String:
-	if _infantry == null:
-		return ""
-	return _infantry.get_state_name()
-
-
-func cavalry_strength() -> float:
-	return -1.0 if _cavalry == null else _cavalry.strength
-
-
-func infantry_strength() -> float:
-	return -1.0 if _infantry == null else _infantry.strength
+	return -1.0 if _infantry == null else _infantry.cohesion
 
 
 func combat_duration_sec() -> float:

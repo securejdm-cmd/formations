@@ -1,13 +1,9 @@
-class_name Scenario17
+class_name Scenario23
 extends Scenario01
 
-## Cavalry charge vs unbraced infantry (long run-up). Optional adjacent / pre-drain.
+## S23 — Steady braced infantry: long frontal charge → Tier 1, hold above waver, cav loses grind.
 
-const TRACE_PREFIX := "scenario_17"
-
-@export var adjacent_control: bool = false
-## When > 0, infantry starts at this cohesion (S17b: shaken line → charge may finish).
-@export var infantry_start_cohesion: float = -1.0
+const TRACE_PREFIX := "scenario_23"
 
 var _cavalry: Unit = null
 var _infantry: Unit = null
@@ -17,9 +13,7 @@ func _spawn_units() -> void:
 	var cav_profile := UnitProfileLoader.load_profile("test_cavalry")
 	var inf_profile := UnitProfileLoader.load_profile("test_infantry")
 	var px := Constants.get_float("px_per_meter")
-	# Adjacent: sit just outside contact from rest so closing stays below charge_min.
-	# (8m centers nested the 15m-deep blocks and could stall adhesion.)
-	var run_up_m := 20.0 if adjacent_control else 180.0
+	var run_up_m := 180.0
 	var half := run_up_m * 0.5 * px
 
 	_cavalry = UNIT_SCENE.instantiate()
@@ -35,9 +29,6 @@ func _spawn_units() -> void:
 	_infantry.current_order = Unit.Order.HOLD
 	_infantry._set_state(Unit.State.HOLD)
 	_infantry.current_speed_m_s = 0.0
-	if infantry_start_cohesion >= 0.0:
-		_infantry.cohesion = infantry_start_cohesion
-		_infantry._refresh_morale_state()
 	_units.append(_infantry)
 
 	for unit in _units:
@@ -45,16 +36,13 @@ func _spawn_units() -> void:
 
 
 func _write_trace_file() -> void:
-	var suffix := "_adj" if adjacent_control else ""
-	if infantry_start_cohesion >= 0.0 and not adjacent_control:
-		suffix = "_predrain"
-	var file_path := TRACE_DIR + TRACE_PREFIX + suffix + "_%d.csv" % _battle_seed
+	var file_path := TRACE_DIR + TRACE_PREFIX + "_%d.csv" % _battle_seed
 	var file := FileAccess.open(file_path, FileAccess.WRITE)
 	if file == null:
 		return
 	for line in _trace_lines:
 		file.store_line(line)
-	print("[Scenario 17] Trace written: %s" % file_path)
+	print("[Scenario 23] Trace written: %s" % file_path)
 
 
 func get_charge_events() -> Array:
@@ -73,15 +61,11 @@ func primary_charge_event() -> Dictionary:
 
 
 func infantry_cohesion() -> float:
-	if _infantry == null:
-		return -1.0
-	return _infantry.cohesion
+	return -1.0 if _infantry == null else _infantry.cohesion
 
 
 func infantry_state_name() -> String:
-	if _infantry == null:
-		return ""
-	return _infantry.get_state_name()
+	return "" if _infantry == null else _infantry.get_state_name()
 
 
 func cavalry_strength() -> float:
@@ -90,13 +74,6 @@ func cavalry_strength() -> float:
 
 func infantry_strength() -> float:
 	return -1.0 if _infantry == null else _infantry.strength
-
-
-func infantry_strength_at_rout() -> float:
-	# Approximate from final strength after combat if routed.
-	if _infantry == null:
-		return -1.0
-	return _infantry.strength
 
 
 func combat_duration_sec() -> float:

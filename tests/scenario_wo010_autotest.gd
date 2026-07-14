@@ -40,8 +40,9 @@ const S8_BLOB_RATIO_MAX := 2.0
 const SCENARIO_EXTRA_TICKS := 120
 ## Gated PASS lines emitted when every check is green (WO-015).
 ## Compass, Fast+Threaded cert, S1×11, S2×11, Determinism, S3, Overlap, S4, S5–S8, S9,
-## S10–S11, S12, S13×3, S14×2, S15, S16×2, S17×2, S17b, S18, S19, S20×2, S21, S22 = 54
-const EXPECTED_GREEN_PASS_COUNT := 54
+## S10–S11, S12, S13×3, S14×2, S15, S16×2, S17×2, S17b, S18, S19, S20×2, S21, S22,
+## S23–S26 = 58
+const EXPECTED_GREEN_PASS_COUNT := 58
 
 var _scenario: Scenario01 = null
 var _exit_code := 0
@@ -273,6 +274,18 @@ func _spawn_and_run() -> void:
 		"s22_frontal_facing":
 			scene = "scenario_22"
 			seed_value = 1000
+		"s23_braced_hold":
+			scene = "scenario_23"
+			seed_value = 1000
+		"s24_caught_engaged":
+			scene = "scenario_24"
+			seed_value = 1000
+		"s25_caught_marching":
+			scene = "scenario_25"
+			seed_value = 1000
+		"s26_late_arc":
+			scene = "scenario_26"
+			seed_value = 1000
 
 	if _scenario != null:
 		_scenario.free()
@@ -372,6 +385,10 @@ func _run_when_ready() -> void:
 		"s20_runup_long",
 		"s21_flank_charge",
 		"s22_frontal_facing",
+		"s23_braced_hold",
+		"s24_caught_engaged",
+		"s25_caught_marching",
+		"s26_late_arc",
 	]:
 		_sim_harness.run_ticks(_scenario, 4500)
 	else:
@@ -568,6 +585,22 @@ func _finish() -> void:
 			_spawn_and_run()
 		"s22_frontal_facing":
 			_check_s22_frontal_facing()
+			_mode = "s23_braced_hold"
+			_spawn_and_run()
+		"s23_braced_hold":
+			_check_s23_braced_hold()
+			_mode = "s24_caught_engaged"
+			_spawn_and_run()
+		"s24_caught_engaged":
+			_check_s24_caught_engaged()
+			_mode = "s25_caught_marching"
+			_spawn_and_run()
+		"s25_caught_marching":
+			_check_s25_caught_marching()
+			_mode = "s26_late_arc"
+			_spawn_and_run()
+		"s26_late_arc":
+			_check_s26_late_arc()
 			_mode = "perf_40"
 			_spawn_and_run()
 		"perf_40":
@@ -1158,10 +1191,14 @@ func _check_s17_charge(adjacent: bool) -> void:
 	if impact < 18.0:
 		push_error("S17 impact %.3f too small for SI gallop" % impact)
 		ok = false
-	# R15 frontal: fresh line lands in wavering band, not routed by charge alone.
+	# R16: long frontal vs steady facing infantry → Tier 1 instinctive → land >= 45.
+	var brace_tier: int = int(ev.get("brace_tier", 0))
+	if brace_tier != 1:
+		push_error("S17 expected brace_tier=1 instinctive (got %d / %s)" % [brace_tier, ev.get("brace", "")])
+		ok = false
 	var land_coh := 100.0 - shock
-	if land_coh < 15.0 or land_coh > 30.0:
-		push_error("S17 R15 landing cohesion %.2f (shock=%.3f) not in [15,30]" % [land_coh, shock])
+	if land_coh < 45.0:
+		push_error("S17 Tier1 landing cohesion %.2f (shock=%.3f) expected >=45" % [land_coh, shock])
 		ok = false
 	var edge: String = str(ev.get("edge", ""))
 	if edge != "front" and float(ev.get("edge_mult", 1.0)) > 1.05:
@@ -1171,10 +1208,21 @@ func _check_s17_charge(adjacent: bool) -> void:
 	_s17_charge_shock = shock
 	_s17_combat_sec = _scenario.combat_duration_sec()
 	_record_check(
-		"[WO-016] S17",
+		"[WO-017] S17",
 		ok,
-		"impact=%.3f shock=%.3f closing=%.3f land_coh=%.2f edge=%s combat=%.1fs"
-		% [impact, shock, closing, land_coh, edge, _s17_combat_sec],
+		"impact=%.3f shock=%.3f closing=%.3f land_coh=%.2f tier=%d edge=%s combat=%.1fs winner=%s cav_str=%.1f inf_str=%.1f"
+		% [
+			impact,
+			shock,
+			closing,
+			land_coh,
+			brace_tier,
+			edge,
+			_s17_combat_sec,
+			_scenario.get_winner_id(),
+			_scenario.cavalry_strength(),
+			_scenario.infantry_strength(),
+		],
 	)
 
 
@@ -1186,18 +1234,17 @@ func _check_s17b_predrain() -> void:
 	if not charged:
 		push_error("S17b expected charge impact")
 		ok = false
-	# Start ~40: shock into R15 band should finish through rout_threshold.
+	# Shaken 40 + Tier 1 (×0.6) still routs through threshold.
 	var land_coh := 40.0 - shock
 	if land_coh > 10.0:
-		push_error("S17b expected rout finish (land_coh=%.2f shock=%.3f)" % [land_coh, shock])
+		push_error("S17b expected rout finish (land_coh=%.2f shock=%.3f tier=%s)" % [land_coh, shock, ev.get("brace_tier", "?")])
 		ok = false
 	var combat: float = _scenario.combat_duration_sec()
-	# Instant or near-instant finish is OK for shaken troops.
 	_record_check(
-		"[WO-016] S17b",
+		"[WO-017] S17b",
 		ok,
-		"shock=%.3f land_from_40=%.2f combat=%.1fs winner=%s"
-		% [shock, land_coh, combat, _scenario.get_winner_id()],
+		"shock=%.3f land_from_40=%.2f tier=%s combat=%.1fs winner=%s"
+		% [shock, land_coh, str(ev.get("brace_tier", "")), combat, _scenario.get_winner_id()],
 	)
 
 
@@ -1310,41 +1357,133 @@ func _check_s21_flank_charge() -> void:
 
 
 func _check_s22_frontal_facing() -> void:
-	# S22 — frontal vs fresh facing infantry → R15 wavering band, not immediate rout.
+	# S22 — frontal facing → Tier 1 + outcome: cav should lose grind if line holds.
 	var ev: Dictionary = _scenario.primary_charge_event()
 	var ok := true
 	if not bool(ev.get("charged", false)):
 		push_error("S22 expected frontal charge impact")
 		ok = false
-	var edge: String = str(ev.get("edge", ""))
-	var edge_mult: float = float(ev.get("edge_mult", 1.0))
-	if edge != "front" and edge_mult > 1.05:
-		push_error("S22 expected frontal edge (got edge=%s mult=%.2f)" % [edge, edge_mult])
-		ok = false
-	if absf(edge_mult - 1.0) > 0.05:
-		push_error("S22 expected edge_mult~1.0, got %.2f" % edge_mult)
+	var brace_tier: int = int(ev.get("brace_tier", 0))
+	if brace_tier != 1:
+		push_error("S22 expected brace_tier=1 (got %d)" % brace_tier)
 		ok = false
 	var shock: float = float(ev.get("shock", -1.0))
 	var land_coh := 100.0 - shock
-	if land_coh < 15.0 or land_coh > 30.0:
-		push_error("S22 frontal R15 land %.2f (shock=%.3f) not in [15,30]" % [land_coh, shock])
+	if land_coh < 45.0:
+		push_error("S22 Tier1 land %.2f expected >=45" % land_coh)
 		ok = false
-	# Must not be instant-deleted by shock alone (cohesion after land still above rout).
-	if land_coh <= 10.0:
-		push_error("S22 must not rout from frontal shock alone (land=%.2f)" % land_coh)
-		ok = false
+	var winner := _scenario.get_winner_id()
+	var combat := _scenario.combat_duration_sec()
 	_record_check(
-		"[WO-016c] S22",
+		"[WO-017] S22",
 		ok,
-		"edge=%s edge_mult=%.2f shock=%.2f land=%.2f state=%s combat=%.1fs"
+		"tier=%d shock=%.2f land=%.2f combat=%.1fs winner=%s cav_str=%.1f inf_str=%.1f"
 		% [
-			edge,
-			edge_mult,
+			brace_tier,
 			shock,
 			land_coh,
-			_scenario.infantry_state_name(),
-			_scenario.combat_duration_sec(),
+			combat,
+			winner,
+			_scenario.cavalry_strength(),
+			_scenario.infantry_strength(),
 		],
+	)
+
+
+func _check_s23_braced_hold() -> void:
+	var ev: Dictionary = _scenario.primary_charge_event()
+	var ok := true
+	if not bool(ev.get("charged", false)):
+		push_error("S23 expected charge")
+		ok = false
+	if int(ev.get("brace_tier", 0)) != 1:
+		push_error("S23 expected Tier 1 (got %s)" % ev.get("brace_tier", "?"))
+		ok = false
+	var shock: float = float(ev.get("shock", -1.0))
+	var land := 100.0 - shock
+	if land < 45.0:
+		push_error("S23 expected land >=45 (got %.2f)" % land)
+		ok = false
+	# Design promise: cavalry fades in grind vs held line.
+	var winner := _scenario.get_winner_id()
+	if winner != "blue_inf":
+		push_error("S23 expected infantry win grind (winner=%s)" % winner)
+		ok = false
+	_record_check(
+		"[WO-017] S23",
+		ok,
+		"tier=1 shock=%.2f land=%.2f combat=%.1fs winner=%s cav_str=%.1f inf_str=%.1f"
+		% [
+			shock,
+			land,
+			_scenario.combat_duration_sec(),
+			winner,
+			_scenario.cavalry_strength(),
+			_scenario.infantry_strength(),
+		],
+	)
+
+
+func _check_s24_caught_engaged() -> void:
+	var ev: Dictionary = _scenario.primary_charge_event()
+	var ok := true
+	if not bool(ev.get("charged", false)):
+		push_error("S24 expected charge")
+		ok = false
+	if int(ev.get("brace_tier", 0)) != 3:
+		push_error("S24 expected Tier 3 unaware (got %s / %s)" % [ev.get("brace_tier", "?"), ev.get("brace", "")])
+		ok = false
+	var shock: float = float(ev.get("shock", -1.0))
+	var land := 100.0 - shock
+	if land > 10.0:
+		push_error("S24 expected rout break (land=%.2f shock=%.2f)" % [land, shock])
+		ok = false
+	_record_check(
+		"[WO-017] S24",
+		ok,
+		"tier=%s shock=%.2f land=%.2f winner=%s" % [ev.get("brace_tier", ""), shock, land, _scenario.get_winner_id()],
+	)
+
+
+func _check_s25_caught_marching() -> void:
+	var ev: Dictionary = _scenario.primary_charge_event()
+	var ok := true
+	if not bool(ev.get("charged", false)):
+		push_error("S25 expected charge")
+		ok = false
+	if int(ev.get("brace_tier", 0)) != 3:
+		push_error("S25 expected Tier 3 (got %s)" % ev.get("brace_tier", "?"))
+		ok = false
+	var shock: float = float(ev.get("shock", -1.0))
+	var land := 100.0 - shock
+	if land < 15.0 or land > 30.0:
+		push_error("S25 T3 R15 land %.2f not in [15,30]" % land)
+		ok = false
+	_record_check(
+		"[WO-017] S25",
+		ok,
+		"tier=%s shock=%.2f land=%.2f" % [ev.get("brace_tier", ""), shock, land],
+	)
+
+
+func _check_s26_late_arc() -> void:
+	var ev: Dictionary = _scenario.primary_charge_event()
+	var ok := true
+	if not bool(ev.get("charged", false)):
+		push_error("S26 expected charge")
+		ok = false
+	if int(ev.get("brace_tier", 0)) != 3:
+		push_error("S26 expected Tier 3 (late arc) got %s" % ev.get("brace_tier", "?"))
+		ok = false
+	var shock: float = float(ev.get("shock", -1.0))
+	var land := 100.0 - shock
+	if land < 15.0 or land > 30.0:
+		push_error("S26 T3 R15 land %.2f not in [15,30]" % land)
+		ok = false
+	_record_check(
+		"[WO-017] S26",
+		ok,
+		"tier=%s shock=%.2f land=%.2f" % [ev.get("brace_tier", ""), shock, land],
 	)
 
 

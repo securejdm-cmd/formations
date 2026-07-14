@@ -38,6 +38,13 @@ var charge_amp_factor: float = 1.0
 var _charge_amp_time_left: float = 0.0
 var _brace_hold_sec: float = 0.0
 var _braced: bool = false
+var _threat_front_sec: float = 0.0
+var brace_tier_last: int = 0
+var threat_front_sec: float:
+	get:
+		return _threat_front_sec
+	set(value):
+		_threat_front_sec = value
 
 
 static func from_unit(unit: Unit) -> SimUnitProxy:
@@ -71,6 +78,8 @@ static func from_unit(unit: Unit) -> SimUnitProxy:
 	p._charge_amp_time_left = unit._charge_amp_time_left
 	p._brace_hold_sec = unit._brace_hold_sec
 	p._braced = unit._braced
+	p._threat_front_sec = unit._threat_front_sec
+	p.brace_tier_last = unit.brace_tier_last
 	if unit.ammo_remaining >= 0:
 		p._ammo_remaining = unit.ammo_remaining
 	for partner in unit.get_contact_partners():
@@ -109,6 +118,8 @@ func refresh_from_unit(unit: Unit) -> void:
 	_charge_amp_time_left = unit._charge_amp_time_left
 	_brace_hold_sec = unit._brace_hold_sec
 	_braced = unit._braced
+	_threat_front_sec = unit._threat_front_sec
+	brace_tier_last = unit.brace_tier_last
 	_partner_ids.clear()
 	_contact_partners.clear()
 	for partner in unit.get_contact_partners():
@@ -150,6 +161,8 @@ func duplicate_render_state() -> SimUnitProxy:
 	p._charge_amp_time_left = _charge_amp_time_left
 	p._brace_hold_sec = _brace_hold_sec
 	p._braced = _braced
+	p._threat_front_sec = _threat_front_sec
+	p.brace_tier_last = brace_tier_last
 	return p
 
 
@@ -184,6 +197,8 @@ func apply_to_unit(unit: Unit, all_units: Array = []) -> void:
 	unit._charge_amp_time_left = _charge_amp_time_left
 	unit._brace_hold_sec = _brace_hold_sec
 	unit._braced = _braced
+	unit._threat_front_sec = _threat_front_sec
+	unit.brace_tier_last = brace_tier_last
 	if unit.has_method("_update_brace_visual"):
 		unit._update_brace_visual()
 	unit.set_active_contact_edges(_active_contact_edges)
@@ -393,7 +408,24 @@ func update_brace(delta: float, enemies: Array = []) -> void:
 	if _state == Unit.State.REMOVED or _state == Unit.State.ROUTING or _state == Unit.State.RALLYING:
 		_braced = false
 		_brace_hold_sec = 0.0
+		_threat_front_sec = 0.0
 		return
+
+	# R16 Tier 1 threat clock — cheap front-axis only (perf-safe).
+	var gallop_threat := false
+	for enemy in enemies:
+		if enemy == null or enemy.get_state() == Unit.State.REMOVED:
+			continue
+		if enemy.team_id == team_id:
+			continue
+		if _ChargeCombat.is_charging_threat(enemy, self):
+			gallop_threat = true
+			break
+	if gallop_threat and _ChargeCombat.own_speed_allows_instinctive(self):
+		_threat_front_sec += delta
+	else:
+		_threat_front_sec = 0.0
+
 	var stationary := current_speed_m_s <= Constants.get_float("brace_stationary_speed")
 	var holding := _state == Unit.State.HOLD or (_state == Unit.State.MARCHING and stationary)
 	if not holding or not _ChargeCombat.is_pierce(self) or not stationary:
