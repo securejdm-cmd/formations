@@ -1,0 +1,27 @@
+# WORK ORDER 018 - The Charge Gait: Making the Gallop Real
+*Project: FORMATIONS - Phase 2 - Issued by Technical Director*
+*GREEN LIGHT: proceed immediately upon reading. Escalate only per governance triggers.*
+*Design authority: DESIGN_RULINGS_v1.2 R4 (momentum charge - "no charge stat,
+measure real closing speed"), R5 (mass/inertia). Base: WO-017 branch state.*
+
+## Context
+WO-016b's root-cause note is correct in diagnosis and honest in reporting, and its
+adopted fix satisfied the TD directive as literally worded. But the TD directive
+was wrong: it demanded a NUMBER (closing speed 12-15 m/s) instead of the right
+MODEL. charge_speed_si_scale = 3.375 multiplies Impact/reporting only while the
+block still moves at 4.0 m/s — a charge stat wearing a physics costume, which R4
+rejects.
+
+Real cavalry trots (~3.5–4.0 m/s — our sim's tactical meter) and gallops
+(~13.5 m/s) only in the final run-up. Implement that gait; delete the conversion.
+
+## R17 — Charge gait
+See DESIGN_RULINGS append. Speed = tactical; charge_gait_mult on commit;
+Impact from real velocity. No conversion constants.
+
+## Tasks
+1. Implement charge gait; delete charge_speed_si_scale
+2. Re-derive charge constants to restore WO-017 five targets
+3. Retire or re-stage S17 (prefer retire → S23/S24)
+4. Regression lock S1–S16 / S12
+5. S27 gait visibility, S28 infantry charge, S29 run-up curve

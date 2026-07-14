@@ -125,13 +125,18 @@ Use this format for report footers (substitute `<branch>` with the PR branch nam
 
 ## Completion Attestation (governance amendment)
 
-Every **completion claim** (chat summary or report stating a work order is complete) must end with **all three** of:
+Every **completion claim** (chat summary or report stating a work order is complete) must end with **all four** of:
 
 1. **Branch name** — the feature branch containing the committed corrections
 2. **Commit hash** — the full SHA of the latest commit that contains those corrections
 3. **Raw report URL** — a full `raw.githubusercontent.com` URL to the updated completion report on that branch
+4. **Raw suite-log URL** — a full `raw.githubusercontent.com` URL to the suite evidence log on that branch (e.g. `docs/reports/evidence_woXXX/suite_stdout.log`)
 
-A completion statement that omits any of the three is **not a completion**. Do not treat prior chat summaries as evidence of completion without this attestation block.
+### Attestation must be the FINAL CONTENT OF THE CHAT REPLY (TD amendment — WO-018)
+
+On every work-order completion, the attestation block (branch + full SHA + raw report URL + raw suite-log URL) must be the **final content of the chat reply**, not only inside the report file. The designer must never have to dig through GitHub to find a report. Put narrative/summary first; end the reply with the attestation block and nothing after it.
+
+A completion statement that omits any of the four, or buries attestation only in the report file / mid-chat, is **not a completion**. Do not treat prior chat summaries as evidence of completion without this attestation block.
 
 ## Execution Evidence (governance amendment)
 
