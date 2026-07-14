@@ -225,7 +225,7 @@ func max_closing_speed_m() -> float:
 	for unit in units:
 		if unit == null or unit.get_state() == Unit.State.REMOVED:
 			continue
-		max_speed = maxf(max_speed, unit.speed_m_per_sec())
+		max_speed = maxf(max_speed, _Charge.gait_top_speed_m_s(unit))
 	return max_speed * 2.0
 
 
@@ -394,22 +394,20 @@ func apply_charge_impacts(attacker: SimUnitProxy, defender: SimUnitProxy) -> voi
 	# One classify for contact-normal closing + edge morale weight.
 	var contact: Dictionary = EdgeContact.classify_contact(attacker, defender)
 	var edges: Dictionary = contact.get("edge_lengths_m", {})
-	var closing_sim := _Charge.closing_speed_along_contact(attacker, defender, edges)
-	var closing_si := closing_sim * _Charge.si_scale()
-	# charge_min_speed is in SI m/s (gallop band / walk discrimination).
+	var closing := _Charge.closing_speed_along_contact(attacker, defender, edges)
+	# charge_min_speed is in sim m/s (same units as measured velocity — R17).
 	var min_speed := Constants.get_float("charge_min_speed")
-	if closing_si < min_speed:
+	if closing < min_speed:
 		last_charge_events.append({
 			"attacker": attacker.unit_id,
 			"defender": defender.unit_id,
-			"closing_speed": closing_si,
-			"closing_speed_sim": closing_sim,
+			"closing_speed": closing,
 			"impact": 0.0,
 			"charged": false,
 			"braced": defender.is_braced(),
 		})
 		return
-	var impact := _Charge.calc_impact(attacker, defender, closing_si)
+	var impact := _Charge.calc_impact(attacker, defender, closing)
 	var edge_info: Dictionary = _Charge.charge_edge_morale_mult(attacker, defender, edges)
 	var edge_mult: float = float(edge_info.get("mult", 1.0))
 	var edge_name: String = str(edge_info.get("edge", "front"))
@@ -422,6 +420,9 @@ func apply_charge_impacts(attacker: SimUnitProxy, defender: SimUnitProxy) -> voi
 	var shock := base_shock * edge_mult * brace_mult
 	var reflected := 0.0
 	var braced_set := brace_tier == 2
+	# Contact ends the charge gait commitment.
+	attacker.charge_committed = false
+	attacker._charge_commit_target_id = ""
 	if braced_set:
 		reflected = impact * Constants.get_float("brace_reflect_pct")
 		# Impact is already in strength/cohesion-adjacent units; reflect without k_melee.
@@ -431,8 +432,8 @@ func apply_charge_impacts(attacker: SimUnitProxy, defender: SimUnitProxy) -> voi
 		spawn_shock_floater(attacker, reflected_shock)
 		log_trace_event(
 			"brace_reflect",
-			"attacker=%s,defender=%s,impact=%.3f,closing_si=%.3f,reflected=%.3f,edge=%s,brace_tier=%d"
-			% [attacker.unit_id, defender.unit_id, impact, closing_si, reflected, edge_name, brace_tier]
+			"attacker=%s,defender=%s,impact=%.3f,closing=%.3f,reflected=%.3f,edge=%s,brace_tier=%d"
+			% [attacker.unit_id, defender.unit_id, impact, closing, reflected, edge_name, brace_tier]
 		)
 	else:
 		defender.apply_cohesion_drain(shock)
@@ -440,12 +441,12 @@ func apply_charge_impacts(attacker: SimUnitProxy, defender: SimUnitProxy) -> voi
 		attacker.begin_charge_amp()
 		log_trace_event(
 			"charge_impact",
-			"attacker=%s,defender=%s,impact=%.3f,closing_si=%.3f,base_shock=%.3f,edge=%s,edge_mult=%.3f,brace_tier=%d,brace=%s,brace_mult=%.3f,shock=%.3f,mass=%.3f,cohesion_after=%.2f"
+			"attacker=%s,defender=%s,impact=%.3f,closing=%.3f,base_shock=%.3f,edge=%s,edge_mult=%.3f,brace_tier=%d,brace=%s,brace_mult=%.3f,shock=%.3f,mass=%.3f,cohesion_after=%.2f,speed=%.3f"
 			% [
 				attacker.unit_id,
 				defender.unit_id,
 				impact,
-				closing_si,
+				closing,
 				base_shock,
 				edge_name,
 				edge_mult,
@@ -455,13 +456,15 @@ func apply_charge_impacts(attacker: SimUnitProxy, defender: SimUnitProxy) -> voi
 				shock,
 				_Charge.mass_of(attacker),
 				defender.cohesion,
+				float(attacker.current_speed_m_s),
 			]
 		)
 	last_charge_events.append({
 		"attacker": attacker.unit_id,
 		"defender": defender.unit_id,
-		"closing_speed": closing_si,
-		"closing_speed_sim": closing_sim,
+		"closing_speed": closing,
+		"impact_closing_speed": closing,
+		"unit_speed": float(attacker.current_speed_m_s),
 		"impact": impact,
 		"base_shock": base_shock,
 		"edge": edge_name,

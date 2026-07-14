@@ -40,11 +40,27 @@ static func mass_of(unit: Variant) -> float:
 
 
 static func top_speed_m_s(unit: Variant) -> float:
+	## Tactical top speed (march / trot). Charge gait uses target_speed_m_s().
 	return (
 		float(unit.profile.get("speed", 0.0))
 		* Constants.get_float("speed_stat_meters_per_10s")
 		/ 10.0
 	)
+
+
+static func charge_gait_mult(unit: Variant) -> float:
+	return maxf(1.0, float(unit.profile.get("charge_gait_mult", 1.0)))
+
+
+static func gait_top_speed_m_s(unit: Variant) -> float:
+	return top_speed_m_s(unit) * charge_gait_mult(unit)
+
+
+static func target_speed_m_s(unit: Variant) -> float:
+	## Movement ceiling this tick: gait top when charge-committed, else tactical.
+	if unit != null and "charge_committed" in unit and bool(unit.charge_committed):
+		return gait_top_speed_m_s(unit)
+	return top_speed_m_s(unit)
 
 
 static func accel_m_s2(unit: Variant) -> float:
@@ -112,28 +128,50 @@ static func closing_speed_into_defender(attacker: Variant, defender: Variant) ->
 
 
 static func closing_speed_along_contact(attacker: Variant, defender: Variant, edges: Dictionary = {}) -> float:
-	# Attacker's speed along the contact inward normal (sim m/s). Enables flank/rear charges.
+	# Attacker's real speed along the contact inward normal (sim m/s). R17: no SI conversion.
 	return maxf(0.0, velocity_world(attacker).dot(contact_inward_normal(attacker, defender, edges)))
 
 
-static func si_scale() -> float:
-	## Maps underscaled sim m/s → design SI m/s (WO-016b). Movement stays on
-	## speed_stat_meters_per_10s=1.0 so S1/S12 approach timing is preserved.
-	return Constants.get_float("charge_speed_si_scale")
-
-
-static func closing_speed_si(attacker: Variant, defender: Variant) -> float:
-	return closing_speed_along_contact(attacker, defender) * si_scale()
-
-
-static func calc_impact(attacker: Variant, defender: Variant, closing_speed_si_m_s: float) -> float:
+static func calc_impact(attacker: Variant, defender: Variant, closing_speed_m_s: float) -> float:
+	## Impact from real sim-m/s closing (R17). No hidden conversion.
 	var strength_pct: float = attacker.strength / Constants.get_float("strength_max")
 	return (
 		mass_of(attacker)
-		* closing_speed_si_m_s
+		* closing_speed_m_s
 		* strength_pct
 		* Constants.get_float("charge_impact_scale")
 	)
+
+
+static func distance_m(a: Variant, b: Variant) -> float:
+	var px := Constants.get_float("px_per_meter")
+	return a.position.distance_to(b.position) / px
+
+
+static func find_charge_commit_target(unit: Variant, enemies: Array) -> Variant:
+	## Closest enemy in front arc within charge_commit_range_m (or null).
+	if charge_gait_mult(unit) <= 1.0 + 0.001:
+		return null
+	var best = null
+	var best_dist := INF
+	var range_m := Constants.get_float("charge_commit_range_m")
+	for enemy in enemies:
+		if enemy == null:
+			continue
+		var st = enemy.get_state() if enemy.has_method("get_state") else -1
+		if st == Unit.State.REMOVED or st == Unit.State.ROUTING:
+			continue
+		if str(enemy.team_id) == str(unit.team_id):
+			continue
+		if not faces_threat(unit, enemy):
+			continue
+		var d := distance_m(unit, enemy)
+		if d > range_m:
+			continue
+		if d < best_dist:
+			best_dist = d
+			best = enemy
+	return best
 
 
 ## Length-weighted casualty (morale) multiplier of the defender edges under charge contact.
@@ -189,13 +227,13 @@ static func faces_threat(defender: Variant, attacker: Variant) -> bool:
 
 
 static func is_charging_threat(attacker: Variant, defender: Variant) -> bool:
-	## Cheap front-arc charge threat (no full classification). Closing in SI m/s.
+	## Cheap front-arc charge threat (no full classification). Closing in sim m/s.
 	if attacker == null or defender == null:
 		return false
 	if not faces_threat(defender, attacker):
 		return false
-	var closing_si := closing_speed_into_defender(attacker, defender) * si_scale()
-	return closing_si >= Constants.get_float("charge_min_speed")
+	var closing := closing_speed_into_defender(attacker, defender)
+	return closing >= Constants.get_float("charge_min_speed")
 
 
 static func own_speed_allows_instinctive(defender: Variant) -> bool:

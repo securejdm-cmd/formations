@@ -62,22 +62,32 @@ A routing unit with the **RALLY** trait and `rallies_remaining > 0` does **not**
 ## R14. Mirror-winner strength gate superseded (TD; WO-013b)
 The legacy expectation that mirror-profile fights (identical units) end with winner strength **< 50–55%** is **SUPERSEDED**. That gate mathematically contradicts the **60–75% strength_at_rout** design band, which is design law. All tuning selection rules drop the mirror-winner gate; sweeps commit on S1 mean combat ∈ [60, 90] nearest 80s and S2 strength_at_rout ∈ [60, 75] only. **STATUS: DESIGN LAW — effective WO-013b.**
 
-## R15. Charge shock vs fresh infantry (TD; WO-016 / WO-016c / WO-017)
+## R15. Charge shock vs fresh infantry (TD; WO-016 / WO-016c / WO-017 / WO-018)
 A momentum charge (R4) against **FRESH** (100% cohesion) medium infantry on a **FRONTAL + Tier 3 (unaware)** contact MUST drop defender cohesion **into but not through** the wavering band: landing cohesion **∈ [15, 30]** (staggered / wavering), **NOT** routed. Instant frontal charge-delete of full-strength lines is forbidden.
 
 **With R16:** frontal + **Tier 1 instinctive brace** must leave the line **steady (land ≥ 45)**. The [15, 30] band is the **caught-unaware** frontal outcome, not the braced one.
 
-**Directional edge weight (WO-016c):** charge cohesion shock = `base_shock × edge_casualty_mult × brace_tier_mult`, using the defender contact-edge **casualty** multipliers (`edge_mult_front=1.0`, `edge_mult_side_casualty=1.5`, `edge_mult_rear_casualty=2.0`; length-weighted when mixed). Closing speed for Impact is along the **contact inward normal**. Spectrum vs fresh: **front+T1 → holds**; **front+T3 → wavering**; **flank/rear → rout**.
+**Directional edge weight (WO-016c):** charge cohesion shock = `base_shock × edge_casualty_mult × brace_tier_mult`. Closing speed for Impact is the attacker's **real** velocity along the contact inward normal (**sim m/s**, R17 — one meter). Spectrum vs fresh: **front+T1 → holds**; **front+T3 → wavering**; **flank/rear → rout**.
 
-**Speed SI note (WO-016b):** movement keeps `speed_stat_meters_per_10s=1.0` (approach-timing lock). Charge Impact / min-speed / reported `closing_speed` use `charge_speed_si_scale` (3.375) so Speed 40 reads ~13.5 m/s SI gallop without moving the S1/S12 march meter. **STATUS: DESIGN LAW — effective WO-017.**
+**Speed / gait (WO-018 R17 supersedes WO-016b SI scale):** tactical movement keeps `speed_stat_meters_per_10s=1.0`. Charge Impact is measured from the unit's real velocity after charge-gait acceleration — **no `charge_speed_si_scale`**. **STATUS: DESIGN LAW — effective WO-018.**
 
 ## R16. Three-tier brace (TD; WO-017)
 Charge shock is modulated by the defender's readiness at the moment of contact:
 
-1. **Tier 1 — Instinctive brace (automatic, any unit).** All must hold at impact: (a) charger was in the defender's front arc with closing SI ≥ `charge_min_speed` for ≥ `brace_reaction_s`; (b) defender is not already engaged with another enemy; (c) defender own speed ≤ `brace_max_own_speed_pct` of its top speed; (d) contact edge is **front**. Effect: shock × `instinctive_brace_mult`. Never applies to side/rear.
+1. **Tier 1 — Instinctive brace (automatic, any unit).** All must hold at impact: (a) charger was in the defender's front arc with closing (sim m/s) ≥ `charge_min_speed` for ≥ `brace_reaction_s`; (b) defender is not already engaged with another enemy; (c) defender own speed ≤ `brace_max_own_speed_pct` of its top tactical speed; (d) contact edge is **front**. Effect: shock × `instinctive_brace_mult`. Never applies to side/rear.
 
 2. **Tier 2 — Set to receive (Pierce).** Stationary Pierce facing ≥ `brace_time_s` negates shock and reflects. Supersedes Tier 1 when both qualify.
 
 3. **Tier 3 — Caught unaware.** Full directional shock.
 
 Steady infantry that sees a charge holds; busy, moving, surprised, or outflanked infantry is shattered. **STATUS: DESIGN LAW — effective WO-017.**
+
+## R17. Charge gait (TD; WO-018)
+A unit's Speed stat governs **tactical** movement (march / trot). A unit may also have a **charge gait**: when committed to a charge it physically accelerates toward `Speed × charge_gait_mult`, and momentum Impact is measured from that **real** velocity. No conversion constants — what the player sees is what the defender feels.
+
+- `charge_gait_mult` is a per-profile stat (default 1.0 = no gait).
+- Cavalry gait 3.375 → target gallop 13.5 sim-m/s; infantry_charge gait 2.0 → ~3.0 sim-m/s run.
+- Commitment: move/attack toward an enemy within `charge_commit_range_m` in front arc and gait > 1. Acceleration uses R5 inertia (`base_accel / mass`) — run-up distance is emergent.
+- On losing the target / contact / order change: decelerate back to tactical Speed.
+
+**STATUS: DESIGN LAW — effective WO-018.**

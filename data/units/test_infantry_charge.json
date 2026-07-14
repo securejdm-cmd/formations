@@ -1,6 +1,6 @@
 {
-  "id": "test_infantry",
-  "display_name": "Test Infantry",
+  "id": "test_infantry_charge",
+  "display_name": "Test Infantry (Charge)",
   "formation_frontage_m": 40,
   "formation_depth_m": 15,
   "close_damage": 25,
@@ -8,7 +8,7 @@
   "armor": 10,
   "anti_armor": 0,
   "speed": 15,
-  "charge_gait_mult": 1.0,
+  "charge_gait_mult": 2.0,
   "agility": 50,
   "pushing_power": 50,
   "retreating_skill": 30,

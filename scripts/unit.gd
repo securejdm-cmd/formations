@@ -61,6 +61,9 @@ var _crack_shader: Shader = preload("res://shaders/crack_band.gdshader")
 var current_speed_m_s: float = 0.0
 var charge_amp_factor: float = 1.0
 var _charge_amp_time_left: float = 0.0
+## R17: charge gait commitment (physical acceleration to gait top).
+var charge_committed: bool = false
+var _charge_commit_target_id: String = ""
 var _brace_hold_sec: float = 0.0
 var _braced: bool = false
 ## Seconds a front-arc gallop threat has been continuously visible (R16 Tier 1).
@@ -354,8 +357,9 @@ func update_marching(delta: float, enemies: Array[Unit] = []) -> void:
 	if _state != State.MARCHING:
 		return
 
+	_update_charge_commit(enemies)
 	var to_target := march_target - position
-	var top := speed_m_per_sec()
+	var top := _ChargeCombat.target_speed_m_s(self)
 	if to_target.length() > 0.001:
 		var desired := to_target.normalized()
 		var angled := facing.angle_to(desired)
@@ -366,16 +370,20 @@ func update_marching(delta: float, enemies: Array[Unit] = []) -> void:
 			else:
 				facing = facing.rotated(signf(angled) * max_turn)
 			rotation = facing.angle()
-	# Accelerate toward top speed while marching.
+	# Accelerate / decelerate toward target speed (gait or tactical).
 	var accel: float = _ChargeCombat.accel_m_s2(self)
-	current_speed_m_s = minf(top, current_speed_m_s + accel * delta)
+	var decel: float = _ChargeCombat.decel_m_s2(self)
+	if current_speed_m_s < top:
+		current_speed_m_s = minf(top, current_speed_m_s + accel * delta)
+	elif current_speed_m_s > top:
+		current_speed_m_s = maxf(top, current_speed_m_s - decel * delta)
 	var speed_px := current_speed_m_s * Constants.get_float("px_per_meter")
 	var move_px := speed_px * delta
 	if to_target.length() <= move_px:
 		position = march_target
-		# Soft stop: decelerate after arriving.
-		var decel: float = _ChargeCombat.decel_m_s2(self)
 		current_speed_m_s = maxf(0.0, current_speed_m_s - decel * delta)
+		charge_committed = false
+		_charge_commit_target_id = ""
 		if enemies.is_empty():
 			_set_state(State.HOLD)
 		return
@@ -393,6 +401,21 @@ func update_marching(delta: float, enemies: Array[Unit] = []) -> void:
 			return
 
 	position += to_target.normalized() * move_px
+
+
+func _update_charge_commit(enemies: Array) -> void:
+	## R17: commit to charge gait when marching toward a front-arc enemy in range.
+	if current_order != Order.MARCH_TO:
+		charge_committed = false
+		_charge_commit_target_id = ""
+		return
+	var target = _ChargeCombat.find_charge_commit_target(self, enemies)
+	if target == null:
+		charge_committed = false
+		_charge_commit_target_id = ""
+		return
+	charge_committed = true
+	_charge_commit_target_id = str(target.unit_id)
 
 
 func has_trait(trait_name: String) -> bool:
