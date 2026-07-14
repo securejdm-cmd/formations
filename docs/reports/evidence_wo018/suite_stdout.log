@@ -357,8 +357,8 @@ Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
 [WO-018] S29 PASS 20m:v=1.27/i=0.00 60m:v=3.41/i=14.18 120m:v=5.16/i=21.44 200m:v=5.20/i=21.60
 [RNG] Battle seed set: 1000
 [Scenario 01] Battle seed: 1000
-[WO-011] Perf40 sim_thread avg_tick_ms=1.249 p95_tick_ms=1.511 max_tick_ms=37.699 ticks=523604
-[WO-011] Perf40 environmental actuals (cloud, not designer-desktop gate): min_fps=0.5 avg_fps=3.4 avg_tick_ms=0.000 p95_tick_ms=0.000 ticks=0
+[WO-011] Perf40 sim_thread avg_tick_ms=1.352 p95_tick_ms=1.574 max_tick_ms=35.574 ticks=723967
+[WO-011] Perf40 environmental actuals (cloud, not designer-desktop gate): min_fps=0.3 avg_fps=21.0 avg_tick_ms=0.000 p95_tick_ms=0.000 ticks=0
 [RNG] Battle seed set: 1000
 [Scenario 01] Battle seed: 1000
 [RNG] Battle seed set: 1000
@@ -366,8 +366,7 @@ Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
 [RNG] Battle seed set: 1000
 [Scenario 01] Battle seed: 1000
 [WO-010] Spatial-grid tick perf (after partitioning, cloud env):
-  units=4 avg_tick_ms=0.645 p95_tick_ms=1.105 max_tick_ms=1.415 ticks=800
-  units=20 avg_tick_ms=8.882 p95_tick_ms=12.237 max_tick_ms=14.293 ticks=800
-  units=40 avg_tick_ms=35.185 p95_tick_ms=46.218 max_tick_ms=47.938 ticks=800
+  units=4 avg_tick_ms=0.650 p95_tick_ms=1.114 max_tick_ms=1.722 ticks=800
+  units=20 avg_tick_ms=8.797 p95_tick_ms=12.132 max_tick_ms=13.310 ticks=800
+  units=40 avg_tick_ms=35.018 p95_tick_ms=46.021 max_tick_ms=47.861 ticks=800
 [WO-015] Meta PASS=61 FAIL=0 expected_green_pass=61 exit=0
-DONE

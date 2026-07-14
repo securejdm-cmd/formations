@@ -1,9 +1,9 @@
-# COMPLETION REPORT — WO-018 — Date 2026-07-14 — Commit aa8b46f4e7c147b71165da85105daa0f67410892
+# COMPLETION REPORT — WO-018 — Date 2026-07-14 — Commit PENDING_STAMP
 
 **Work order:** WO-018 The Charge Gait (R17)  
 **Branch:** `cursor/wo-018-charge-gait-fd84`  
 **Date:** 2026-07-14  
-**Commit:** `aa8b46f4e7c147b71165da85105daa0f67410892`  
+**Commit:** `PENDING_STAMP`  
 **Base:** `cursor/wo-017-three-tier-brace-fd84`  
 **Evidence:** `docs/reports/evidence_wo018/`  
 
@@ -71,7 +71,7 @@ All five Task 2 targets met.
 | S12 | volleys=**18** approach_lost=**8.04%** (WO-014b match) |
 | S1–S16 | PASS (suite) |
 | Meta | **PASS=61 FAIL=0 exit 0** |
-| Perf40 | before 1.279/1.496 → after **1.249/1.511** |
+| Perf40 | before 1.279/1.496 → after **1.249/1.511** (reverify cloud 1.352/1.574; outcomes unchanged) |
 
 ```bash
 export GODOT=/tmp/godot/Godot_v4.4.1-stable_linux.x86_64
@@ -90,7 +90,7 @@ Gait top 13.5 is the ceiling; R5 accel makes long-run contact ~5.2 m/s on curren
 ## Attestation
 
 - Branch: `cursor/wo-018-charge-gait-fd84`
-- Full SHA: `aa8b46f4e7c147b71165da85105daa0f67410892`
+- Full SHA: `PENDING_STAMP`
 - Report: https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-018-charge-gait-fd84/docs/reports/WO-018_completion.md
 - Suite: https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-018-charge-gait-fd84/docs/reports/evidence_wo018/suite_stdout.log
 
