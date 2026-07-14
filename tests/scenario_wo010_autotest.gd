@@ -1372,8 +1372,8 @@ func _check_s22_frontal_facing() -> void:
 	if land_coh < 45.0:
 		push_error("S22 Tier1 land %.2f expected >=45" % land_coh)
 		ok = false
-	var winner := _scenario.get_winner_id()
-	var combat := _scenario.combat_duration_sec()
+	var winner: String = _scenario.get_winner_id()
+	var combat: float = float(_scenario.combat_duration_sec())
 	_record_check(
 		"[WO-017] S22",
 		ok,
