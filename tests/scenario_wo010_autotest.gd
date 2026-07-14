@@ -628,6 +628,7 @@ func _finish() -> void:
 			_check_s28_infantry_charge()
 			_mode = "s29_runup_curve"
 			_s29_idx = 0
+			_s29_rows.clear()
 			_spawn_and_run()
 		"s29_runup_curve":
 			_check_s29_runup_point()
