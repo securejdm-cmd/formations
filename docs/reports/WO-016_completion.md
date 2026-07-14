@@ -1,9 +1,9 @@
-# COMPLETION REPORT — WO-016 — Date 2026-07-14 — Commit 0efbf398d65a6607775236b5d72eacd6317d0620
+# COMPLETION REPORT — WO-016 — Date 2026-07-14 — Commit c9cb697f84feb3bcc3eb15b97ac44756e9166a37
 
 **Work order:** WO-016 — Mounted units: momentum charges, mass & brace  
 **Branch:** `cursor/wo-016-mounted-charge-fd84`  
 **Date:** 2026-07-14  
-**Commit:** `0efbf398d65a6607775236b5d72eacd6317d0620`  
+**Commit:**   
 **Base:** `main` post-WO-015 merge (suite exit 0)  
 **Evidence:** `docs/reports/evidence_wo016/`  
 **Design authority:** DESIGN_RULINGS_v1.2 R4/R5; DAMAGE_AND_CATEGORIES_v1.1 §7  
@@ -114,7 +114,7 @@ None for acceptance. Allied overlap stderr noise on PerfScale remains pre-existi
 ## Attestation
 
 - Branch: `cursor/wo-016-mounted-charge-fd84`
-- Full SHA: `0efbf398d65a6607775236b5d72eacd6317d0620`
+- Full SHA: 
 - Report: https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-016-mounted-charge-fd84/docs/reports/WO-016_completion.md
 - Suite log: https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-016-mounted-charge-fd84/docs/reports/evidence_wo016/suite_stdout.log
 
