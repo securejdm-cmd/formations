@@ -1,9 +1,9 @@
-# COMPLETION REPORT — WO-016b — Date 2026-07-14 — Commit 824f881f36d4e2eda2ee236acbfdd67923f9a04e
+# COMPLETION REPORT — WO-016b — Date 2026-07-14 — Commit c975e3e160b8a1d521849edebe7f01e8bca6c942
 
 **Work order:** WO-016 TD review remediation (scale + R15 + S17b)  
 **Branch:** `cursor/wo-016b-charge-scale-r15-fd84`  
 **Date:** 2026-07-14  
-**Commit:** `824f881f36d4e2eda2ee236acbfdd67923f9a04e`  
+**Commit:** `c975e3e160b8a1d521849edebe7f01e8bca6c942`  
 **Base:** `cursor/wo-016-mounted-charge-fd84`  
 **Evidence:** `docs/reports/evidence_wo016b/`  
 
@@ -68,6 +68,6 @@ $GODOT --headless --path . -s res://tests/scenario_wo010_autotest.gd
 ## Attestation
 
 - Branch: `cursor/wo-016b-charge-scale-r15-fd84`
-- Full SHA: `824f881f36d4e2eda2ee236acbfdd67923f9a04e`
+- Full SHA: `c975e3e160b8a1d521849edebe7f01e8bca6c942`
 - Report: https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-016b-charge-scale-r15-fd84/docs/reports/WO-016b_completion.md
 - Suite: https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-016b-charge-scale-r15-fd84/docs/reports/evidence_wo016b/suite_stdout.log
