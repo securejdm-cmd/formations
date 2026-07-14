@@ -68,15 +68,26 @@ static func velocity_world(unit: Variant) -> Vector2:
 
 static func closing_speed_into_defender(attacker: Variant, defender: Variant) -> float:
 	# Speed of attacker along the direction into the defender's front face.
+	# Returned in **sim m/s** (movement calibration).
 	var into_def: Vector2 = -defender.facing.normalized()
 	return maxf(0.0, velocity_world(attacker).dot(into_def))
 
 
-static func calc_impact(attacker: Variant, defender: Variant, closing_speed: float) -> float:
+static func si_scale() -> float:
+	## Maps underscaled sim m/s → design SI m/s (WO-016b). Movement stays on
+	## speed_stat_meters_per_10s=1.0 so S1/S12 approach timing is preserved.
+	return Constants.get_float("charge_speed_si_scale")
+
+
+static func closing_speed_si(attacker: Variant, defender: Variant) -> float:
+	return closing_speed_into_defender(attacker, defender) * si_scale()
+
+
+static func calc_impact(attacker: Variant, defender: Variant, closing_speed_si_m_s: float) -> float:
 	var strength_pct: float = attacker.strength / Constants.get_float("strength_max")
 	return (
 		mass_of(attacker)
-		* closing_speed
+		* closing_speed_si_m_s
 		* strength_pct
 		* Constants.get_float("charge_impact_scale")
 	)
