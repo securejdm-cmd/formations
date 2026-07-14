@@ -82,16 +82,18 @@ static func _edge_inward_normal(defender: Variant, edge_name: String) -> Vector2
 	return -forward
 
 
-static func contact_inward_normal(attacker: Variant, defender: Variant) -> Vector2:
+static func contact_inward_normal(attacker: Variant, defender: Variant, edges: Dictionary = {}) -> Vector2:
 	## Length-weighted inward contact normal (WO-016: closing along contact normal).
 	## Falls back to approach direction, then front inward, when edges are empty.
-	var contact: Dictionary = EdgeContact.classify_contact(attacker, defender)
-	var edges: Dictionary = contact.get("edge_lengths_m", {})
-	if not edges.is_empty():
+	var edge_lengths: Dictionary = edges
+	if edge_lengths.is_empty():
+		var contact: Dictionary = EdgeContact.classify_contact(attacker, defender)
+		edge_lengths = contact.get("edge_lengths_m", {})
+	if not edge_lengths.is_empty():
 		var weighted := Vector2.ZERO
 		var total_len := 0.0
-		for edge_name in edges.keys():
-			var length_m: float = float(edges[edge_name])
+		for edge_name in edge_lengths.keys():
+			var length_m: float = float(edge_lengths[edge_name])
 			total_len += length_m
 			weighted += _edge_inward_normal(defender, str(edge_name)) * length_m
 		if total_len > 0.0 and weighted.length_squared() > 0.0001:
@@ -109,9 +111,9 @@ static func closing_speed_into_defender(attacker: Variant, defender: Variant) ->
 	return maxf(0.0, velocity_world(attacker).dot(into_def))
 
 
-static func closing_speed_along_contact(attacker: Variant, defender: Variant) -> float:
+static func closing_speed_along_contact(attacker: Variant, defender: Variant, edges: Dictionary = {}) -> float:
 	# Attacker's speed along the contact inward normal (sim m/s). Enables flank/rear charges.
-	return maxf(0.0, velocity_world(attacker).dot(contact_inward_normal(attacker, defender)))
+	return maxf(0.0, velocity_world(attacker).dot(contact_inward_normal(attacker, defender, edges)))
 
 
 static func si_scale() -> float:
@@ -136,9 +138,11 @@ static func calc_impact(attacker: Variant, defender: Variant, closing_speed_si_m
 
 ## Length-weighted casualty (morale) multiplier of the defender edges under charge contact.
 ## Front ×1, side ×edge_mult_side_casualty, rear ×edge_mult_rear_casualty (R15 extension).
-static func charge_edge_morale_mult(attacker: Variant, defender: Variant) -> Dictionary:
-	var contact: Dictionary = EdgeContact.classify_contact(attacker, defender)
-	var edges: Dictionary = contact.get("edge_lengths_m", {})
+static func charge_edge_morale_mult(attacker: Variant, defender: Variant, edges_override: Dictionary = {}) -> Dictionary:
+	var edges: Dictionary = edges_override
+	if edges.is_empty():
+		var contact: Dictionary = EdgeContact.classify_contact(attacker, defender)
+		edges = contact.get("edge_lengths_m", {})
 	if edges.is_empty() and CombatResolver.is_head_on_pair(attacker, defender):
 		return {
 			"edge": EdgeContact.EDGE_FRONT,

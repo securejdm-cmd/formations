@@ -391,7 +391,10 @@ func apply_charge_impacts(attacker: SimUnitProxy, defender: SimUnitProxy) -> voi
 	if _charge_pair_done.has(pair_key):
 		return
 	_charge_pair_done[pair_key] = true
-	var closing_sim := _Charge.closing_speed_along_contact(attacker, defender)
+	# One classify for contact-normal closing + edge morale weight.
+	var contact: Dictionary = EdgeContact.classify_contact(attacker, defender)
+	var edges: Dictionary = contact.get("edge_lengths_m", {})
+	var closing_sim := _Charge.closing_speed_along_contact(attacker, defender, edges)
 	var closing_si := closing_sim * _Charge.si_scale()
 	# charge_min_speed is in SI m/s (gallop band / walk discrimination).
 	var min_speed := Constants.get_float("charge_min_speed")
@@ -408,7 +411,7 @@ func apply_charge_impacts(attacker: SimUnitProxy, defender: SimUnitProxy) -> voi
 		return
 	var impact := _Charge.calc_impact(attacker, defender, closing_si)
 	var braced := defender.is_braced() and _Charge.is_pierce(defender)
-	var edge_info: Dictionary = _Charge.charge_edge_morale_mult(attacker, defender)
+	var edge_info: Dictionary = _Charge.charge_edge_morale_mult(attacker, defender, edges)
 	var edge_mult: float = float(edge_info.get("mult", 1.0))
 	var edge_name: String = str(edge_info.get("edge", "front"))
 	var base_shock := _Charge.base_charge_shock(impact)
