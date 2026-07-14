@@ -62,11 +62,22 @@ A routing unit with the **RALLY** trait and `rallies_remaining > 0` does **not**
 ## R14. Mirror-winner strength gate superseded (TD; WO-013b)
 The legacy expectation that mirror-profile fights (identical units) end with winner strength **< 50–55%** is **SUPERSEDED**. That gate mathematically contradicts the **60–75% strength_at_rout** design band, which is design law. All tuning selection rules drop the mirror-winner gate; sweeps commit on S1 mean combat ∈ [60, 90] nearest 80s and S2 strength_at_rout ∈ [60, 75] only. **STATUS: DESIGN LAW — effective WO-013b.**
 
-## R15. Charge shock vs fresh infantry (TD; WO-016 / WO-016c)
-A momentum charge (R4) against **FRESH** (100% cohesion) medium infantry on a **FRONTAL** contact MUST drop defender cohesion **into but not through** the wavering band: landing cohesion **∈ [15, 30]** (staggered / wavering), **NOT** routed. Instant frontal charge-delete of full-strength lines is forbidden — it nullifies the morale system whenever cavalry engage frontally.
+## R15. Charge shock vs fresh infantry (TD; WO-016 / WO-016c / WO-017)
+A momentum charge (R4) against **FRESH** (100% cohesion) medium infantry on a **FRONTAL + Tier 3 (unaware)** contact MUST drop defender cohesion **into but not through** the wavering band: landing cohesion **∈ [15, 30]** (staggered / wavering), **NOT** routed. Instant frontal charge-delete of full-strength lines is forbidden.
 
-**Directional edge weight (WO-016c):** charge cohesion shock = `base_shock × edge_casualty_mult`, using the defender contact-edge **casualty** multipliers already used by melee morale (`edge_mult_front=1.0`, `edge_mult_side_casualty=1.5`, `edge_mult_rear_casualty=2.0`; length-weighted when mixed). Closing speed is measured along the **contact inward normal** (not only the front axis), so flank/rear run-ups can still reach `charge_min_speed`. Spectrum vs fresh: **front → wavering**; **flank → rout**; **rear → hardest rout**. Frontal pre-shaken (cohesion **< ~50**, S17b) may finish into rout.
+**With R16:** frontal + **Tier 1 instinctive brace** must leave the line **steady (land ≥ 45)**. The [15, 30] band is the **caught-unaware** frontal outcome, not the braced one.
 
-The frontal wavering band supersedes the earlier flat R15 “any contact lands [15,30]” reading. Coefficient and SI scale remain co-tuned so frontal Impact×coeff×1.0 stays in-band; flank/rear rely on the edge mult, not a separate frontal retune.
+**Directional edge weight (WO-016c):** charge cohesion shock = `base_shock × edge_casualty_mult × brace_tier_mult`, using the defender contact-edge **casualty** multipliers (`edge_mult_front=1.0`, `edge_mult_side_casualty=1.5`, `edge_mult_rear_casualty=2.0`; length-weighted when mixed). Closing speed for Impact is along the **contact inward normal**. Spectrum vs fresh: **front+T1 → holds**; **front+T3 → wavering**; **flank/rear → rout**.
 
-**Speed SI note (WO-016b):** movement keeps `speed_stat_meters_per_10s=1.0` (approach-timing lock). Charge Impact / min-speed / reported `closing_speed` use `charge_speed_si_scale` (3.375) so Speed 40 reads ~13.5 m/s SI gallop without moving the S1/S12 march meter. **STATUS: DESIGN LAW — effective WO-016c.**
+**Speed SI note (WO-016b):** movement keeps `speed_stat_meters_per_10s=1.0` (approach-timing lock). Charge Impact / min-speed / reported `closing_speed` use `charge_speed_si_scale` (3.375) so Speed 40 reads ~13.5 m/s SI gallop without moving the S1/S12 march meter. **STATUS: DESIGN LAW — effective WO-017.**
+
+## R16. Three-tier brace (TD; WO-017)
+Charge shock is modulated by the defender's readiness at the moment of contact:
+
+1. **Tier 1 — Instinctive brace (automatic, any unit).** All must hold at impact: (a) charger was in the defender's front arc with closing SI ≥ `charge_min_speed` for ≥ `brace_reaction_s`; (b) defender is not already engaged with another enemy; (c) defender own speed ≤ `brace_max_own_speed_pct` of its top speed; (d) contact edge is **front**. Effect: shock × `instinctive_brace_mult`. Never applies to side/rear.
+
+2. **Tier 2 — Set to receive (Pierce).** Stationary Pierce facing ≥ `brace_time_s` negates shock and reflects. Supersedes Tier 1 when both qualify.
+
+3. **Tier 3 — Caught unaware.** Full directional shock.
+
+Steady infantry that sees a charge holds; busy, moving, surprised, or outflanked infantry is shattered. **STATUS: DESIGN LAW — effective WO-017.**

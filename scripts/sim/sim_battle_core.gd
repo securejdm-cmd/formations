@@ -410,14 +410,19 @@ func apply_charge_impacts(attacker: SimUnitProxy, defender: SimUnitProxy) -> voi
 		})
 		return
 	var impact := _Charge.calc_impact(attacker, defender, closing_si)
-	var braced := defender.is_braced() and _Charge.is_pierce(defender)
 	var edge_info: Dictionary = _Charge.charge_edge_morale_mult(attacker, defender, edges)
 	var edge_mult: float = float(edge_info.get("mult", 1.0))
 	var edge_name: String = str(edge_info.get("edge", "front"))
+	var brace: Dictionary = _Charge.resolve_brace_tier(attacker, defender, edge_name)
+	var brace_tier: int = int(brace.get("tier", 3))
+	var brace_mult: float = float(brace.get("mult", 1.0))
+	var brace_name: String = str(brace.get("name", "unaware"))
+	defender.brace_tier_last = brace_tier
 	var base_shock := _Charge.base_charge_shock(impact)
-	var shock := base_shock * edge_mult
+	var shock := base_shock * edge_mult * brace_mult
 	var reflected := 0.0
-	if braced:
+	var braced_set := brace_tier == 2
+	if braced_set:
 		reflected = impact * Constants.get_float("brace_reflect_pct")
 		# Impact is already in strength/cohesion-adjacent units; reflect without k_melee.
 		CombatResolver.apply_strength_loss(attacker, reflected)
@@ -426,8 +431,8 @@ func apply_charge_impacts(attacker: SimUnitProxy, defender: SimUnitProxy) -> voi
 		spawn_shock_floater(attacker, reflected_shock)
 		log_trace_event(
 			"brace_reflect",
-			"attacker=%s,defender=%s,impact=%.3f,closing_si=%.3f,reflected=%.3f,edge=%s"
-			% [attacker.unit_id, defender.unit_id, impact, closing_si, reflected, edge_name]
+			"attacker=%s,defender=%s,impact=%.3f,closing_si=%.3f,reflected=%.3f,edge=%s,brace_tier=%d"
+			% [attacker.unit_id, defender.unit_id, impact, closing_si, reflected, edge_name, brace_tier]
 		)
 	else:
 		defender.apply_cohesion_drain(shock)
@@ -435,7 +440,7 @@ func apply_charge_impacts(attacker: SimUnitProxy, defender: SimUnitProxy) -> voi
 		attacker.begin_charge_amp()
 		log_trace_event(
 			"charge_impact",
-			"attacker=%s,defender=%s,impact=%.3f,closing_si=%.3f,base_shock=%.3f,edge=%s,edge_mult=%.3f,shock=%.3f,mass=%.3f"
+			"attacker=%s,defender=%s,impact=%.3f,closing_si=%.3f,base_shock=%.3f,edge=%s,edge_mult=%.3f,brace_tier=%d,brace=%s,brace_mult=%.3f,shock=%.3f,mass=%.3f,cohesion_after=%.2f"
 			% [
 				attacker.unit_id,
 				defender.unit_id,
@@ -444,8 +449,12 @@ func apply_charge_impacts(attacker: SimUnitProxy, defender: SimUnitProxy) -> voi
 				base_shock,
 				edge_name,
 				edge_mult,
+				brace_tier,
+				brace_name,
+				brace_mult,
 				shock,
 				_Charge.mass_of(attacker),
+				defender.cohesion,
 			]
 		)
 	last_charge_events.append({
@@ -457,9 +466,13 @@ func apply_charge_impacts(attacker: SimUnitProxy, defender: SimUnitProxy) -> voi
 		"base_shock": base_shock,
 		"edge": edge_name,
 		"edge_mult": edge_mult,
-		"shock": 0.0 if braced else shock,
+		"brace_tier": brace_tier,
+		"brace": brace_name,
+		"brace_mult": brace_mult,
+		"shock": 0.0 if braced_set else shock,
+		"defender_cohesion_after": defender.cohesion,
 		"charged": true,
-		"braced": braced,
+		"braced": braced_set,
 		"reflected": reflected,
 	})
 

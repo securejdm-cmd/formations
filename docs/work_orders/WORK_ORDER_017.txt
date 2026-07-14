@@ -1,0 +1,64 @@
+# WORK ORDER 017 - Bracing for Impact: The Defensive Half of the Charge
+*Project: FORMATIONS - Phase 2 - Issued by Technical Director*
+*GREEN LIGHT: proceed immediately upon reading. Escalate only per governance triggers.*
+*Design authority: DESIGN_RULINGS_v1.2 R15 + R16 (new, below). Base: WO-016c branch state.*
+
+## Context (why this WO exists)
+WO-016c implemented directional charge shock exactly to spec. Reviewing the resulting spectrum, the TD finds the model incomplete, not incorrect: shock is a flat subtraction, so with base_shock 76.68 **every full-gallop frontal charge leaves fresh infantry wavering (<=30) and routs any unit below ~87 cohesion**. There is no "the line holds" outcome at any cohesion value, and flank/rear multipliers add little because the front is already lethal. The missing piece is the DEFENSIVE half - infantry bracing for impact. Do NOT retune the coefficient in isolation; build the brace, then tune the whole spectrum once.
+
+## RULING R16 - Three-tier brace (append to DESIGN_RULINGS_v1.2)
+Charge shock is modulated by the defender's readiness at the moment of contact:
+
+**Tier 1 - Instinctive brace (automatic, ANY unit).** A unit qualifies when ALL hold at impact: (a) the charger entered the defender's FRONT edge arc at least `brace_reaction_s` (start 1.5s) before contact while above `charge_min_speed`; (b) the defender is NOT engaged with any other enemy; (c) the defender's own speed <= `brace_max_own_speed` (start 25% of its Speed - standing or shuffling, not marching/running). Effect: charge cohesion shock x `instinctive_brace_mult` (start 0.6). Frontal only - Tier 1 never applies to side/rear contacts (no time to reface; this is why flanks stay lethal).
+
+**Tier 2 - Set to receive (Pierce, existing WO-016 brace).** Unchanged: stationary Pierce facing >= `brace_time_s` negates shock entirely and reflects. Tier 2 supersedes Tier 1 when both qualify.
+
+**Tier 3 - Caught unaware (no brace).** Any unit failing Tier 1's conditions - already engaged, routing, moving above the speed cap, or contacted on side/rear - takes FULL directional shock.
+
+Design consequence (intended): steady infantry that sees a charge coming holds the line; busy, moving, surprised, or outflanked infantry is shattered. Cavalry becomes a maneuver-and-timing weapon, not a delete key.
+
+## Task 1 - Implement R16
+- New constants: `brace_reaction_s`, `brace_max_own_speed_pct`, `instinctive_brace_mult`. All in combat_constants.json.
+- Threat detection: reuse the existing cheap front-axis `closing_speed_into_defender` and the edge classifier's front-arc test - do NOT add per-tick full classification for all pairs (perf_40 must not regress; report tick cost at 40 units before/after).
+- Braced state (Tier 1 and Tier 2 distinctly) exposed in traces and rendered in the gallery.
+- Interaction note: Tier 1 detection must not conflict with future magnetism auto-rotation (next WO). If a design-relevant conflict surfaces, ESCALATE.
+
+## Task 2 - Spectrum report (data first, no tuning)
+With R16 in place, report the FULL matrix - for defender cohesion 100 / 70 / 40, for each of frontal-braced (T1), frontal-unaware (T3), flank, rear, and frontal-vs-Pierce-set (T2):
+- shock applied, resulting cohesion, resulting state (steady / wavering / rout).
+Deliver this BEFORE any coefficient change.
+
+## Task 3 - Battle-outcome verification (the design promise)
+S22 currently reports shock but not the OUTCOME. Add outcome reporting to S17/S22: after the charge, who wins the ensuing melee, at what strength, and how long? Design promise under test: *cavalry wins by impact, fades in the grind* - a frontal charge that fails to break steady infantry should see the cavalry LOSE the subsequent melee (modest close_damage vs infantry's 25). Report actuals; if cavalry wins the grind too, that's a finding for TD.
+
+## Task 4 - New scenarios (fast mode, evidence logs)
+- **S23 - Steady braced infantry:** cavalry full-gallop frontal charge vs stationary, facing, unengaged test_infantry. Expect: Tier 1 applies, defender holds ABOVE wavering, cavalry then loses the grind.
+- **S24 - Caught engaged:** identical charge, but the infantry is already engaged with a second enemy. Expect: no Tier 1, full shock, infantry breaks.
+- **S25 - Caught marching:** identical charge vs infantry marching at full speed. Expect: no Tier 1 (speed cap), full shock.
+- **S26 - Late arc entry:** charger enters the defender's front arc only ~0.5s before contact. Expect: no Tier 1 (reaction window unmet) - proving surprise beats readiness.
+
+## Task 5 - Retune authorization (pre-authorized, with escalation)
+After Tasks 2-4, tune `charge_cohesion_coeff` (and `instinctive_brace_mult` if needed) to satisfy ALL of:
+- Frontal + Tier 1 braced, fresh (100): lands **>= 45** (steady - the line holds)
+- Frontal + Tier 3 unaware, fresh (100): lands in **[15, 30]** (wavering - R15 preserved)
+- Frontal + Tier 1 braced, shaken (40): **routs** (shaken men break even when set)
+- Flank, fresh (100): **routs**
+- Rear, fresh (100): **routs** (hardest)
+If no value set satisfies all five, ESCALATE with the matrix - do not partially satisfy and label PASS.
+
+## Task 6 - Housekeeping
+- Confirm cohesion is CLAMPED at 0 (the WO-016c spectrum table reports 15.02 and 53.36; confirm these are display arithmetic only and that no stored cohesion goes negative).
+- Report WO-016b's speed-scale ROOT CAUSE for the record (TD never received the WO-016b report; Impact 6.4 -> 21.6 implies closing speed ~13.5 m/s, which is correct - but the cause of the original ~3-4x error must be documented so the scale-bug family is closed).
+
+## Acceptance Criteria
+- [ ] R16 implemented; three tiers distinguishable in traces; constants in JSON
+- [ ] Full spectrum matrix (Task 2) delivered pre-tuning
+- [ ] S23-S26 pass expectations; S17/S22 outcome data reported
+- [ ] Task 5 targets all met by the committed tuning, or escalated with the matrix
+- [ ] perf_40 tick cost not regressed (report before/after)
+- [ ] Full suite exit 0, meta PASS count reconciled, evidence dir attached
+- [ ] Regression: S1-S16 unchanged (brace only triggers above charge_min_speed)
+- [ ] Atomic code+report commit; attest with header stamp
+
+## Out of Scope
+Magnetism/auto-rotation, PARTHIAN, elevation, concealment, veteran/green brace variation (backlog: quality-scaled brace strength).

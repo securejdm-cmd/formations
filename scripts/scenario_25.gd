@@ -1,9 +1,9 @@
-class_name Scenario22
+class_name Scenario25
 extends Scenario01
 
-## Frontal charge vs fresh facing infantry — R15 stagger (waver band), hold (not routed by shock).
+## S25 — Caught marching: infantry at full speed → no Tier 1 (speed cap), full frontal shock.
 
-const TRACE_PREFIX := "scenario_22"
+const TRACE_PREFIX := "scenario_25"
 
 var _cavalry: Unit = null
 var _infantry: Unit = null
@@ -25,11 +25,9 @@ func _spawn_units() -> void:
 
 	_infantry = UNIT_SCENE.instantiate()
 	add_child(_infantry)
-	# Facing the charger (braced-facing / frontal posture).
+	# March toward the cavalry (facing it) so speed exceeds brace_max_own_speed_pct.
 	_infantry.configure("blue_inf", "blue", inf_profile, Vector2(half, 0.0), Vector2.LEFT)
-	_infantry.current_order = Unit.Order.HOLD
-	_infantry._set_state(Unit.State.HOLD)
-	_infantry.current_speed_m_s = 0.0
+	_infantry.set_march_to(Vector2(-half - 40.0 * px, 0.0))
 	_units.append(_infantry)
 
 	for unit in _units:
@@ -43,7 +41,7 @@ func _write_trace_file() -> void:
 		return
 	for line in _trace_lines:
 		file.store_line(line)
-	print("[Scenario 22] Trace written: %s" % file_path)
+	print("[Scenario 25] Trace written: %s" % file_path)
 
 
 func get_charge_events() -> Array:
@@ -62,23 +60,7 @@ func primary_charge_event() -> Dictionary:
 
 
 func infantry_cohesion() -> float:
-	if _infantry == null:
-		return -1.0
-	return _infantry.cohesion
-
-
-func infantry_state_name() -> String:
-	if _infantry == null:
-		return ""
-	return _infantry.get_state_name()
-
-
-func cavalry_strength() -> float:
-	return -1.0 if _cavalry == null else _cavalry.strength
-
-
-func infantry_strength() -> float:
-	return -1.0 if _infantry == null else _infantry.strength
+	return -1.0 if _infantry == null else _infantry.cohesion
 
 
 func combat_duration_sec() -> float:

@@ -1,0 +1,4 @@
+[WO-017] S17 PASS impact=21.600 shock=46.008 closing=13.500 land_coh=53.99 tier=1 edge=front combat=52.7s winner=blue_inf cav_str=66.1 inf_str=93.5
+[WO-017] S22 PASS tier=1 shock=46.01 land=53.99 combat=52.7s winner=blue_inf cav_str=66.1 inf_str=93.5
+[WO-017] S23 PASS tier=1 shock=46.01 land=53.99 combat=52.7s winner=blue_inf cav_str=66.1 inf_str=93.5
+[WO-015] Meta PASS=58 FAIL=0 expected_green_pass=58 exit=0

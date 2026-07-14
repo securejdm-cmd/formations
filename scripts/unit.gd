@@ -63,7 +63,12 @@ var charge_amp_factor: float = 1.0
 var _charge_amp_time_left: float = 0.0
 var _brace_hold_sec: float = 0.0
 var _braced: bool = false
+## Seconds a front-arc gallop threat has been continuously visible (R16 Tier 1).
+var _threat_front_sec: float = 0.0
+## Distinct brace tier last resolved at charge impact (1/2/3); 0 = none yet.
+var brace_tier_last: int = 0
 var _brace_indicator: ColorRect = null
+var _instinctive_indicator: ColorRect = null
 
 
 func _ready() -> void:
@@ -91,6 +96,8 @@ func configure(id: String, team: String, profile_data: Dictionary, spawn_positio
 	_charge_amp_time_left = 0.0
 	_brace_hold_sec = 0.0
 	_braced = false
+	_threat_front_sec = 0.0
+	brace_tier_last = 0
 	if float(profile.get("ranged_damage", 0.0)) > 0.0 and float(profile.get("range", 0.0)) > 0.0:
 		ammo_remaining = int(profile.get("ammo_volleys", 0))
 	else:
@@ -259,8 +266,26 @@ func update_brace(delta: float, enemies: Array = []) -> void:
 	if _state == State.REMOVED or _state == State.ROUTING or _state == State.RALLYING:
 		_braced = false
 		_brace_hold_sec = 0.0
+		_threat_front_sec = 0.0
 		_update_brace_visual()
 		return
+
+	# R16 Tier 1 threat clock — any unit; cheap front-axis + faces_threat only.
+	var gallop_threat := false
+	for enemy in enemies:
+		if enemy == null or enemy.get_state() == State.REMOVED:
+			continue
+		if enemy.team_id == team_id:
+			continue
+		if _ChargeCombat.is_charging_threat(enemy, self):
+			gallop_threat = true
+			break
+	if gallop_threat and _ChargeCombat.own_speed_allows_instinctive(self):
+		_threat_front_sec += delta
+	else:
+		_threat_front_sec = 0.0
+
+	# Tier 2 Pierce set-to-receive (unchanged gate).
 	var stationary := current_speed_m_s <= Constants.get_float("brace_stationary_speed")
 	var holding := _state == State.HOLD or (_state == State.MARCHING and stationary)
 	if not holding or not _ChargeCombat.is_pierce(self) or not stationary:
@@ -296,14 +321,33 @@ func _update_brace_visual() -> void:
 		_visual_root.add_child(_brace_indicator)
 		_brace_indicator.color = Color(0.95, 0.85, 0.2, 0.9)
 		_brace_indicator.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	if not _braced:
-		_brace_indicator.visible = false
-		return
+	if _instinctive_indicator == null:
+		_instinctive_indicator = ColorRect.new()
+		_instinctive_indicator.name = "InstinctiveBraceIndicator"
+		_visual_root.add_child(_instinctive_indicator)
+		_instinctive_indicator.color = Color(0.45, 0.85, 0.95, 0.75)
+		_instinctive_indicator.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var frontage_px := effective_frontage_m() * Constants.get_float("px_per_meter")
 	var depth_px := 3.0
-	_brace_indicator.visible = true
-	_brace_indicator.size = Vector2(frontage_px, depth_px)
-	_brace_indicator.position = Vector2(-frontage_px * 0.5, -effective_depth_m() * Constants.get_float("px_per_meter") * 0.5 - depth_px)
+	var y := -effective_depth_m() * Constants.get_float("px_per_meter") * 0.5 - depth_px
+	# Tier 2 (set) takes priority visually.
+	if _braced:
+		_brace_indicator.visible = true
+		_brace_indicator.size = Vector2(frontage_px, depth_px)
+		_brace_indicator.position = Vector2(-frontage_px * 0.5, y)
+		_instinctive_indicator.visible = false
+		return
+	_brace_indicator.visible = false
+	var instinctive_ready := (
+		_threat_front_sec + 0.001 >= Constants.get_float("brace_reaction_s")
+		and _ChargeCombat.own_speed_allows_instinctive(self)
+	)
+	if instinctive_ready:
+		_instinctive_indicator.visible = true
+		_instinctive_indicator.size = Vector2(frontage_px, depth_px)
+		_instinctive_indicator.position = Vector2(-frontage_px * 0.5, y)
+	else:
+		_instinctive_indicator.visible = false
 
 
 func update_marching(delta: float, enemies: Array[Unit] = []) -> void:

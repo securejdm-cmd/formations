@@ -74,5 +74,8 @@
   "charge_speed_si_scale": 3.375,
   "brace_time_s": 1.5,
   "brace_reflect_pct": 0.5,
-  "brace_stationary_speed": 0.2
+  "brace_stationary_speed": 0.2,
+  "brace_reaction_s": 1.5,
+  "brace_max_own_speed_pct": 0.25,
+  "instinctive_brace_mult": 0.6
 }
