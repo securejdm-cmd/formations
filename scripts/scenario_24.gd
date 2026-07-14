@@ -13,6 +13,9 @@ var _binder: Unit = null
 func _spawn_units() -> void:
 	var cav_profile := UnitProfileLoader.load_profile("test_cavalry")
 	var inf_profile := UnitProfileLoader.load_profile("test_infantry")
+	var binder_profile := inf_profile.duplicate(true)
+	binder_profile["close_damage"] = 0.0
+	binder_profile["pushing_power"] = 0.0
 	var px := Constants.get_float("px_per_meter")
 	var run_up_m := 180.0
 	var half := run_up_m * 0.5 * px
@@ -26,17 +29,16 @@ func _spawn_units() -> void:
 	_infantry.current_speed_m_s = 0.0
 	_units.append(_infantry)
 
-	# Binder already touching infantry rear/side so contact partners exist before cav arrives.
+	# Zero-damage binder already on rear edge: engaged, but no attrition before the charge.
 	_binder = UNIT_SCENE.instantiate()
 	add_child(_binder)
-	var binder_pos := Vector2(half + (depth_m + 0.5) * px, 0.0)
-	_binder.configure("red_binder", "red", inf_profile, binder_pos, Vector2.LEFT)
+	var binder_pos := Vector2(half + (depth_m * 0.55) * px, 0.0)
+	_binder.configure("red_binder", "red", binder_profile, binder_pos, Vector2.LEFT)
 	_binder.current_order = Unit.Order.HOLD
 	_binder._set_state(Unit.State.ENGAGED)
 	_binder.current_speed_m_s = 0.0
 	_units.append(_binder)
 
-	# Pre-bind contact so infantry fails R16 Tier 1 "not engaged" at cav impact.
 	_infantry.add_contact_partner(_binder)
 	_binder.add_contact_partner(_infantry)
 	_infantry._set_state(Unit.State.ENGAGED)
@@ -50,6 +52,31 @@ func _spawn_units() -> void:
 
 	for unit in _units:
 		unit.set_render_camera(_camera)
+
+
+func advance_one_tick() -> void:
+	_reinforce_binder_contact()
+	super.advance_one_tick()
+
+
+func advance_post_battle_tick() -> void:
+	_reinforce_binder_contact()
+	super.advance_post_battle_tick()
+
+
+func _reinforce_binder_contact() -> void:
+	# Keep binder↔infantry partners alive through the approach so R16 sees "engaged".
+	if _infantry == null or _binder == null:
+		return
+	if _infantry.get_state() == Unit.State.REMOVED or _binder.get_state() == Unit.State.REMOVED:
+		return
+	if not _infantry.has_contact_with(_binder):
+		_infantry.add_contact_partner(_binder)
+	if not _binder.has_contact_with(_infantry):
+		_binder.add_contact_partner(_infantry)
+	if _infantry.get_state() != Unit.State.ENGAGED and _infantry.get_state() != Unit.State.WAVERING:
+		_infantry._set_state(Unit.State.ENGAGED)
+	_sync_core_from_units()
 
 
 func _write_trace_file() -> void:
