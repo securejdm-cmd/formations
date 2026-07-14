@@ -1,0 +1,9 @@
+WORK ORDER 019 - Making the Gallop Reachable
+Project: FORMATIONS - Phase 2 - Issued by Technical Director
+GREEN LIGHT: proceed immediately. Base: WO-018 branch tip.
+
+R18: base_accel so cavalry reaches gait ceiling in ~120-150m standstill;
+charge_min_speed becomes relative (Speed x charge_min_speed_pct); delete absolute.
+Re-derive charge_impact_scale downward (~1.0 expected).
+High-speed contact audit / sub-step if needed.
+S29 real spread; spectrum restore; regression lock S1-S16/S12.

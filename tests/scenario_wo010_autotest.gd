@@ -1291,14 +1291,15 @@ func _check_s20_runup(short: bool) -> void:
 	var ok := true
 	var closing: float = float(ev.get("closing_speed", -1.0))
 	var charged: bool = bool(ev.get("charged", false))
-	# charge_min_speed is sim m/s (R17 — same units as measured velocity).
-	var min_speed := _c_float("charge_min_speed")
+	# R18: relative threshold = own tactical Speed × charge_min_speed_pct (cavalry → 5.0).
+	var cav_top := 40.0 * _c_float("speed_stat_meters_per_10s") / 10.0
+	var min_speed := cav_top * _c_float("charge_min_speed_pct")
 	if short:
 		_s20_short_closing = closing
 		if charged or closing >= min_speed - 0.05:
-			push_error("S20 20m should be below charge_min_speed (closing=%.3f min=%.3f sim-m/s)" % [closing, min_speed])
+			push_error("S20 20m should be below relative charge threshold (closing=%.3f min=%.3f sim-m/s)" % [closing, min_speed])
 			ok = false
-		_record_check("[WO-018] S20 20m", ok, "closing=%.3f charged=%s (sim-m/s)" % [closing, charged])
+		_record_check("[WO-019] S20 20m", ok, "closing=%.3f charged=%s (sim-m/s)" % [closing, charged])
 	else:
 		_s20_long_closing = closing
 		if not charged or closing < min_speed:
@@ -1308,7 +1309,7 @@ func _check_s20_runup(short: bool) -> void:
 			push_error("S20 long closing %.3f should exceed short %.3f" % [closing, _s20_short_closing])
 			ok = false
 		_record_check(
-			"[WO-018] S20 120m",
+			"[WO-019] S20 120m",
 			ok,
 			"closing=%.3f impact=%.3f short_closing=%.3f (sim-m/s)"
 			% [closing, float(ev.get("impact", 0.0)), _s20_short_closing],
@@ -1517,8 +1518,13 @@ func _check_s27_gait_visibility() -> void:
 	if closing <= 4.0 + 0.05:
 		push_error("S27 expected gait acceleration above tactical trot (closing=%.3f)" % closing)
 		ok = false
+	# WO-019: long runway must reach nearly full gait ceiling.
+	var gait_ceiling := 40.0 * _c_float("speed_stat_meters_per_10s") / 10.0 * 3.375
+	if closing < 0.95 * gait_ceiling:
+		push_error("S27 expected v>=0.95×gait (closing=%.3f ceiling=%.3f)" % [closing, gait_ceiling])
+		ok = false
 	_record_check(
-		"[WO-018] S27",
+		"[WO-019] S27",
 		ok,
 		"closing=%.3f unit_speed=%.3f samples=%d commit=%s accel=%s"
 		% [closing, unit_speed, samples.size(), saw_commit, saw_accel],
@@ -1534,7 +1540,7 @@ func _check_s28_infantry_charge() -> void:
 	var impact: float = float(ev.get("impact", -1.0))
 	var shock: float = float(ev.get("shock", -1.0))
 	var land := 100.0 - shock
-	# Modest vs cavalry (~21.6 impact / ~46 T1 shock or ~76 T3).
+	# Modest vs cavalry (~21.6 impact at full gallop with scale≈1).
 	if impact >= 18.0:
 		push_error("S28 impact %.3f should be materially below cavalry ~21.6" % impact)
 		ok = false
@@ -1542,9 +1548,9 @@ func _check_s28_infantry_charge() -> void:
 		push_error("S28 defender should hold comfortably (land=%.2f)" % land)
 		ok = false
 	_record_check(
-		"[WO-018] S28",
+		"[WO-019] S28",
 		ok,
-		"impact=%.3f shock=%.2f land=%.2f closing=%.3f tier=%s"
+		"impact=%.3f shock=%.2f land=%.2f closing=%.3f tier=%s (WO-018 was 7.79/16.6/83.4)"
 		% [impact, shock, land, float(ev.get("closing_speed", 0.0)), str(ev.get("brace_tier", ""))],
 	)
 
@@ -1566,22 +1572,41 @@ func _finalize_s29_runup() -> void:
 	if _s29_rows.size() != _S29_DISTANCES.size():
 		push_error("S29 expected %d curve points" % _S29_DISTANCES.size())
 		ok = false
+	var gait_ceiling := 40.0 * _c_float("speed_stat_meters_per_10s") / 10.0 * 3.375
+	var cav_top := 40.0 * _c_float("speed_stat_meters_per_10s") / 10.0
+	var min_speed := cav_top * _c_float("charge_min_speed_pct")
+	var by_dist: Dictionary = {}
+	var prev_impact := -1.0
 	var prev_closing := -1.0
 	for row in _s29_rows:
 		var closing: float = float(row.get("closing", -1.0))
+		var impact: float = float(row.get("impact", -1.0))
 		var run_up: float = float(row.get("run_up_m", 0.0))
+		by_dist[run_up] = row
 		if run_up <= 20.5:
-			if bool(row.get("charged", true)):
-				push_error("S29 20m should not charge (closing=%.3f)" % closing)
+			if bool(row.get("charged", true)) or closing >= min_speed - 0.05:
+				push_error("S29 20m should not charge (closing=%.3f min=%.3f)" % [closing, min_speed])
 				ok = false
 		else:
 			if not bool(row.get("charged", false)):
 				push_error("S29 %.0fm should charge" % run_up)
 				ok = false
-		if prev_closing >= 0.0 and closing + 0.05 < prev_closing and run_up > 20.5:
+		if prev_closing >= 0.0 and closing + 0.05 < prev_closing:
 			push_error("S29 velocity curve should not decrease (%.3f -> %.3f)" % [prev_closing, closing])
 			ok = false
+		if prev_impact >= 0.0 and impact + 0.05 < prev_impact:
+			push_error("S29 Impact must be strictly monotonic (%.3f -> %.3f)" % [prev_impact, impact])
+			ok = false
 		prev_closing = closing
+		prev_impact = impact
+	var v60 := float(by_dist.get(60.0, {}).get("closing", -1.0)) if by_dist.has(60.0) else -1.0
+	var v200 := float(by_dist.get(200.0, {}).get("closing", -1.0)) if by_dist.has(200.0) else -1.0
+	if v200 < 0.95 * gait_ceiling:
+		push_error("S29 v(200)=%.3f must be >= 0.95×gait (%.3f)" % [v200, 0.95 * gait_ceiling])
+		ok = false
+	if v60 < 0.50 * gait_ceiling or v60 > 0.80 * gait_ceiling:
+		push_error("S29 v(60)=%.3f must be in [50%%,80%%] of gait %.3f" % [v60, gait_ceiling])
+		ok = false
 	var detail := ""
 	for row in _s29_rows:
 		detail += " %.0fm:v=%.2f/i=%.2f" % [
@@ -1589,7 +1614,7 @@ func _finalize_s29_runup() -> void:
 			float(row.get("closing", 0.0)),
 			float(row.get("impact", 0.0)),
 		]
-	_record_check("[WO-018] S29", ok, detail.strip_edges())
+	_record_check("[WO-019] S29", ok, detail.strip_edges())
 
 
 func _record_check(tag: String, ok: bool, detail: String = "") -> void:

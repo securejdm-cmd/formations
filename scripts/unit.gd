@@ -356,7 +356,15 @@ func _update_brace_visual() -> void:
 func update_marching(delta: float, enemies: Array[Unit] = []) -> void:
 	if _state != State.MARCHING:
 		return
+	var steps := maxi(1, _ChargeCombat.march_substep_count(self, delta))
+	var sub := delta / float(steps)
+	for _i in range(steps):
+		if _state != State.MARCHING:
+			return
+		_update_marching_step(sub, enemies)
 
+
+func _update_marching_step(delta: float, enemies: Array[Unit] = []) -> void:
 	_update_charge_commit(enemies)
 	var to_target := march_target - position
 	var top := _ChargeCombat.target_speed_m_s(self)

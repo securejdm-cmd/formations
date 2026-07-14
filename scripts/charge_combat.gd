@@ -71,6 +71,27 @@ static func decel_m_s2(unit: Variant) -> float:
 	return Constants.get_float("base_decel") / maxf(mass_of(unit), 0.01)
 
 
+static func charge_min_closing_m_s(attacker: Variant) -> float:
+	## R18: relative threshold — own tactical Speed × charge_min_speed_pct.
+	## gait_mult=1.0 units can never exceed their Speed, so they never charge.
+	return top_speed_m_s(attacker) * Constants.get_float("charge_min_speed_pct")
+
+
+static func march_substep_count(unit: Variant, delta: float) -> int:
+	## Keep per-substep displacement < engage_snap_max_m at gait speeds (R18 Task 3).
+	var snap := Constants.get_float("engage_snap_max_m")
+	if snap <= 0.0 or delta <= 0.0:
+		return 1
+	var top := target_speed_m_s(unit)
+	var speed_now: float = float(unit.current_speed_m_s) if "current_speed_m_s" in unit else 0.0
+	var peak := minf(top, speed_now + accel_m_s2(unit) * delta)
+	peak = maxf(peak, speed_now)
+	var disp := peak * delta
+	if disp < snap:
+		return 1
+	return int(floor(disp / snap)) + 1
+
+
 static func turn_rate_rad_s(unit: Variant) -> float:
 	var agility := float(unit.profile.get("agility", 50.0))
 	var agility_factor := clampf(agility / 50.0, 0.25, 2.0)
@@ -233,7 +254,7 @@ static func is_charging_threat(attacker: Variant, defender: Variant) -> bool:
 	if not faces_threat(defender, attacker):
 		return false
 	var closing := closing_speed_into_defender(attacker, defender)
-	return closing >= Constants.get_float("charge_min_speed")
+	return closing >= charge_min_closing_m_s(attacker)
 
 
 static func own_speed_allows_instinctive(defender: Variant) -> bool:
