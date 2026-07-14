@@ -40,8 +40,8 @@ const S8_BLOB_RATIO_MAX := 2.0
 const SCENARIO_EXTRA_TICKS := 120
 ## Gated PASS lines emitted when every check is green (WO-015).
 ## Compass, Fast+Threaded cert, S1×11, S2×11, Determinism, S3, Overlap, S4, S5–S8, S9,
-## S10–S11, S12, S13×3, S14×2, S15, S16×2, S17×2, S17b, S18, S19, S20×2 = 52
-const EXPECTED_GREEN_PASS_COUNT := 52
+## S10–S11, S12, S13×3, S14×2, S15, S16×2, S17×2, S17b, S18, S19, S20×2, S21, S22 = 54
+const EXPECTED_GREEN_PASS_COUNT := 54
 
 var _scenario: Scenario01 = null
 var _exit_code := 0
@@ -267,6 +267,12 @@ func _spawn_and_run() -> void:
 		"s20_runup_long":
 			scene = "scenario_20"
 			seed_value = 1000
+		"s21_flank_charge":
+			scene = "scenario_21"
+			seed_value = 1000
+		"s22_frontal_facing":
+			scene = "scenario_22"
+			seed_value = 1000
 
 	if _scenario != null:
 		_scenario.free()
@@ -315,6 +321,8 @@ func _spawn_and_run() -> void:
 			_scenario.set("infantry_start_cohesion", 40.0)
 		else:
 			_scenario.set("infantry_start_cohesion", -1.0)
+	elif scene == "scenario_21":
+		_scenario.set("approach", 0)  # FLANK
 	elif scene == "scenario_20":
 		if _mode == "s20_runup_short":
 			_scenario.set("run_up_m", 20.0)
@@ -362,6 +370,8 @@ func _run_when_ready() -> void:
 		"s19_brace_timing",
 		"s20_runup_short",
 		"s20_runup_long",
+		"s21_flank_charge",
+		"s22_frontal_facing",
 	]:
 		_sim_harness.run_ticks(_scenario, 4500)
 	else:
@@ -550,6 +560,14 @@ func _finish() -> void:
 			_spawn_and_run()
 		"s20_runup_long":
 			_check_s20_runup(false)
+			_mode = "s21_flank_charge"
+			_spawn_and_run()
+		"s21_flank_charge":
+			_check_s21_flank_charge()
+			_mode = "s22_frontal_facing"
+			_spawn_and_run()
+		"s22_frontal_facing":
+			_check_s22_frontal_facing()
 			_mode = "perf_40"
 			_spawn_and_run()
 		"perf_40":
@@ -1140,10 +1158,14 @@ func _check_s17_charge(adjacent: bool) -> void:
 	if impact < 18.0:
 		push_error("S17 impact %.3f too small for SI gallop" % impact)
 		ok = false
-	# R15: fresh line lands in wavering band, not routed by charge alone.
+	# R15 frontal: fresh line lands in wavering band, not routed by charge alone.
 	var land_coh := 100.0 - shock
 	if land_coh < 15.0 or land_coh > 30.0:
 		push_error("S17 R15 landing cohesion %.2f (shock=%.3f) not in [15,30]" % [land_coh, shock])
+		ok = false
+	var edge: String = str(ev.get("edge", ""))
+	if edge != "front" and float(ev.get("edge_mult", 1.0)) > 1.05:
+		push_error("S17 expected frontal edge (got edge=%s mult=%.2f)" % [edge, float(ev.get("edge_mult", 1.0))])
 		ok = false
 	_s17_charge_impact = impact
 	_s17_charge_shock = shock
@@ -1151,8 +1173,8 @@ func _check_s17_charge(adjacent: bool) -> void:
 	_record_check(
 		"[WO-016] S17",
 		ok,
-		"impact=%.3f shock=%.3f closing=%.3f land_coh=%.2f combat=%.1fs"
-		% [impact, shock, closing, land_coh, _s17_combat_sec],
+		"impact=%.3f shock=%.3f closing=%.3f land_coh=%.2f edge=%s combat=%.1fs"
+		% [impact, shock, closing, land_coh, edge, _s17_combat_sec],
 	)
 
 
@@ -1255,6 +1277,75 @@ func _check_s20_runup(short: bool) -> void:
 			"closing=%.3f impact=%.3f short_closing=%.3f"
 			% [closing, float(ev.get("impact", 0.0)), _s20_short_closing],
 		)
+
+
+func _check_s21_flank_charge() -> void:
+	# S21 — flank charge vs fresh defender must elevate edge mult and rout.
+	var ev: Dictionary = _scenario.primary_charge_event()
+	var ok := true
+	if not bool(ev.get("charged", false)):
+		push_error("S21 expected flank charge impact")
+		ok = false
+	var edge: String = str(ev.get("edge", ""))
+	if edge != "left" and edge != "right" and edge != "rear":
+		push_error("S21 expected flank/rear edge (got %s)" % edge)
+		ok = false
+	var edge_mult: float = float(ev.get("edge_mult", 0.0))
+	if edge_mult < 1.4:
+		push_error("S21 expected elevated edge_mult (>=1.4), got %.2f" % edge_mult)
+		ok = false
+	var shock: float = float(ev.get("shock", -1.0))
+	var base_shock: float = float(ev.get("base_shock", shock / maxf(edge_mult, 0.01)))
+	# Fresh 100: flank/rear shock must finish through rout_threshold (~10).
+	var land_coh := 100.0 - shock
+	if land_coh > 10.0:
+		push_error("S21 expected rout finish (land_coh=%.2f shock=%.3f)" % [land_coh, shock])
+		ok = false
+	_record_check(
+		"[WO-016c] S21",
+		ok,
+		"edge=%s edge_mult=%.2f base_shock=%.2f shock=%.2f land=%.2f winner=%s"
+		% [edge, edge_mult, base_shock, shock, land_coh, _scenario.get_winner_id()],
+	)
+
+
+func _check_s22_frontal_facing() -> void:
+	# S22 — frontal vs fresh facing infantry → R15 wavering band, not immediate rout.
+	var ev: Dictionary = _scenario.primary_charge_event()
+	var ok := true
+	if not bool(ev.get("charged", false)):
+		push_error("S22 expected frontal charge impact")
+		ok = false
+	var edge: String = str(ev.get("edge", ""))
+	var edge_mult: float = float(ev.get("edge_mult", 1.0))
+	if edge != "front" and edge_mult > 1.05:
+		push_error("S22 expected frontal edge (got edge=%s mult=%.2f)" % [edge, edge_mult])
+		ok = false
+	if absf(edge_mult - 1.0) > 0.05:
+		push_error("S22 expected edge_mult~1.0, got %.2f" % edge_mult)
+		ok = false
+	var shock: float = float(ev.get("shock", -1.0))
+	var land_coh := 100.0 - shock
+	if land_coh < 15.0 or land_coh > 30.0:
+		push_error("S22 frontal R15 land %.2f (shock=%.3f) not in [15,30]" % [land_coh, shock])
+		ok = false
+	# Must not be instant-deleted by shock alone (cohesion after land still above rout).
+	if land_coh <= 10.0:
+		push_error("S22 must not rout from frontal shock alone (land=%.2f)" % land_coh)
+		ok = false
+	_record_check(
+		"[WO-016c] S22",
+		ok,
+		"edge=%s edge_mult=%.2f shock=%.2f land=%.2f state=%s combat=%.1fs"
+		% [
+			edge,
+			edge_mult,
+			shock,
+			land_coh,
+			_scenario.infantry_state_name(),
+			_scenario.combat_duration_sec(),
+		],
+	)
 
 
 func _record_check(tag: String, ok: bool, detail: String = "") -> void:

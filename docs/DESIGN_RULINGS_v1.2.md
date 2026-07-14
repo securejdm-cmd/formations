@@ -62,9 +62,11 @@ A routing unit with the **RALLY** trait and `rallies_remaining > 0` does **not**
 ## R14. Mirror-winner strength gate superseded (TD; WO-013b)
 The legacy expectation that mirror-profile fights (identical units) end with winner strength **< 50–55%** is **SUPERSEDED**. That gate mathematically contradicts the **60–75% strength_at_rout** design band, which is design law. All tuning selection rules drop the mirror-winner gate; sweeps commit on S1 mean combat ∈ [60, 90] nearest 80s and S2 strength_at_rout ∈ [60, 75] only. **STATUS: DESIGN LAW — effective WO-013b.**
 
-## R15. Charge shock vs fresh infantry (TD; WO-016 review)
-A momentum charge (R4) against **FRESH** (100% cohesion) medium infantry MUST drop defender cohesion **into but not through** the wavering band: landing cohesion **∈ [15, 30]** (staggered / wavering), **NOT** routed. Instant charge-delete of full-strength lines is forbidden — it nullifies the morale system whenever cavalry engage.
+## R15. Charge shock vs fresh infantry (TD; WO-016 / WO-016c)
+A momentum charge (R4) against **FRESH** (100% cohesion) medium infantry on a **FRONTAL** contact MUST drop defender cohesion **into but not through** the wavering band: landing cohesion **∈ [15, 30]** (staggered / wavering), **NOT** routed. Instant frontal charge-delete of full-strength lines is forbidden — it nullifies the morale system whenever cavalry engage frontally.
 
-A charge into already-pressured infantry (cohesion **< ~50**) MAY finish them into rout. Charge cohesion coefficient and absolute speed scale must be co-tuned to this band; if the Impact×coeff curve cannot hit it across intended Speed/Mass, escalate with the curve.
+**Directional edge weight (WO-016c):** charge cohesion shock = `base_shock × edge_casualty_mult`, using the defender contact-edge **casualty** multipliers already used by melee morale (`edge_mult_front=1.0`, `edge_mult_side_casualty=1.5`, `edge_mult_rear_casualty=2.0`; length-weighted when mixed). Closing speed is measured along the **contact inward normal** (not only the front axis), so flank/rear run-ups can still reach `charge_min_speed`. Spectrum vs fresh: **front → wavering**; **flank → rout**; **rear → hardest rout**. Frontal pre-shaken (cohesion **< ~50**, S17b) may finish into rout.
 
-**Speed SI note (WO-016b):** movement keeps `speed_stat_meters_per_10s=1.0` (approach-timing lock). Charge Impact / min-speed / reported `closing_speed` use `charge_speed_si_scale` (3.375) so Speed 40 reads ~13.5 m/s SI gallop without moving the S1/S12 march meter. **STATUS: DESIGN LAW — effective WO-016b.**
+The frontal wavering band supersedes the earlier flat R15 “any contact lands [15,30]” reading. Coefficient and SI scale remain co-tuned so frontal Impact×coeff×1.0 stays in-band; flank/rear rely on the edge mult, not a separate frontal retune.
+
+**Speed SI note (WO-016b):** movement keeps `speed_stat_meters_per_10s=1.0` (approach-timing lock). Charge Impact / min-speed / reported `closing_speed` use `charge_speed_si_scale` (3.375) so Speed 40 reads ~13.5 m/s SI gallop without moving the S1/S12 march meter. **STATUS: DESIGN LAW — effective WO-016c.**

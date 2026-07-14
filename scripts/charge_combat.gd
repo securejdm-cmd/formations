@@ -66,11 +66,54 @@ static func velocity_world(unit: Variant) -> Vector2:
 	return unit.facing.normalized() * speed
 
 
+static func _edge_inward_normal(defender: Variant, edge_name: String) -> Vector2:
+	# Inward = into the block through that edge (opposite the edge outward axis).
+	var forward: Vector2 = defender.facing.normalized()
+	var left: Vector2 = FormationGeometry.left_vector(forward)
+	match edge_name:
+		EdgeContact.EDGE_FRONT:
+			return -forward
+		EdgeContact.EDGE_REAR:
+			return forward
+		EdgeContact.EDGE_LEFT:
+			return -left
+		EdgeContact.EDGE_RIGHT:
+			return left
+	return -forward
+
+
+static func contact_inward_normal(attacker: Variant, defender: Variant, edges: Dictionary = {}) -> Vector2:
+	## Length-weighted inward contact normal (WO-016: closing along contact normal).
+	## Falls back to approach direction, then front inward, when edges are empty.
+	var edge_lengths: Dictionary = edges
+	if edge_lengths.is_empty():
+		var contact: Dictionary = EdgeContact.classify_contact(attacker, defender)
+		edge_lengths = contact.get("edge_lengths_m", {})
+	if not edge_lengths.is_empty():
+		var weighted := Vector2.ZERO
+		var total_len := 0.0
+		for edge_name in edge_lengths.keys():
+			var length_m: float = float(edge_lengths[edge_name])
+			total_len += length_m
+			weighted += _edge_inward_normal(defender, str(edge_name)) * length_m
+		if total_len > 0.0 and weighted.length_squared() > 0.0001:
+			return weighted.normalized()
+	var to_def: Vector2 = defender.position - attacker.position
+	if to_def.length_squared() > 0.0001:
+		return to_def.normalized()
+	return -defender.facing.normalized()
+
+
 static func closing_speed_into_defender(attacker: Variant, defender: Variant) -> float:
-	# Speed of attacker along the direction into the defender's front face.
-	# Returned in **sim m/s** (movement calibration).
+	# Cheap front-axis closing used by brace threat detection (sim m/s).
+	# Charge Impact uses closing_speed_along_contact() (contact normal).
 	var into_def: Vector2 = -defender.facing.normalized()
 	return maxf(0.0, velocity_world(attacker).dot(into_def))
+
+
+static func closing_speed_along_contact(attacker: Variant, defender: Variant, edges: Dictionary = {}) -> float:
+	# Attacker's speed along the contact inward normal (sim m/s). Enables flank/rear charges.
+	return maxf(0.0, velocity_world(attacker).dot(contact_inward_normal(attacker, defender, edges)))
 
 
 static func si_scale() -> float:
@@ -80,7 +123,7 @@ static func si_scale() -> float:
 
 
 static func closing_speed_si(attacker: Variant, defender: Variant) -> float:
-	return closing_speed_into_defender(attacker, defender) * si_scale()
+	return closing_speed_along_contact(attacker, defender) * si_scale()
 
 
 static func calc_impact(attacker: Variant, defender: Variant, closing_speed_si_m_s: float) -> float:
@@ -91,6 +134,47 @@ static func calc_impact(attacker: Variant, defender: Variant, closing_speed_si_m
 		* strength_pct
 		* Constants.get_float("charge_impact_scale")
 	)
+
+
+## Length-weighted casualty (morale) multiplier of the defender edges under charge contact.
+## Front ×1, side ×edge_mult_side_casualty, rear ×edge_mult_rear_casualty (R15 extension).
+static func charge_edge_morale_mult(attacker: Variant, defender: Variant, edges_override: Dictionary = {}) -> Dictionary:
+	var edges: Dictionary = edges_override
+	if edges.is_empty():
+		var contact: Dictionary = EdgeContact.classify_contact(attacker, defender)
+		edges = contact.get("edge_lengths_m", {})
+	if edges.is_empty() and CombatResolver.is_head_on_pair(attacker, defender):
+		return {
+			"edge": EdgeContact.EDGE_FRONT,
+			"mult": Constants.get_float("edge_mult_front"),
+			"edge_lengths_m": {EdgeContact.EDGE_FRONT: 1.0},
+		}
+	if edges.is_empty():
+		return {
+			"edge": EdgeContact.EDGE_FRONT,
+			"mult": Constants.get_float("edge_mult_front"),
+			"edge_lengths_m": {},
+		}
+	var total_len := 0.0
+	var weighted := 0.0
+	var dominant := EdgeContact.EDGE_FRONT
+	var dominant_len := -1.0
+	for edge_name in edges.keys():
+		var length_m: float = float(edges[edge_name])
+		total_len += length_m
+		var m: float = EdgeContact._edge_casualty_multiplier(str(edge_name))
+		weighted += length_m * m
+		if length_m > dominant_len:
+			dominant_len = length_m
+			dominant = str(edge_name)
+	var mult := Constants.get_float("edge_mult_front")
+	if total_len > 0.0:
+		mult = weighted / total_len
+	return {"edge": dominant, "mult": mult, "edge_lengths_m": edges.duplicate()}
+
+
+static func base_charge_shock(impact: float) -> float:
+	return impact * Constants.get_float("charge_cohesion_coeff")
 
 
 static func is_pierce(unit: Variant) -> bool:

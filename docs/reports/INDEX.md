@@ -2,6 +2,8 @@
 
 Canonical index of FORMATIONS work-order reports (newest first). Raw `main` branch links.
 
+- [WO-016c_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/WO-016c_completion.md) — WO-016c directional charge shock (edge casualty mult, S21–S22)
+- [WO-016b_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/WO-016b_completion.md) — WO-016b SI charge scale + R15 + S17b
 - [WO-016_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/WO-016_completion.md) — WO-016 mounted charge, mass, brace (S17–S20)
 - [WO-015_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/WO-015_completion.md) — WO-015 S6 harness repair
 - [WO-014b_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/WO-014b_completion.md) — WO-014b fresh report path (sweep/S12–S16/suite)

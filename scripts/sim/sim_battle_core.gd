@@ -391,7 +391,10 @@ func apply_charge_impacts(attacker: SimUnitProxy, defender: SimUnitProxy) -> voi
 	if _charge_pair_done.has(pair_key):
 		return
 	_charge_pair_done[pair_key] = true
-	var closing_sim := _Charge.closing_speed_into_defender(attacker, defender)
+	# One classify for contact-normal closing + edge morale weight.
+	var contact: Dictionary = EdgeContact.classify_contact(attacker, defender)
+	var edges: Dictionary = contact.get("edge_lengths_m", {})
+	var closing_sim := _Charge.closing_speed_along_contact(attacker, defender, edges)
 	var closing_si := closing_sim * _Charge.si_scale()
 	# charge_min_speed is in SI m/s (gallop band / walk discrimination).
 	var min_speed := Constants.get_float("charge_min_speed")
@@ -408,7 +411,11 @@ func apply_charge_impacts(attacker: SimUnitProxy, defender: SimUnitProxy) -> voi
 		return
 	var impact := _Charge.calc_impact(attacker, defender, closing_si)
 	var braced := defender.is_braced() and _Charge.is_pierce(defender)
-	var shock := impact * Constants.get_float("charge_cohesion_coeff")
+	var edge_info: Dictionary = _Charge.charge_edge_morale_mult(attacker, defender, edges)
+	var edge_mult: float = float(edge_info.get("mult", 1.0))
+	var edge_name: String = str(edge_info.get("edge", "front"))
+	var base_shock := _Charge.base_charge_shock(impact)
+	var shock := base_shock * edge_mult
 	var reflected := 0.0
 	if braced:
 		reflected = impact * Constants.get_float("brace_reflect_pct")
@@ -419,8 +426,8 @@ func apply_charge_impacts(attacker: SimUnitProxy, defender: SimUnitProxy) -> voi
 		spawn_shock_floater(attacker, reflected_shock)
 		log_trace_event(
 			"brace_reflect",
-			"attacker=%s,defender=%s,impact=%.3f,closing_si=%.3f,reflected=%.3f"
-			% [attacker.unit_id, defender.unit_id, impact, closing_si, reflected]
+			"attacker=%s,defender=%s,impact=%.3f,closing_si=%.3f,reflected=%.3f,edge=%s"
+			% [attacker.unit_id, defender.unit_id, impact, closing_si, reflected, edge_name]
 		)
 	else:
 		defender.apply_cohesion_drain(shock)
@@ -428,8 +435,18 @@ func apply_charge_impacts(attacker: SimUnitProxy, defender: SimUnitProxy) -> voi
 		attacker.begin_charge_amp()
 		log_trace_event(
 			"charge_impact",
-			"attacker=%s,defender=%s,impact=%.3f,closing_si=%.3f,shock=%.3f,mass=%.3f"
-			% [attacker.unit_id, defender.unit_id, impact, closing_si, shock, _Charge.mass_of(attacker)]
+			"attacker=%s,defender=%s,impact=%.3f,closing_si=%.3f,base_shock=%.3f,edge=%s,edge_mult=%.3f,shock=%.3f,mass=%.3f"
+			% [
+				attacker.unit_id,
+				defender.unit_id,
+				impact,
+				closing_si,
+				base_shock,
+				edge_name,
+				edge_mult,
+				shock,
+				_Charge.mass_of(attacker),
+			]
 		)
 	last_charge_events.append({
 		"attacker": attacker.unit_id,
@@ -437,6 +454,9 @@ func apply_charge_impacts(attacker: SimUnitProxy, defender: SimUnitProxy) -> voi
 		"closing_speed": closing_si,
 		"closing_speed_sim": closing_sim,
 		"impact": impact,
+		"base_shock": base_shock,
+		"edge": edge_name,
+		"edge_mult": edge_mult,
 		"shock": 0.0 if braced else shock,
 		"charged": true,
 		"braced": braced,
