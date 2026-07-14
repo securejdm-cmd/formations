@@ -61,3 +61,8 @@ A routing unit with the **RALLY** trait and `rallies_remaining > 0` does **not**
 
 ## R14. Mirror-winner strength gate superseded (TD; WO-013b)
 The legacy expectation that mirror-profile fights (identical units) end with winner strength **< 50–55%** is **SUPERSEDED**. That gate mathematically contradicts the **60–75% strength_at_rout** design band, which is design law. All tuning selection rules drop the mirror-winner gate; sweeps commit on S1 mean combat ∈ [60, 90] nearest 80s and S2 strength_at_rout ∈ [60, 75] only. **STATUS: DESIGN LAW — effective WO-013b.**
+
+## R15. Charge shock vs fresh infantry (TD; WO-016 review)
+A momentum charge (R4) against **FRESH** (100% cohesion) medium infantry MUST drop defender cohesion **into but not through** the wavering band: landing cohesion **∈ [15, 30]** (staggered / wavering), **NOT** routed. Instant charge-delete of full-strength lines is forbidden — it nullifies the morale system whenever cavalry engage.
+
+A charge into already-pressured infantry (cohesion **< ~50**) MAY finish them into rout. Charge cohesion coefficient and absolute speed scale must be co-tuned to this band; if the Impact×coeff curve cannot hit it across intended Speed/Mass, escalate with the curve. **STATUS: DESIGN LAW — effective WO-016b.**

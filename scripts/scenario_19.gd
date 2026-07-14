@@ -53,8 +53,8 @@ func _maybe_turn_spears() -> void:
 	var px := Constants.get_float("px_per_meter")
 	var gap_m := absf(_cavalry.position.x - _spears.position.x) / px
 	# Contact at ~center gap of (cav_depth + spear_depth)/2 ≈ 13.5m.
-	# Turn ~0.5s before impact (~2m at cavalry cruise ~4 m/s) → gap ≈ 15.5m.
-	if gap_m <= 15.5:
+	# Turn ~0.5s before impact (~6.75m at gallop ~13.5 m/s) → gap ≈ 20.3m.
+	if gap_m <= 20.3:
 		_spears.facing = Vector2.LEFT
 		_spears.rotation = _spears.facing.angle()
 		_spears._brace_hold_sec = 0.0

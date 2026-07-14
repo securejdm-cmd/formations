@@ -40,8 +40,8 @@ const S8_BLOB_RATIO_MAX := 2.0
 const SCENARIO_EXTRA_TICKS := 120
 ## Gated PASS lines emitted when every check is green (WO-015).
 ## Compass, Fast+Threaded cert, S1×11, S2×11, Determinism, S3, Overlap, S4, S5–S8, S9,
-## S10–S11, S12, S13×3, S14×2, S15, S16×2, S17×2, S18, S19, S20×2 = 51
-const EXPECTED_GREEN_PASS_COUNT := 51
+## S10–S11, S12, S13×3, S14×2, S15, S16×2, S17×2, S17b, S18, S19, S20×2 = 52
+const EXPECTED_GREEN_PASS_COUNT := 52
 
 var _scenario: Scenario01 = null
 var _exit_code := 0
@@ -252,6 +252,9 @@ func _spawn_and_run() -> void:
 		"s17_charge_adj":
 			scene = "scenario_17"
 			seed_value = 1000
+		"s17b_predrain":
+			scene = "scenario_17"
+			seed_value = 1000
 		"s18_brace":
 			scene = "scenario_18"
 			seed_value = 1000
@@ -308,6 +311,10 @@ func _spawn_and_run() -> void:
 		_scenario.set("plate_mode", _mode == "s16_plate")
 	elif scene == "scenario_17":
 		_scenario.set("adjacent_control", _mode == "s17_charge_adj")
+		if _mode == "s17b_predrain":
+			_scenario.set("infantry_start_cohesion", 40.0)
+		else:
+			_scenario.set("infantry_start_cohesion", -1.0)
 	elif scene == "scenario_20":
 		if _mode == "s20_runup_short":
 			_scenario.set("run_up_m", 20.0)
@@ -347,7 +354,15 @@ func _run_when_ready() -> void:
 		_sim_harness.run_ticks(_scenario, 2200)
 	elif _mode in ["s16_leather", "s16_plate"]:
 		_sim_harness.run_ticks(_scenario, 2000)
-	elif _mode in ["s17_charge", "s17_charge_adj", "s18_brace", "s19_brace_timing", "s20_runup_short", "s20_runup_long"]:
+	elif _mode in [
+		"s17_charge",
+		"s17_charge_adj",
+		"s17b_predrain",
+		"s18_brace",
+		"s19_brace_timing",
+		"s20_runup_short",
+		"s20_runup_long",
+	]:
 		_sim_harness.run_ticks(_scenario, 4500)
 	else:
 		_sim_harness.run_to_completion(_scenario, _sim_harness.RunMode.FAST, _extra_ticks_for_mode)
@@ -515,6 +530,10 @@ func _finish() -> void:
 			_spawn_and_run()
 		"s17_charge_adj":
 			_check_s17_charge(true)
+			_mode = "s17b_predrain"
+			_spawn_and_run()
+		"s17b_predrain":
+			_check_s17b_predrain()
 			_mode = "s18_brace"
 			_spawn_and_run()
 		"s18_brace":
@@ -1114,29 +1133,49 @@ func _check_s17_charge(adjacent: bool) -> void:
 	if not charged:
 		push_error("S17 expected charge impact, closing=%.3f" % closing)
 		ok = false
-	if impact < 4.0:
-		push_error("S17 impact %.3f too small" % impact)
+	# Gallop band ~12–15 m/s (Speed 40 × 3.375 / 10).
+	if closing < 12.0 or closing > 15.5:
+		push_error("S17 closing %.3f outside gallop band [12,15.5]" % closing)
 		ok = false
-	if shock < 80.0:
-		push_error("S17 shock %.3f too small for rout-by-shock" % shock)
+	if impact < 18.0:
+		push_error("S17 impact %.3f too small for SI gallop" % impact)
+		ok = false
+	# R15: fresh line lands in wavering band, not routed by charge alone.
+	var land_coh := 100.0 - shock
+	if land_coh < 15.0 or land_coh > 30.0:
+		push_error("S17 R15 landing cohesion %.2f (shock=%.3f) not in [15,30]" % [land_coh, shock])
 		ok = false
 	_s17_charge_impact = impact
 	_s17_charge_shock = shock
 	_s17_combat_sec = _scenario.combat_duration_sec()
-	var winner: String = _scenario.get_winner_id()
-	# Infantry should lose via charge shock (cavalry wins).
-	if winner != "red_cav":
-		push_error("S17 expected red_cav win via charge shock, got %s" % winner)
-		ok = false
-	var inf_str: float = _scenario.infantry_strength_at_rout()
-	if inf_str >= 0.0 and inf_str < 70.0:
-		push_error("S17 infantry strength_at_end %.2f suggests attrition not shock" % inf_str)
-		ok = false
 	_record_check(
 		"[WO-016] S17",
 		ok,
-		"impact=%.3f shock=%.3f closing=%.3f combat=%.1fs winner=%s inf_str=%.2f"
-		% [impact, shock, closing, _s17_combat_sec, winner, inf_str],
+		"impact=%.3f shock=%.3f closing=%.3f land_coh=%.2f combat=%.1fs"
+		% [impact, shock, closing, land_coh, _s17_combat_sec],
+	)
+
+
+func _check_s17b_predrain() -> void:
+	var ev: Dictionary = _scenario.primary_charge_event()
+	var ok := true
+	var shock: float = float(ev.get("shock", -1.0))
+	var charged: bool = bool(ev.get("charged", false))
+	if not charged:
+		push_error("S17b expected charge impact")
+		ok = false
+	# Start ~40: shock into R15 band should finish through rout_threshold.
+	var land_coh := 40.0 - shock
+	if land_coh > 10.0:
+		push_error("S17b expected rout finish (land_coh=%.2f shock=%.3f)" % [land_coh, shock])
+		ok = false
+	var combat: float = _scenario.combat_duration_sec()
+	# Instant or near-instant finish is OK for shaken troops.
+	_record_check(
+		"[WO-016] S17b",
+		ok,
+		"shock=%.3f land_from_40=%.2f combat=%.1fs winner=%s"
+		% [shock, land_coh, combat, _scenario.get_winner_id()],
 	)
 
 
