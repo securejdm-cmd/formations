@@ -1,0 +1,4 @@
+[WO-016] S17 PASS impact=21.600 shock=76.680 closing=13.500 land_coh=23.32 edge=front combat=18.2s
+[WO-016c] S21 PASS edge=left edge_mult=1.50 base_shock=76.68 shock=115.02 land=-15.02 winner=red_cav
+[WO-016c] S22 PASS edge=front edge_mult=1.00 shock=76.68 land=23.32 state=removed combat=18.2s
+[WO-015] Meta PASS=54 FAIL=0 expected_green_pass=54 exit=0
