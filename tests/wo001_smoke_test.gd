@@ -67,6 +67,7 @@ func _test_constants_loaded(constants: Node) -> bool:
 		"charge_impact_scale",
 		"charge_amp_peak",
 		"charge_amp_decay_s",
+		"charge_speed_si_scale",
 		"brace_time_s",
 		"brace_reflect_pct",
 	]

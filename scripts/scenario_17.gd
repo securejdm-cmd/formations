@@ -1,11 +1,13 @@
 class_name Scenario17
 extends Scenario01
 
-## Cavalry charge vs unbraced infantry (long run-up). Optional adjacent control via export.
+## Cavalry charge vs unbraced infantry (long run-up). Optional adjacent / pre-drain.
 
 const TRACE_PREFIX := "scenario_17"
 
 @export var adjacent_control: bool = false
+## When > 0, infantry starts at this cohesion (S17b: shaken line → charge may finish).
+@export var infantry_start_cohesion: float = -1.0
 
 var _cavalry: Unit = null
 var _infantry: Unit = null
@@ -33,6 +35,9 @@ func _spawn_units() -> void:
 	_infantry.current_order = Unit.Order.HOLD
 	_infantry._set_state(Unit.State.HOLD)
 	_infantry.current_speed_m_s = 0.0
+	if infantry_start_cohesion >= 0.0:
+		_infantry.cohesion = infantry_start_cohesion
+		_infantry._refresh_morale_state()
 	_units.append(_infantry)
 
 	for unit in _units:
@@ -41,6 +46,8 @@ func _spawn_units() -> void:
 
 func _write_trace_file() -> void:
 	var suffix := "_adj" if adjacent_control else ""
+	if infantry_start_cohesion >= 0.0 and not adjacent_control:
+		suffix = "_predrain"
 	var file_path := TRACE_DIR + TRACE_PREFIX + suffix + "_%d.csv" % _battle_seed
 	var file := FileAccess.open(file_path, FileAccess.WRITE)
 	if file == null:
@@ -63,6 +70,12 @@ func primary_charge_event() -> Dictionary:
 		if str(ev.get("attacker", "")) == "red_cav":
 			return ev
 	return {}
+
+
+func infantry_cohesion() -> float:
+	if _infantry == null:
+		return -1.0
+	return _infantry.cohesion
 
 
 func infantry_strength_at_rout() -> float:

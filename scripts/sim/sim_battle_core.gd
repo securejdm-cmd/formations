@@ -391,19 +391,22 @@ func apply_charge_impacts(attacker: SimUnitProxy, defender: SimUnitProxy) -> voi
 	if _charge_pair_done.has(pair_key):
 		return
 	_charge_pair_done[pair_key] = true
-	var closing := _Charge.closing_speed_into_defender(attacker, defender)
+	var closing_sim := _Charge.closing_speed_into_defender(attacker, defender)
+	var closing_si := closing_sim * _Charge.si_scale()
+	# charge_min_speed is in SI m/s (gallop band / walk discrimination).
 	var min_speed := Constants.get_float("charge_min_speed")
-	if closing < min_speed:
+	if closing_si < min_speed:
 		last_charge_events.append({
 			"attacker": attacker.unit_id,
 			"defender": defender.unit_id,
-			"closing_speed": closing,
+			"closing_speed": closing_si,
+			"closing_speed_sim": closing_sim,
 			"impact": 0.0,
 			"charged": false,
 			"braced": defender.is_braced(),
 		})
 		return
-	var impact := _Charge.calc_impact(attacker, defender, closing)
+	var impact := _Charge.calc_impact(attacker, defender, closing_si)
 	var braced := defender.is_braced() and _Charge.is_pierce(defender)
 	var shock := impact * Constants.get_float("charge_cohesion_coeff")
 	var reflected := 0.0
@@ -416,8 +419,8 @@ func apply_charge_impacts(attacker: SimUnitProxy, defender: SimUnitProxy) -> voi
 		spawn_shock_floater(attacker, reflected_shock)
 		log_trace_event(
 			"brace_reflect",
-			"attacker=%s,defender=%s,impact=%.3f,closing=%.3f,reflected=%.3f"
-			% [attacker.unit_id, defender.unit_id, impact, closing, reflected]
+			"attacker=%s,defender=%s,impact=%.3f,closing_si=%.3f,reflected=%.3f"
+			% [attacker.unit_id, defender.unit_id, impact, closing_si, reflected]
 		)
 	else:
 		defender.apply_cohesion_drain(shock)
@@ -425,13 +428,14 @@ func apply_charge_impacts(attacker: SimUnitProxy, defender: SimUnitProxy) -> voi
 		attacker.begin_charge_amp()
 		log_trace_event(
 			"charge_impact",
-			"attacker=%s,defender=%s,impact=%.3f,closing=%.3f,shock=%.3f,mass=%.3f"
-			% [attacker.unit_id, defender.unit_id, impact, closing, shock, _Charge.mass_of(attacker)]
+			"attacker=%s,defender=%s,impact=%.3f,closing_si=%.3f,shock=%.3f,mass=%.3f"
+			% [attacker.unit_id, defender.unit_id, impact, closing_si, shock, _Charge.mass_of(attacker)]
 		)
 	last_charge_events.append({
 		"attacker": attacker.unit_id,
 		"defender": defender.unit_id,
-		"closing_speed": closing,
+		"closing_speed": closing_si,
+		"closing_speed_sim": closing_sim,
 		"impact": impact,
 		"shock": 0.0 if braced else shock,
 		"charged": true,
