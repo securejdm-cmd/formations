@@ -1,9 +1,9 @@
-# COMPLETION REPORT — WO-018 — Date 2026-07-14 — Commit PENDING_STAMP
+# COMPLETION REPORT — WO-018 — Date 2026-07-14 — Commit bc83a021ea19d3b60e42f0d974b5023c1ca8a4cf
 
 **Work order:** WO-018 The Charge Gait (R17)  
 **Branch:** `cursor/wo-018-charge-gait-fd84`  
 **Date:** 2026-07-14  
-**Commit:** `PENDING_STAMP`  
+**Commit:** `bc83a021ea19d3b60e42f0d974b5023c1ca8a4cf`  
 **Base:** `cursor/wo-017-three-tier-brace-fd84`  
 **Evidence:** `docs/reports/evidence_wo018/`  
 
@@ -90,7 +90,7 @@ Gait top 13.5 is the ceiling; R5 accel makes long-run contact ~5.2 m/s on curren
 ## Attestation
 
 - Branch: `cursor/wo-018-charge-gait-fd84`
-- Full SHA: `PENDING_STAMP`
+- Full SHA: `bc83a021ea19d3b60e42f0d974b5023c1ca8a4cf`
 - Report: https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-018-charge-gait-fd84/docs/reports/WO-018_completion.md
 - Suite: https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-018-charge-gait-fd84/docs/reports/evidence_wo018/suite_stdout.log
 
