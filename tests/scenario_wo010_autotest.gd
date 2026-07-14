@@ -40,8 +40,8 @@ const S8_BLOB_RATIO_MAX := 2.0
 const SCENARIO_EXTRA_TICKS := 120
 ## Gated PASS lines emitted when every check is green (WO-015).
 ## Compass, Fast+Threaded cert, S1×11, S2×11, Determinism, S3, Overlap, S4, S5–S8, S9,
-## S10–S11, S12, S13×3, S14×2, S15, S16×2 = 45
-const EXPECTED_GREEN_PASS_COUNT := 45
+## S10–S11, S12, S13×3, S14×2, S15, S16×2, S17×2, S18, S19, S20×2 = 51
+const EXPECTED_GREEN_PASS_COUNT := 51
 
 var _scenario: Scenario01 = null
 var _exit_code := 0
@@ -72,6 +72,11 @@ var _perf_scale_pairs := [2, 10, 20]
 var _s14_ff_lost: float = 0.0
 var _s13_at70_dist: float = -1.0
 var _s13_engaged_dist: float = -1.0
+var _s17_charge_impact: float = -1.0
+var _s17_charge_shock: float = -1.0
+var _s17_combat_sec: float = -1.0
+var _s20_short_closing: float = -1.0
+var _s20_long_closing: float = -1.0
 var _extra_ticks_for_mode := 0
 
 
@@ -241,6 +246,24 @@ func _spawn_and_run() -> void:
 		"s16_plate":
 			scene = "scenario_16"
 			seed_value = 1000
+		"s17_charge":
+			scene = "scenario_17"
+			seed_value = 1000
+		"s17_charge_adj":
+			scene = "scenario_17"
+			seed_value = 1000
+		"s18_brace":
+			scene = "scenario_18"
+			seed_value = 1000
+		"s19_brace_timing":
+			scene = "scenario_19"
+			seed_value = 1000
+		"s20_runup_short":
+			scene = "scenario_20"
+			seed_value = 1000
+		"s20_runup_long":
+			scene = "scenario_20"
+			seed_value = 1000
 
 	if _scenario != null:
 		_scenario.free()
@@ -283,6 +306,13 @@ func _spawn_and_run() -> void:
 				_scenario.set("include_blocker", true)
 	elif scene == "scenario_16":
 		_scenario.set("plate_mode", _mode == "s16_plate")
+	elif scene == "scenario_17":
+		_scenario.set("adjacent_control", _mode == "s17_charge_adj")
+	elif scene == "scenario_20":
+		if _mode == "s20_runup_short":
+			_scenario.set("run_up_m", 20.0)
+		else:
+			_scenario.set("run_up_m", 120.0)
 	elif scene == "scenario_14":
 		_scenario.set("control_mode", _mode == "s14_ff_control")
 
@@ -317,6 +347,8 @@ func _run_when_ready() -> void:
 		_sim_harness.run_ticks(_scenario, 2200)
 	elif _mode in ["s16_leather", "s16_plate"]:
 		_sim_harness.run_ticks(_scenario, 2000)
+	elif _mode in ["s17_charge", "s17_charge_adj", "s18_brace", "s19_brace_timing", "s20_runup_short", "s20_runup_long"]:
+		_sim_harness.run_ticks(_scenario, 4500)
 	else:
 		_sim_harness.run_to_completion(_scenario, _sim_harness.RunMode.FAST, _extra_ticks_for_mode)
 	_finish()
@@ -475,6 +507,30 @@ func _finish() -> void:
 			_spawn_and_run()
 		"s16_plate":
 			_check_s16_plate()
+			_mode = "s17_charge"
+			_spawn_and_run()
+		"s17_charge":
+			_check_s17_charge(false)
+			_mode = "s17_charge_adj"
+			_spawn_and_run()
+		"s17_charge_adj":
+			_check_s17_charge(true)
+			_mode = "s18_brace"
+			_spawn_and_run()
+		"s18_brace":
+			_check_s18_brace()
+			_mode = "s19_brace_timing"
+			_spawn_and_run()
+		"s19_brace_timing":
+			_check_s19_brace_timing()
+			_mode = "s20_runup_short"
+			_spawn_and_run()
+		"s20_runup_short":
+			_check_s20_runup(true)
+			_mode = "s20_runup_long"
+			_spawn_and_run()
+		"s20_runup_long":
+			_check_s20_runup(false)
 			_mode = "perf_40"
 			_spawn_and_run()
 		"perf_40":
@@ -1032,6 +1088,134 @@ func _check_perf_40() -> void:
 	# Perf env is observational on cloud — do not gate PASS count on it.
 	if not ok:
 		_exit_code = 1
+
+
+
+func _check_s17_charge(adjacent: bool) -> void:
+	var ev: Dictionary = _scenario.primary_charge_event()
+	var ok := true
+	var closing: float = float(ev.get("closing_speed", -1.0))
+	var impact: float = float(ev.get("impact", -1.0))
+	var shock: float = float(ev.get("shock", -1.0))
+	var charged: bool = bool(ev.get("charged", false))
+	if adjacent:
+		if ev.is_empty():
+			push_error("S17 adjacent expected a charge-eval event")
+			ok = false
+		if charged:
+			push_error("S17 adjacent control unexpectedly charged (closing=%.3f)" % closing)
+			ok = false
+		_record_check(
+			"[WO-016] S17 adj",
+			ok,
+			"closing=%.3f charged=%s combat=%.1fs" % [closing, charged, _scenario.combat_duration_sec()],
+		)
+		return
+	if not charged:
+		push_error("S17 expected charge impact, closing=%.3f" % closing)
+		ok = false
+	if impact < 4.0:
+		push_error("S17 impact %.3f too small" % impact)
+		ok = false
+	if shock < 80.0:
+		push_error("S17 shock %.3f too small for rout-by-shock" % shock)
+		ok = false
+	_s17_charge_impact = impact
+	_s17_charge_shock = shock
+	_s17_combat_sec = _scenario.combat_duration_sec()
+	var winner: String = _scenario.get_winner_id()
+	# Infantry should lose via charge shock (cavalry wins).
+	if winner != "red_cav":
+		push_error("S17 expected red_cav win via charge shock, got %s" % winner)
+		ok = false
+	var inf_str: float = _scenario.infantry_strength_at_rout()
+	if inf_str >= 0.0 and inf_str < 70.0:
+		push_error("S17 infantry strength_at_end %.2f suggests attrition not shock" % inf_str)
+		ok = false
+	_record_check(
+		"[WO-016] S17",
+		ok,
+		"impact=%.3f shock=%.3f closing=%.3f combat=%.1fs winner=%s inf_str=%.2f"
+		% [impact, shock, closing, _s17_combat_sec, winner, inf_str],
+	)
+
+
+func _check_s18_brace() -> void:
+	var ev: Dictionary = _scenario.primary_charge_event()
+	var ok := true
+	if not bool(ev.get("charged", false)):
+		push_error("S18 expected a charge attempt above min_speed")
+		ok = false
+	if not bool(ev.get("braced", false)):
+		push_error("S18 expected braced defender")
+		ok = false
+	if float(ev.get("shock", 1.0)) > 0.01:
+		push_error("S18 braced defender should take no charge shock")
+		ok = false
+	if float(ev.get("reflected", 0.0)) <= 0.0:
+		push_error("S18 expected brace reflect damage")
+		ok = false
+	var cav_str: float = _scenario.cavalry_strength_at_rout()
+	# Cavalry should be weakened / eventually lose grind.
+	_record_check(
+		"[WO-016] S18",
+		ok,
+		"impact=%.3f reflected=%.3f cav_str=%.2f winner=%s"
+		% [float(ev.get("impact", 0.0)), float(ev.get("reflected", 0.0)), cav_str, _scenario.get_winner_id()],
+	)
+
+
+func _check_s19_brace_timing() -> void:
+	var ev: Dictionary = _scenario.primary_charge_event()
+	var ok := true
+	if not bool(ev.get("charged", false)):
+		push_error("S19 expected charge to land (late brace)")
+		ok = false
+	if bool(ev.get("braced", false)):
+		push_error("S19 spears should NOT be braced yet")
+		ok = false
+	if float(ev.get("shock", 0.0)) <= 0.0:
+		push_error("S19 expected cohesion shock from charge")
+		ok = false
+	_record_check(
+		"[WO-016] S19",
+		ok,
+		"impact=%.3f shock=%.3f braced=%s closing=%.3f"
+		% [
+			float(ev.get("impact", 0.0)),
+			float(ev.get("shock", 0.0)),
+			ev.get("braced", false),
+			float(ev.get("closing_speed", 0.0)),
+		],
+	)
+
+
+func _check_s20_runup(short: bool) -> void:
+	var ev: Dictionary = _scenario.primary_charge_event()
+	var ok := true
+	var closing: float = float(ev.get("closing_speed", -1.0))
+	var charged: bool = bool(ev.get("charged", false))
+	var min_speed := _c_float("charge_min_speed")
+	if short:
+		_s20_short_closing = closing
+		if charged or closing >= min_speed - 0.05:
+			push_error("S20 20m should be below charge_min_speed (closing=%.3f min=%.3f)" % [closing, min_speed])
+			ok = false
+		_record_check("[WO-016] S20 20m", ok, "closing=%.3f charged=%s" % [closing, charged])
+	else:
+		_s20_long_closing = closing
+		if not charged or closing < min_speed:
+			push_error("S20 120m should charge (closing=%.3f min=%.3f)" % [closing, min_speed])
+			ok = false
+		if _s20_short_closing >= 0.0 and closing <= _s20_short_closing + 0.1:
+			push_error("S20 long closing %.3f should exceed short %.3f" % [closing, _s20_short_closing])
+			ok = false
+		_record_check(
+			"[WO-016] S20 120m",
+			ok,
+			"closing=%.3f impact=%.3f short_closing=%.3f"
+			% [closing, float(ev.get("impact", 0.0)), _s20_short_closing],
+		)
 
 
 func _record_check(tag: String, ok: bool, detail: String = "") -> void:

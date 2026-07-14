@@ -1,6 +1,8 @@
 class_name Unit
 extends Area2D
 
+const _ChargeCombat := preload("res://scripts/charge_combat.gd")
+
 enum Order { HOLD, MARCH_TO }
 enum State { MARCHING, ENGAGED, WAVERING, ROUTING, RALLYING, HOLD, REMOVED }
 
@@ -56,6 +58,12 @@ var _impact_flicker_time: float = 0.0
 var _crack_band: ColorRect = null
 var _grind_band: ColorRect = null
 var _crack_shader: Shader = preload("res://shaders/crack_band.gdshader")
+var current_speed_m_s: float = 0.0
+var charge_amp_factor: float = 1.0
+var _charge_amp_time_left: float = 0.0
+var _brace_hold_sec: float = 0.0
+var _braced: bool = false
+var _brace_indicator: ColorRect = null
 
 
 func _ready() -> void:
@@ -76,6 +84,13 @@ func configure(id: String, team: String, profile_data: Dictionary, spawn_positio
 	cohesion = Constants.get_float("cohesion_max")
 	pushing_power = float(profile.get("pushing_power", 0.0))
 	speed_stat = float(profile.get("speed", 0.0))
+	# Default cruise: preserve pre-WO-016 approach timing for regression scenarios.
+	# Charge scenarios call start_from_rest() after configure.
+	current_speed_m_s = speed_m_per_sec()
+	charge_amp_factor = 1.0
+	_charge_amp_time_left = 0.0
+	_brace_hold_sec = 0.0
+	_braced = false
 	if float(profile.get("ranged_damage", 0.0)) > 0.0 and float(profile.get("range", 0.0)) > 0.0:
 		ammo_remaining = int(profile.get("ammo_volleys", 0))
 	else:
@@ -209,15 +224,114 @@ func apply_cohesion_drain(amount: float, edge_name: String = "") -> void:
 	_refresh_morale_state()
 
 
+
+func start_from_rest() -> void:
+	current_speed_m_s = 0.0
+
+
+func is_braced() -> bool:
+	return _braced
+
+
+func begin_charge_amp() -> void:
+	charge_amp_factor = Constants.get_float("charge_amp_peak")
+	_charge_amp_time_left = Constants.get_float("charge_amp_decay_s")
+
+
+func tick_charge_amp(delta: float) -> void:
+	if _charge_amp_time_left <= 0.0:
+		charge_amp_factor = 1.0
+		return
+	_charge_amp_time_left = maxf(_charge_amp_time_left - delta, 0.0)
+	var decay_s := Constants.get_float("charge_amp_decay_s")
+	if decay_s <= 0.0:
+		charge_amp_factor = 1.0
+		return
+	var peak := Constants.get_float("charge_amp_peak")
+	var t := _charge_amp_time_left / decay_s
+	charge_amp_factor = 1.0 + (peak - 1.0) * t
+
+
+func _mass() -> float:
+	return _ChargeCombat.mass_of(self)
+
+func update_brace(delta: float, enemies: Array = []) -> void:
+	if _state == State.REMOVED or _state == State.ROUTING or _state == State.RALLYING:
+		_braced = false
+		_brace_hold_sec = 0.0
+		_update_brace_visual()
+		return
+	var stationary := current_speed_m_s <= Constants.get_float("brace_stationary_speed")
+	var holding := _state == State.HOLD or (_state == State.MARCHING and stationary)
+	if not holding or not _ChargeCombat.is_pierce(self) or not stationary:
+		_brace_hold_sec = 0.0
+		_braced = false
+		_update_brace_visual()
+		return
+	var sees_charger := false
+	for enemy in enemies:
+		if enemy == null or enemy.get_state() == State.REMOVED:
+			continue
+		if enemy.team_id == team_id:
+			continue
+		if not _ChargeCombat.faces_threat(self, enemy):
+			continue
+		# Incoming if enemy is approaching our front.
+		if _ChargeCombat.closing_speed_into_defender(enemy, self) > 0.05 or enemy.get_state() == State.MARCHING:
+			sees_charger = true
+			break
+	if sees_charger:
+		_brace_hold_sec += delta
+	elif not _braced:
+		_brace_hold_sec = 0.0
+	_braced = _brace_hold_sec >= Constants.get_float("brace_time_s") or _braced
+	_update_brace_visual()
+
+
+func _update_brace_visual() -> void:
+	_ensure_nodes()
+	if _brace_indicator == null:
+		_brace_indicator = ColorRect.new()
+		_brace_indicator.name = "BraceIndicator"
+		_visual_root.add_child(_brace_indicator)
+		_brace_indicator.color = Color(0.95, 0.85, 0.2, 0.9)
+		_brace_indicator.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if not _braced:
+		_brace_indicator.visible = false
+		return
+	var frontage_px := effective_frontage_m() * Constants.get_float("px_per_meter")
+	var depth_px := 3.0
+	_brace_indicator.visible = true
+	_brace_indicator.size = Vector2(frontage_px, depth_px)
+	_brace_indicator.position = Vector2(-frontage_px * 0.5, -effective_depth_m() * Constants.get_float("px_per_meter") * 0.5 - depth_px)
+
+
 func update_marching(delta: float, enemies: Array[Unit] = []) -> void:
 	if _state != State.MARCHING:
 		return
 
-	var speed_px := speed_m_per_sec() * Constants.get_float("px_per_meter")
 	var to_target := march_target - position
+	var top := speed_m_per_sec()
+	if to_target.length() > 0.001:
+		var desired := to_target.normalized()
+		var angled := facing.angle_to(desired)
+		if absf(angled) > 0.15:
+			var max_turn: float = _ChargeCombat.turn_rate_rad_s(self) * delta
+			if absf(angled) <= max_turn:
+				facing = desired
+			else:
+				facing = facing.rotated(signf(angled) * max_turn)
+			rotation = facing.angle()
+	# Accelerate toward top speed while marching.
+	var accel: float = _ChargeCombat.accel_m_s2(self)
+	current_speed_m_s = minf(top, current_speed_m_s + accel * delta)
+	var speed_px := current_speed_m_s * Constants.get_float("px_per_meter")
 	var move_px := speed_px * delta
 	if to_target.length() <= move_px:
 		position = march_target
+		# Soft stop: decelerate after arriving.
+		var decel: float = _ChargeCombat.decel_m_s2(self)
+		current_speed_m_s = maxf(0.0, current_speed_m_s - decel * delta)
 		if enemies.is_empty():
 			_set_state(State.HOLD)
 		return

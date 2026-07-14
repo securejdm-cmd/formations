@@ -58,5 +58,20 @@
   "victory_delay_s": 2.5,
   "waver_effect": 0.8,
   "waver_threshold": 30.0,
-  "wobble_pct": 0.05
+  "wobble_pct": 0.05,
+  "mass_low": 0.6,
+  "mass_medium": 1.0,
+  "mass_high": 1.6,
+  "mass_massive": 3.0,
+  "base_accel": 0.3,
+  "base_decel": 0.4,
+  "base_turn_rate_rad": 2.5,
+  "charge_impact_scale": 1.0,
+  "charge_cohesion_coeff": 14.5,
+  "charge_amp_peak": 2.5,
+  "charge_amp_decay_s": 3.0,
+  "charge_min_speed": 3.5,
+  "brace_time_s": 1.5,
+  "brace_reflect_pct": 0.5,
+  "brace_stationary_speed": 0.2
 }

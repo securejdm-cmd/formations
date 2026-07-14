@@ -5,6 +5,12 @@ const _TickProfiler := preload("res://scripts/tick_profiler.gd")
 const SimUnitProxy := preload("res://scripts/sim/sim_unit_proxy.gd")
 const SimRngBridge := preload("res://scripts/sim/sim_rng_bridge.gd")
 const SimRng := preload("res://scripts/sim/sim_rng.gd")
+const _Charge := preload("res://scripts/charge_combat.gd")
+
+## Last charge-impact telemetry for scenario probes.
+var last_charge_events: Array = []
+## Pair keys "attacker>defender" already evaluated for charge (first contact only).
+var _charge_pair_done: Dictionary = {}
 
 enum BattlePhase { ACTIVE, VICTORY_PENDING, VICTORY_EPILOGUE, FINISHED }
 
@@ -297,6 +303,17 @@ func update_movement(delta: float) -> void:
 	for unit in units:
 		if unit.get_state() == Unit.State.REMOVED:
 			continue
+		unit.tick_charge_amp(delta)
+		unit.update_brace(delta, enemies_for(unit))
+		# Decelerate only when deliberately holding / bracing — never while ENGAGED.
+		# Mid-fight partner flicker returns units to MARCHING briefly; decelerating in
+		# combat made those gaps crawl and drifted S1/S2/S8 grind timing.
+		if (
+			unit.get_state() == Unit.State.HOLD
+			and unit.current_order == Unit.Order.HOLD
+		):
+			var decel: float = _Charge.decel_m_s2(unit)
+			unit.current_speed_m_s = maxf(0.0, unit.current_speed_m_s - decel * delta)
 		if unit.get_state() == Unit.State.MARCHING:
 			unit.update_marching(delta, enemies_for(unit))
 			try_begin_engagement(unit)
@@ -329,6 +346,9 @@ func try_begin_engagement(unit: SimUnitProxy) -> void:
 		if not CombatResolver.units_have_any_contact(unit, other):
 			continue
 
+		var already: bool = unit.has_contact_with(other)
+		if not already:
+			apply_charge_impacts(unit, other)
 		unit.add_contact_partner(other)
 		other.add_contact_partner(unit)
 		if (
@@ -352,6 +372,10 @@ func try_passive_engagement() -> void:
 				continue
 			if not CombatResolver.units_have_any_contact(unit, other):
 				continue
+			var already: bool = unit.has_contact_with(other)
+			if not already:
+				apply_charge_impacts(other, unit)
+				apply_charge_impacts(unit, other)
 			unit.add_contact_partner(other)
 			other.add_contact_partner(unit)
 			if (
@@ -360,6 +384,60 @@ func try_passive_engagement() -> void:
 			):
 				CombatResolver.snap_pair_to_contact(unit, other)
 			on_first_contact()
+
+
+func apply_charge_impacts(attacker: SimUnitProxy, defender: SimUnitProxy) -> void:
+	var pair_key := "%s>%s" % [attacker.unit_id, defender.unit_id]
+	if _charge_pair_done.has(pair_key):
+		return
+	_charge_pair_done[pair_key] = true
+	var closing := _Charge.closing_speed_into_defender(attacker, defender)
+	var min_speed := Constants.get_float("charge_min_speed")
+	if closing < min_speed:
+		last_charge_events.append({
+			"attacker": attacker.unit_id,
+			"defender": defender.unit_id,
+			"closing_speed": closing,
+			"impact": 0.0,
+			"charged": false,
+			"braced": defender.is_braced(),
+		})
+		return
+	var impact := _Charge.calc_impact(attacker, defender, closing)
+	var braced := defender.is_braced() and _Charge.is_pierce(defender)
+	var shock := impact * Constants.get_float("charge_cohesion_coeff")
+	var reflected := 0.0
+	if braced:
+		reflected = impact * Constants.get_float("brace_reflect_pct")
+		# Impact is already in strength/cohesion-adjacent units; reflect without k_melee.
+		CombatResolver.apply_strength_loss(attacker, reflected)
+		var reflected_shock := reflected * Constants.get_float("charge_cohesion_coeff") * 0.5
+		attacker.apply_cohesion_drain(reflected_shock)
+		spawn_shock_floater(attacker, reflected_shock)
+		log_trace_event(
+			"brace_reflect",
+			"attacker=%s,defender=%s,impact=%.3f,closing=%.3f,reflected=%.3f"
+			% [attacker.unit_id, defender.unit_id, impact, closing, reflected]
+		)
+	else:
+		defender.apply_cohesion_drain(shock)
+		spawn_shock_floater(defender, shock)
+		attacker.begin_charge_amp()
+		log_trace_event(
+			"charge_impact",
+			"attacker=%s,defender=%s,impact=%.3f,closing=%.3f,shock=%.3f,mass=%.3f"
+			% [attacker.unit_id, defender.unit_id, impact, closing, shock, _Charge.mass_of(attacker)]
+		)
+	last_charge_events.append({
+		"attacker": attacker.unit_id,
+		"defender": defender.unit_id,
+		"closing_speed": closing,
+		"impact": impact,
+		"shock": 0.0 if braced else shock,
+		"charged": true,
+		"braced": braced,
+		"reflected": reflected,
+	})
 
 
 func process_rout_events() -> void:
