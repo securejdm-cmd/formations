@@ -391,7 +391,7 @@ func apply_charge_impacts(attacker: SimUnitProxy, defender: SimUnitProxy) -> voi
 	if _charge_pair_done.has(pair_key):
 		return
 	_charge_pair_done[pair_key] = true
-	var closing_sim := _Charge.closing_speed_into_defender(attacker, defender)
+	var closing_sim := _Charge.closing_speed_along_contact(attacker, defender)
 	var closing_si := closing_sim * _Charge.si_scale()
 	# charge_min_speed is in SI m/s (gallop band / walk discrimination).
 	var min_speed := Constants.get_float("charge_min_speed")

@@ -103,8 +103,14 @@ static func contact_inward_normal(attacker: Variant, defender: Variant) -> Vecto
 
 
 static func closing_speed_into_defender(attacker: Variant, defender: Variant) -> float:
-	# Attacker's speed along the contact inward normal (sim m/s).
-	# Frontal = prior -facing projection; flank/rear use the struck edge normal.
+	# Cheap front-axis closing used by brace threat detection (sim m/s).
+	# Charge Impact uses closing_speed_along_contact() (contact normal).
+	var into_def: Vector2 = -defender.facing.normalized()
+	return maxf(0.0, velocity_world(attacker).dot(into_def))
+
+
+static func closing_speed_along_contact(attacker: Variant, defender: Variant) -> float:
+	# Attacker's speed along the contact inward normal (sim m/s). Enables flank/rear charges.
 	return maxf(0.0, velocity_world(attacker).dot(contact_inward_normal(attacker, defender)))
 
 
@@ -115,7 +121,7 @@ static func si_scale() -> float:
 
 
 static func closing_speed_si(attacker: Variant, defender: Variant) -> float:
-	return closing_speed_into_defender(attacker, defender) * si_scale()
+	return closing_speed_along_contact(attacker, defender) * si_scale()
 
 
 static func calc_impact(attacker: Variant, defender: Variant, closing_speed_si_m_s: float) -> float:
