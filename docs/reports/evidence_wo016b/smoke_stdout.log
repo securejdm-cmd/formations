@@ -1,0 +1,7 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+[Test] Constants: PASS (50 keys present)
+[RNG] Battle seed set: 42
+[RNG] Battle seed set: 42
+[Test] RNG determinism: PASS
+[Test] Battlefield scene load: PASS

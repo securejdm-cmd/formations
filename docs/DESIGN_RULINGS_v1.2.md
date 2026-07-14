@@ -65,4 +65,6 @@ The legacy expectation that mirror-profile fights (identical units) end with win
 ## R15. Charge shock vs fresh infantry (TD; WO-016 review)
 A momentum charge (R4) against **FRESH** (100% cohesion) medium infantry MUST drop defender cohesion **into but not through** the wavering band: landing cohesion **∈ [15, 30]** (staggered / wavering), **NOT** routed. Instant charge-delete of full-strength lines is forbidden — it nullifies the morale system whenever cavalry engage.
 
-A charge into already-pressured infantry (cohesion **< ~50**) MAY finish them into rout. Charge cohesion coefficient and absolute speed scale must be co-tuned to this band; if the Impact×coeff curve cannot hit it across intended Speed/Mass, escalate with the curve. **STATUS: DESIGN LAW — effective WO-016b.**
+A charge into already-pressured infantry (cohesion **< ~50**) MAY finish them into rout. Charge cohesion coefficient and absolute speed scale must be co-tuned to this band; if the Impact×coeff curve cannot hit it across intended Speed/Mass, escalate with the curve.
+
+**Speed SI note (WO-016b):** movement keeps `speed_stat_meters_per_10s=1.0` (approach-timing lock). Charge Impact / min-speed / reported `closing_speed` use `charge_speed_si_scale` (3.375) so Speed 40 reads ~13.5 m/s SI gallop without moving the S1/S12 march meter. **STATUS: DESIGN LAW — effective WO-016b.**
