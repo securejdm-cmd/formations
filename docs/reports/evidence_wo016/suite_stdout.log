@@ -1,0 +1,310 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+[WO-010] Compass test PASS (32/32)
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=blue_1 | march=61.7s | combat=81.6s | flee=152.8s | winner_strength=68.68 | winner_cohesion=21.47
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=blue_1 | march=61.7s | combat=81.6s | flee=152.8s | winner_strength=68.68 | winner_cohesion=21.47
+[WO-010] Fast-mode certification PASS (seed 12345 trace byte-identical)
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=blue_1 | march=61.7s | combat=81.6s | flee=152.8s | winner_strength=100.00 | winner_cohesion=100.00
+[WO-011] Threaded certification PASS (seed 12345 trace byte-identical)
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=red_1 | march=61.7s | combat=75.8s | flee=147.9s | winner_strength=71.28 | winner_cohesion=28.08
+[WO-010] S1 seed 1000 PASS winner=red_1 combat=75.8s
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1001.csv
+[Scenario 01] SUMMARY | winner=red_1 | march=61.7s | combat=80.6s | flee=148.5s | winner_strength=69.15 | winner_cohesion=22.64
+[WO-010] S1 seed 1001 PASS winner=red_1 combat=80.6s
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1002.csv
+[Scenario 01] SUMMARY | winner=blue_1 | march=61.7s | combat=76.0s | flee=152.6s | winner_strength=71.20 | winner_cohesion=27.86
+[WO-010] S1 seed 1002 PASS winner=blue_1 combat=76.0s
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1003.csv
+[Scenario 01] SUMMARY | winner=blue_1 | march=61.7s | combat=83.9s | flee=152.9s | winner_strength=67.71 | winner_cohesion=18.95
+[WO-010] S1 seed 1003 PASS winner=blue_1 combat=83.9s
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1004.csv
+[Scenario 01] SUMMARY | winner=red_1 | march=61.7s | combat=83.4s | flee=149.0s | winner_strength=67.77 | winner_cohesion=19.10
+[WO-010] S1 seed 1004 PASS winner=red_1 combat=83.4s
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1005.csv
+[Scenario 01] SUMMARY | winner=red_1 | march=61.7s | combat=73.2s | flee=147.5s | winner_strength=72.49 | winner_cohesion=31.14
+[WO-010] S1 seed 1005 PASS winner=red_1 combat=73.2s
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1006.csv
+[Scenario 01] SUMMARY | winner=red_1 | march=61.7s | combat=77.0s | flee=148.0s | winner_strength=70.76 | winner_cohesion=26.75
+[WO-010] S1 seed 1006 PASS winner=red_1 combat=77.0s
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1007.csv
+[Scenario 01] SUMMARY | winner=blue_1 | march=61.7s | combat=82.4s | flee=152.8s | winner_strength=68.36 | winner_cohesion=20.65
+[WO-010] S1 seed 1007 PASS winner=blue_1 combat=82.4s
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1008.csv
+[Scenario 01] SUMMARY | winner=red_1 | march=61.7s | combat=81.0s | flee=148.6s | winner_strength=69.01 | winner_cohesion=22.31
+[WO-010] S1 seed 1008 PASS winner=red_1 combat=81.0s
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1009.csv
+[Scenario 01] SUMMARY | winner=red_1 | march=61.7s | combat=84.6s | flee=149.1s | winner_strength=67.21 | winner_cohesion=17.72
+[WO-010] S1 seed 1009 PASS winner=red_1 combat=84.6s
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=blue_1 | march=61.7s | combat=81.6s | flee=152.8s | winner_strength=68.68 | winner_cohesion=21.47
+[WO-010] S1 seed 12345 PASS winner=blue_1 combat=81.6s
+[RNG] Battle seed set: 1000
+[Scenario 02] Battle seed: 1000
+[Scenario 02] Trace written: res://tests/traces/scenario_02_1000.csv
+[Scenario 02] SUMMARY | winner=red_1 | march=61.7s | combat=61.2s | flee=142.9s | routed=blue_1 | strength_at_rout=68.12 | ground_displacement_m=16.14
+[WO-010] S2 seed 1000 PASS combat=61.2s rout=68.12
+[RNG] Battle seed set: 1001
+[Scenario 02] Battle seed: 1001
+[Scenario 02] Trace written: res://tests/traces/scenario_02_1001.csv
+[Scenario 02] SUMMARY | winner=red_1 | march=61.7s | combat=61.2s | flee=142.9s | routed=blue_1 | strength_at_rout=68.12 | ground_displacement_m=16.16
+[WO-010] S2 seed 1001 PASS combat=61.2s rout=68.12
+[RNG] Battle seed set: 1002
+[Scenario 02] Battle seed: 1002
+[Scenario 02] Trace written: res://tests/traces/scenario_02_1002.csv
+[Scenario 02] SUMMARY | winner=red_1 | march=61.7s | combat=61.2s | flee=143.0s | routed=blue_1 | strength_at_rout=68.12 | ground_displacement_m=16.11
+[WO-010] S2 seed 1002 PASS combat=61.2s rout=68.12
+[RNG] Battle seed set: 1003
+[Scenario 02] Battle seed: 1003
+[Scenario 02] Trace written: res://tests/traces/scenario_02_1003.csv
+[Scenario 02] SUMMARY | winner=red_1 | march=61.7s | combat=61.2s | flee=142.9s | routed=blue_1 | strength_at_rout=68.12 | ground_displacement_m=16.22
+[WO-010] S2 seed 1003 PASS combat=61.2s rout=68.12
+[RNG] Battle seed set: 1004
+[Scenario 02] Battle seed: 1004
+[Scenario 02] Trace written: res://tests/traces/scenario_02_1004.csv
+[Scenario 02] SUMMARY | winner=red_1 | march=61.7s | combat=61.2s | flee=142.9s | routed=blue_1 | strength_at_rout=68.12 | ground_displacement_m=16.16
+[WO-010] S2 seed 1004 PASS combat=61.2s rout=68.12
+[RNG] Battle seed set: 1005
+[Scenario 02] Battle seed: 1005
+[Scenario 02] Trace written: res://tests/traces/scenario_02_1005.csv
+[Scenario 02] SUMMARY | winner=red_1 | march=61.7s | combat=61.2s | flee=142.9s | routed=blue_1 | strength_at_rout=68.12 | ground_displacement_m=16.27
+[WO-010] S2 seed 1005 PASS combat=61.2s rout=68.12
+[RNG] Battle seed set: 1006
+[Scenario 02] Battle seed: 1006
+[Scenario 02] Trace written: res://tests/traces/scenario_02_1006.csv
+[Scenario 02] SUMMARY | winner=red_1 | march=61.7s | combat=61.2s | flee=142.9s | routed=blue_1 | strength_at_rout=68.12 | ground_displacement_m=16.17
+[WO-010] S2 seed 1006 PASS combat=61.2s rout=68.12
+[RNG] Battle seed set: 1007
+[Scenario 02] Battle seed: 1007
+[Scenario 02] Trace written: res://tests/traces/scenario_02_1007.csv
+[Scenario 02] SUMMARY | winner=red_1 | march=61.7s | combat=61.2s | flee=142.9s | routed=blue_1 | strength_at_rout=68.12 | ground_displacement_m=16.14
+[WO-010] S2 seed 1007 PASS combat=61.2s rout=68.12
+[RNG] Battle seed set: 1008
+[Scenario 02] Battle seed: 1008
+[Scenario 02] Trace written: res://tests/traces/scenario_02_1008.csv
+[Scenario 02] SUMMARY | winner=red_1 | march=61.7s | combat=61.2s | flee=142.9s | routed=blue_1 | strength_at_rout=68.12 | ground_displacement_m=16.21
+[WO-010] S2 seed 1008 PASS combat=61.2s rout=68.12
+[RNG] Battle seed set: 1009
+[Scenario 02] Battle seed: 1009
+[Scenario 02] Trace written: res://tests/traces/scenario_02_1009.csv
+[Scenario 02] SUMMARY | winner=red_1 | march=61.7s | combat=61.2s | flee=142.9s | routed=blue_1 | strength_at_rout=68.12 | ground_displacement_m=16.21
+[WO-010] S2 seed 1009 PASS combat=61.2s rout=68.12
+[RNG] Battle seed set: 12345
+[Scenario 02] Battle seed: 12345
+[Scenario 02] Trace written: res://tests/traces/scenario_02_12345.csv
+[Scenario 02] SUMMARY | winner=red_1 | march=61.7s | combat=61.2s | flee=142.9s | routed=blue_1 | strength_at_rout=68.12 | ground_displacement_m=16.13
+[WO-010] S2 seed 12345 PASS combat=61.2s rout=68.12
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=blue_1 | march=61.7s | combat=81.6s | flee=152.8s | winner_strength=68.68 | winner_cohesion=21.47
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=blue_1 | march=61.7s | combat=81.6s | flee=152.8s | winner_strength=68.68 | winner_cohesion=21.47
+[WO-010] Determinism PASS
+[RNG] Battle seed set: 1000
+[Scenario 03] Battle seed: 1000
+[Scenario 03] Trace written: res://tests/traces/scenario_03_1000.csv
+[Scenario 03] SUMMARY | winner=red_b | combat=21.4s | blue_a_strength_at_rout=76.27 | edge_drains front=0.00 left=59.15 right=0.00 rear=0.41
+[WO-013] S3 PASS ratio=0.282 rout=76.27 (ratio band deferred to TD)
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[WO-010] S4 PASS front=2.747 corner=4.964 side=6.013
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=red_1 | march=61.7s | combat=75.8s | flee=147.9s | winner_strength=71.28 | winner_cohesion=28.08
+[WO-010] Overlap/adhesion seed 1000 PASS
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[WO-010] S5 PASS standard=removed rally=hold cohesion=50.0
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[WO-010] S6 PASS rally=removed pursuit_ticks=243 strength=0.00
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[WO-010] S7 PASS shocks=2 shock_tips_wavering=false
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 08] Trace written: res://tests/traces/scenario_08_1000_1.csv
+[Scenario 01] SUMMARY | winner=defender | march=0.1s | combat=75.8s | flee=148.7s | winner_strength=71.28 | winner_cohesion=28.08
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 08] Trace written: res://tests/traces/scenario_08_1000_3.csv
+[Scenario 01] SUMMARY | winner=attacker_3 | march=0.1s | combat=45.0s | flee=154.2s | winner_strength=100.00 | winner_cohesion=100.00
+[WO-010] S8 PASS single_damage=28.72 triple_damage=54.76 ratio=1.907
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 09] Trace written: res://tests/traces/scenario_09_1000.csv
+[Scenario 01] SUMMARY | winner=red_1 | march=61.7s | combat=40.0s | flee=146.9s | winner_strength=92.46 | winner_cohesion=81.14
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+[Scenario 09] Trace written: res://tests/traces/scenario_09_1001.csv
+[Scenario 01] SUMMARY | winner=red_1 | march=61.7s | combat=40.2s | flee=146.9s | winner_strength=92.36 | winner_cohesion=80.89
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+[Scenario 09] Trace written: res://tests/traces/scenario_09_1002.csv
+[Scenario 01] SUMMARY | winner=red_1 | march=61.7s | combat=40.2s | flee=147.0s | winner_strength=92.37 | winner_cohesion=80.90
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+[Scenario 09] Trace written: res://tests/traces/scenario_09_1003.csv
+[Scenario 01] SUMMARY | winner=red_1 | march=61.7s | combat=40.2s | flee=146.9s | winner_strength=92.41 | winner_cohesion=81.02
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+[Scenario 09] Trace written: res://tests/traces/scenario_09_1004.csv
+[Scenario 01] SUMMARY | winner=red_1 | march=61.7s | combat=40.4s | flee=146.9s | winner_strength=92.28 | winner_cohesion=80.69
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+[Scenario 09] Trace written: res://tests/traces/scenario_09_1005.csv
+[Scenario 01] SUMMARY | winner=red_1 | march=61.7s | combat=40.2s | flee=146.9s | winner_strength=92.39 | winner_cohesion=80.96
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+[Scenario 09] Trace written: res://tests/traces/scenario_09_1006.csv
+[Scenario 01] SUMMARY | winner=red_1 | march=61.7s | combat=40.0s | flee=146.9s | winner_strength=92.51 | winner_cohesion=81.27
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+[Scenario 09] Trace written: res://tests/traces/scenario_09_1007.csv
+[Scenario 01] SUMMARY | winner=red_1 | march=61.7s | combat=40.0s | flee=146.9s | winner_strength=92.51 | winner_cohesion=81.27
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+[Scenario 09] Trace written: res://tests/traces/scenario_09_1008.csv
+[Scenario 01] SUMMARY | winner=red_1 | march=61.7s | combat=39.8s | flee=146.9s | winner_strength=92.55 | winner_cohesion=81.38
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+[Scenario 09] Trace written: res://tests/traces/scenario_09_1009.csv
+[Scenario 01] SUMMARY | winner=red_1 | march=61.7s | combat=40.2s | flee=146.9s | winner_strength=92.41 | winner_cohesion=81.02
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 09] Trace written: res://tests/traces/scenario_09_12345.csv
+[Scenario 01] SUMMARY | winner=red_1 | march=61.7s | combat=40.2s | flee=146.9s | winner_strength=92.41 | winner_cohesion=81.01
+[WO-013] S9 PASS heavy_wins=11/11 casualty_ratio_seed1000=0.144
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 10] Trace written: res://tests/traces/scenario_10_1000.csv
+[Scenario 01] SUMMARY | winner=blue_1 | march=61.7s | combat=55.2s | flee=151.6s | winner_strength=91.85 | winner_cohesion=79.61
+[WO-013b] S10 PASS winner=blue_1 chip_tick=0.0350 trace_floor_ok=true
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 11] Trace written: res://tests/traces/scenario_11_1000_aa0.csv
+[Scenario 01] SUMMARY | winner=blue_1 | march=61.7s | combat=55.2s | flee=151.6s | winner_strength=91.85 | winner_cohesion=79.61
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 11] Trace written: res://tests/traces/scenario_11_1000_aa15.csv
+[Scenario 01] SUMMARY | winner=red_1 | march=61.7s | combat=63.8s | flee=147.4s | winner_strength=75.93 | winner_cohesion=39.76
+[WO-013b] S11 PASS control=55.2s breach=55.20s/8.15 dmg anti_armor=63.8s breach=16.30s/46.93 dmg
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 12] Trace written: res://tests/traces/scenario_12_1000.csv
+[Scenario 01] SUMMARY | winner=blue_1 | march=123.8s | combat=35.4s | flee=80.9s | winner_strength=90.67 | winner_cohesion=76.69
+[WO-014] S12 PASS volleys=18 approach_lost=8.04% total_lost=9.33 panic=true
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 13] Trace written: res://tests/traces/scenario_13_FIRE_ON_SIGHT_1000.csv
+[Scenario 01] SUMMARY | winner=blue_1 | march=123.8s | combat=35.4s | flee=80.9s | winner_strength=90.67 | winner_cohesion=76.69
+[WO-014] S13 sight PASS first_volley_m=149.9
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 13] Trace written: res://tests/traces/scenario_13_FIRE_AT_70_1000.csv
+[Scenario 01] SUMMARY | winner=blue_1 | march=123.7s | combat=34.6s | flee=80.9s | winner_strength=92.25 | winner_cohesion=80.64
+[WO-014] S13 at70 PASS first_volley_m=104.9
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[WO-014] S13 engaged PASS first_volley_m=130.0
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[WO-014] S14 PASS ff_events=1 friendly_lost=0.03
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[WO-014] S14 control PASS ff_events=0
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 15] Trace written: res://tests/traces/scenario_15_1000.csv
+[Scenario 01] SUMMARY | winner=blue_1 | march=370.1s | combat=48.0s | flee=80.9s | winner_strength=98.18 | winner_cohesion=95.44
+[WO-014] S15 PASS volleys=3 ammo_empty=true
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[WO-014] S16 leather PASS volleys=30 lost=44.40%
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[WO-014] S16 plate PASS volleys=30 lost=10.80% chip_expected=10.80
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 17] Trace written: res://tests/traces/scenario_17_1000.csv
+[Scenario 01] SUMMARY | winner=red_cav | march=52.3s | combat=0.0s | flee=107.6s | winner_strength=100.00 | winner_cohesion=100.00
+[WO-016] S17 PASS impact=6.400 shock=92.800 closing=4.000 combat=0.0s winner=red_cav inf_str=75.88
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 17] Trace written: res://tests/traces/scenario_17_adj_1000.csv
+[Scenario 01] SUMMARY | winner=blue_inf | march=8.3s | combat=47.4s | flee=57.5s | winner_strength=95.77 | winner_cohesion=89.43
+[WO-016] S17 adj PASS closing=1.556 charged=false combat=47.4s
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 18] Trace written: res://tests/traces/scenario_18_1000.csv
+[Scenario 01] SUMMARY | winner=blue_spears | march=52.3s | combat=142.8s | flee=72.8s | winner_strength=86.29 | winner_cohesion=65.73
+[WO-016] S18 PASS impact=6.400 reflected=3.200 cav_str=84.54 winner=blue_spears
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 19] Trace written: res://tests/traces/scenario_19_1000.csv
+[Scenario 01] SUMMARY | winner=red_cav | march=52.3s | combat=0.0s | flee=115.3s | winner_strength=100.00 | winner_cohesion=100.00
+[WO-016] S19 PASS impact=6.400 shock=92.800 braced=false closing=4.000
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 20] Trace written: res://tests/traces/scenario_20_20m_1000.csv
+[Scenario 01] SUMMARY | winner=blue_inf | march=8.3s | combat=47.4s | flee=57.5s | winner_strength=95.77 | winner_cohesion=89.43
+[WO-016] S20 20m PASS closing=1.556 charged=false
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 20] Trace written: res://tests/traces/scenario_20_120m_1000.csv
+[Scenario 01] SUMMARY | winner=red_cav | march=37.3s | combat=0.0s | flee=123.0s | winner_strength=100.00 | winner_cohesion=100.00
+[WO-016] S20 120m PASS closing=4.000 impact=6.400 short_closing=1.556
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[WO-011] Perf40 sim_thread avg_tick_ms=1.206 p95_tick_ms=1.406 max_tick_ms=32.476 ticks=444415
+[WO-011] Perf40 environmental actuals (cloud, not designer-desktop gate): min_fps=0.5 avg_fps=24.1 avg_tick_ms=0.000 p95_tick_ms=0.000 ticks=0
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[WO-010] Spatial-grid tick perf (after partitioning, cloud env):
+  units=4 avg_tick_ms=0.603 p95_tick_ms=1.059 max_tick_ms=1.296 ticks=800
+  units=20 avg_tick_ms=8.486 p95_tick_ms=11.854 max_tick_ms=12.936 ticks=800
+  units=40 avg_tick_ms=33.795 p95_tick_ms=44.701 max_tick_ms=46.589 ticks=800
+[WO-015] Meta PASS=51 FAIL=0 expected_green_pass=51 exit=0

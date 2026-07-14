@@ -2,6 +2,7 @@
 
 Canonical index of FORMATIONS work-order reports (newest first). Raw `main` branch links.
 
+- [WO-016_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/WO-016_completion.md) — WO-016 mounted charge, mass, brace (S17–S20)
 - [WO-015_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/WO-015_completion.md) — WO-015 S6 harness repair
 - [WO-014b_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/WO-014b_completion.md) — WO-014b fresh report path (sweep/S12–S16/suite)
 - [WO-014_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/WO-014_completion.md) — WO-014 ranged combat completion
