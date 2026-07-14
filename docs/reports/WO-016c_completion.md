@@ -1,9 +1,9 @@
-# COMPLETION REPORT — WO-016c — Date 2026-07-14 — Commit PENDING_STAMP
+# COMPLETION REPORT — WO-016c — Date 2026-07-14 — Commit 9f3ff9f90f525eff45e0f6ba552dcc5c4dd4cfad
 
 **Work order:** WO-016c directional charge shock (R15 extension)  
 **Branch:** `cursor/wo-016c-directional-charge-shock-fd84`  
 **Date:** 2026-07-14  
-**Commit:** `PENDING_STAMP`  
+**Commit:** `9f3ff9f90f525eff45e0f6ba552dcc5c4dd4cfad`  
 **Base:** `cursor/wo-016b-charge-scale-r15-fd84`  
 **Evidence:** `docs/reports/evidence_wo016c/`  
 
@@ -74,6 +74,6 @@ $GODOT --headless --path . -s res://tests/scenario_wo010_autotest.gd
 ## Attestation
 
 - Branch: `cursor/wo-016c-directional-charge-shock-fd84`
-- Full SHA: `PENDING_STAMP`
+- Full SHA: `9f3ff9f90f525eff45e0f6ba552dcc5c4dd4cfad`
 - Report: https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-016c-directional-charge-shock-fd84/docs/reports/WO-016c_completion.md
 - Suite: https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-016c-directional-charge-shock-fd84/docs/reports/evidence_wo016c/suite_stdout.log
