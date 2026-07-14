@@ -1,0 +1,3 @@
+before(WO-017): avg=1.279 p95=1.496
+after(WO-018 reverify): Perf40 sim_thread avg_tick_ms=1.352 p95_tick_ms=1.574
+after(WO-018 committed): avg=1.249 p95=1.511

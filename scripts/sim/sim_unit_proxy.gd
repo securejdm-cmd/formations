@@ -36,6 +36,9 @@ var _dead_zone_panic_done: bool = false
 var current_speed_m_s: float = 0.0
 var charge_amp_factor: float = 1.0
 var _charge_amp_time_left: float = 0.0
+## R17: charge gait commitment (physical acceleration to gait top).
+var charge_committed: bool = false
+var _charge_commit_target_id: String = ""
 var _brace_hold_sec: float = 0.0
 var _braced: bool = false
 var _threat_front_sec: float = 0.0
@@ -76,6 +79,8 @@ static func from_unit(unit: Unit) -> SimUnitProxy:
 	p.current_speed_m_s = unit.current_speed_m_s
 	p.charge_amp_factor = unit.charge_amp_factor
 	p._charge_amp_time_left = unit._charge_amp_time_left
+	p.charge_committed = unit.charge_committed
+	p._charge_commit_target_id = unit._charge_commit_target_id
 	p._brace_hold_sec = unit._brace_hold_sec
 	p._braced = unit._braced
 	p._threat_front_sec = unit._threat_front_sec
@@ -116,6 +121,8 @@ func refresh_from_unit(unit: Unit) -> void:
 	current_speed_m_s = unit.current_speed_m_s
 	charge_amp_factor = unit.charge_amp_factor
 	_charge_amp_time_left = unit._charge_amp_time_left
+	charge_committed = unit.charge_committed
+	_charge_commit_target_id = unit._charge_commit_target_id
 	_brace_hold_sec = unit._brace_hold_sec
 	_braced = unit._braced
 	_threat_front_sec = unit._threat_front_sec
@@ -159,6 +166,8 @@ func duplicate_render_state() -> SimUnitProxy:
 	p.current_speed_m_s = current_speed_m_s
 	p.charge_amp_factor = charge_amp_factor
 	p._charge_amp_time_left = _charge_amp_time_left
+	p.charge_committed = charge_committed
+	p._charge_commit_target_id = _charge_commit_target_id
 	p._brace_hold_sec = _brace_hold_sec
 	p._braced = _braced
 	p._threat_front_sec = _threat_front_sec
@@ -195,6 +204,8 @@ func apply_to_unit(unit: Unit, all_units: Array = []) -> void:
 	unit.current_speed_m_s = current_speed_m_s
 	unit.charge_amp_factor = charge_amp_factor
 	unit._charge_amp_time_left = _charge_amp_time_left
+	unit.charge_committed = charge_committed
+	unit._charge_commit_target_id = _charge_commit_target_id
 	unit._brace_hold_sec = _brace_hold_sec
 	unit._braced = _braced
 	unit._threat_front_sec = _threat_front_sec
@@ -342,8 +353,9 @@ func apply_cohesion_drain(amount: float, edge_name: String = "") -> void:
 func update_marching(delta: float, enemies: Array = []) -> void:
 	if _state != Unit.State.MARCHING:
 		return
+	_update_charge_commit(enemies)
 	var to_target := march_target - position
-	var top := speed_m_per_sec()
+	var top := _ChargeCombat.target_speed_m_s(self)
 	# Turn rate (R5): only steer when heading error is material. On-axis approaches
 	# (S1/S2) keep configure facing — micro-corrections were shifting contact geometry.
 	if to_target.length() > 0.001:
@@ -356,13 +368,18 @@ func update_marching(delta: float, enemies: Array = []) -> void:
 			else:
 				facing = facing.rotated(signf(angled) * max_turn)
 	var accel: float = _ChargeCombat.accel_m_s2(self)
-	current_speed_m_s = minf(top, current_speed_m_s + accel * delta)
+	var decel: float = _ChargeCombat.decel_m_s2(self)
+	if current_speed_m_s < top:
+		current_speed_m_s = minf(top, current_speed_m_s + accel * delta)
+	elif current_speed_m_s > top:
+		current_speed_m_s = maxf(top, current_speed_m_s - decel * delta)
 	var speed_px := current_speed_m_s * Constants.get_float("px_per_meter")
 	var move_px := speed_px * delta
 	if to_target.length() <= move_px:
 		position = march_target
-		var decel: float = _ChargeCombat.decel_m_s2(self)
 		current_speed_m_s = maxf(0.0, current_speed_m_s - decel * delta)
+		charge_committed = false
+		_charge_commit_target_id = ""
 		if enemies.is_empty():
 			_set_state(Unit.State.HOLD)
 		return
@@ -375,6 +392,21 @@ func update_marching(delta: float, enemies: Array = []) -> void:
 		if move_px <= 0.0:
 			return
 	position += to_target.normalized() * move_px
+
+
+func _update_charge_commit(enemies: Array) -> void:
+	## R17: commit to charge gait when marching toward a front-arc enemy in range.
+	if current_order != Unit.Order.MARCH_TO:
+		charge_committed = false
+		_charge_commit_target_id = ""
+		return
+	var target = _ChargeCombat.find_charge_commit_target(self, enemies)
+	if target == null:
+		charge_committed = false
+		_charge_commit_target_id = ""
+		return
+	charge_committed = true
+	_charge_commit_target_id = str(target.unit_id)
 
 
 func start_from_rest() -> void:

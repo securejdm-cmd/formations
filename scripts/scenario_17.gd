@@ -2,6 +2,9 @@ class_name Scenario17
 extends Scenario01
 
 ## Cavalry charge vs unbraced infantry (long run-up). Optional adjacent / pre-drain.
+##
+## WO-018: S17 primary (fresh T1 hold) SUPERSEDED by S23 / unaware cases by S24–S26.
+## Kept for history and S17b shaken rout; harness marks S17/S17-adj as retired PASSes.
 
 const TRACE_PREFIX := "scenario_17"
 

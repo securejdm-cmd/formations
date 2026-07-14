@@ -8,6 +8,7 @@
   "armor": 8.0,
   "anti_armor": 0.0,
   "speed": 40.0,
+  "charge_gait_mult": 3.375,
   "agility": 70.0,
   "pushing_power": 40.0,
   "retreating_skill": 40.0,
