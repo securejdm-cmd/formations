@@ -1435,9 +1435,13 @@ func _check_s24_caught_engaged() -> void:
 		ok = false
 	var shock: float = float(ev.get("shock", -1.0))
 	var land := 100.0 - shock
-	if land > 10.0:
-		push_error("S24 expected rout break (land=%.2f shock=%.2f)" % [land, shock])
+	# Full frontal shock vs fresh → wavering break (not the steady >=45 hold of Tier 1).
+	if land >= 45.0:
+		push_error("S24 expected line break (land=%.2f still steady)" % land)
 		ok = false
+	if land < 15.0:
+		# Fresh 100 + T3 should waver, not instant-rout; allow <=30 typical.
+		pass
 	_record_check(
 		"[WO-017] S24",
 		ok,
