@@ -1,9 +1,9 @@
-# COMPLETION REPORT — WO-017 — Date 2026-07-14 — Commit PENDING_STAMP
+# COMPLETION REPORT — WO-017 — Date 2026-07-14 — Commit 8c390e852c0a4414298ce28914c64d2ef694810b
 
 **Work order:** WO-017 Bracing for Impact (R16 three-tier brace)  
 **Branch:** `cursor/wo-017-three-tier-brace-fd84`  
 **Date:** 2026-07-14  
-**Commit:** `PENDING_STAMP`  
+**Commit:** `8c390e852c0a4414298ce28914c64d2ef694810b`  
 **Base:** `cursor/wo-016c-directional-charge-shock-fd84`  
 **Evidence:** `docs/reports/evidence_wo017/`  
 
@@ -115,6 +115,6 @@ $GODOT --headless --path . -s res://tests/scenario_wo010_autotest.gd
 ## Attestation
 
 - Branch: `cursor/wo-017-three-tier-brace-fd84`
-- Full SHA: `PENDING_STAMP`
+- Full SHA: `8c390e852c0a4414298ce28914c64d2ef694810b`
 - Report: https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-017-three-tier-brace-fd84/docs/reports/WO-017_completion.md
 - Suite: https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-017-three-tier-brace-fd84/docs/reports/evidence_wo017/suite_stdout.log
