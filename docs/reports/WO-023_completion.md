@@ -1,4 +1,5 @@
-# COMPLETION REPORT — WO-023 — 2026-07-15 — Commit bc413dbc0016055203654cb5385f8507345906f6
+# COMPLETION REPORT — WO-023 — 2026-07-15 — Commit 60effa77fb1008c816278b47da3306084b9b5ab0
+Tip SHA: 60effa77fb1008c816278b47da3306084b9b5ab0 (report body); see follow-up attestation if tip advances
 
 Project: FORMATIONS — Phase 2 — Gate 2 Blockers
 Issued by: Technical Director
@@ -152,7 +153,7 @@ Evidence: `docs/reports/evidence_wo023/`.
 ## Attestation
 
 ```
-SHA: bc413dbc0016055203654cb5385f8507345906f6
+SHA: 60effa77fb1008c816278b47da3306084b9b5ab0
 Suite: exit 0 ; Meta PASS=72 FAIL=0
 Smoke: 0 ; Compass: 0 ; Matrix: 0 + DETERMINISM PASS
 Task1: (b) measurement change; MAIN_TICK like-for-like WO-021≈57.5 / WO-023 suite 44.6
