@@ -405,11 +405,15 @@ func _run_when_ready() -> void:
 	if _mode == "s4_drain":
 		_sim_harness.run_ticks(_scenario, 50)
 	elif _mode == "perf_40":
+		print("[WO-011] Perf40 begin (threaded realtime sample)")
 		for _i in 1200:
 			_scenario.simulate_realtime_step()
+			if _i > 0 and _i % 200 == 0:
+				print("[WO-011] Perf40 step=%d battle_over=%s" % [_i, _scenario.is_battle_over()])
 			if _scenario.is_battle_over():
 				break
 		_perf_stats = _scenario.get_perf_stats()
+		print("[WO-011] Perf40 sample done")
 	elif _mode == "perf_scale":
 		for _i in 800:
 			_scenario.advance_one_tick()
@@ -452,7 +456,22 @@ func _run_when_ready() -> void:
 	]:
 		_sim_harness.run_ticks(_scenario, 4500)
 	elif _mode == "s40_mixed":
-		_sim_harness.run_ticks(_scenario, 8000)
+		# Stop once Gate-2 showcase flags are up — full 8000-tick grind floods
+		# overlap asserts and can stall the subsequent threaded perf_40 on cloud.
+		var s40_ticks := 0
+		while s40_ticks < 8000 and not _scenario.is_battle_over():
+			_scenario.advance_one_tick()
+			s40_ticks += 1
+			if (
+				_scenario.has_method("showcase_ok")
+				and bool(_scenario.call("showcase_ok"))
+				and s40_ticks >= 1200
+			):
+				break
+		print("[WO-022] S40 harness ticks=%d showcase=%s" % [
+			s40_ticks,
+			str(_scenario.call("showcase_ok")) if _scenario.has_method("showcase_ok") else "n/a",
+		])
 	else:
 		_sim_harness.run_to_completion(_scenario, _sim_harness.RunMode.FAST, _extra_ticks_for_mode)
 	_finish()
