@@ -1,7 +1,7 @@
 # WO-021 Completion — The Test Hill: Slope & High Ground
 
 **Branch:** `cursor/wo-021-test-hill-fd84`  
-**SHA:** see footer / `evidence_wo021/commit_sha.txt`  
+**SHA:** `e4ff0ca27bf6a51693580ed2647b57be84a6f5fe`  
 **Suite:** Meta PASS=70 FAIL=0 **exit 0**
 
 ---
