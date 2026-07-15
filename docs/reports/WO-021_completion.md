@@ -1,8 +1,18 @@
-# WO-021 Completion — The Test Hill: Slope & High Ground
+# COMPLETION REPORT — WO-021 — Date 2026-07-15 — Commit 6a0dc1f4d1f72341a91bd1747ecbdde56bc028f6
 
+**Work order:** WO-021 The Test Hill — Slope & High Ground (R6 / Sec 7)  
 **Branch:** `cursor/wo-021-test-hill-fd84`  
-**SHA:** `e4ff0ca27bf6a51693580ed2647b57be84a6f5fe`  
+**Date:** 2026-07-15  
+**Commit:** `6a0dc1f4d1f72341a91bd1747ecbdde56bc028f6`  
+**Base:** `main` (post WO-020/020b merge)  
+**Evidence:** `docs/reports/evidence_wo021/`  
 **Suite:** Meta PASS=70 FAIL=0 **exit 0**
+
+---
+
+## Built
+
+Phase 2 single test hill validating R6 elevation thesis: coarse 20m height grid, Sec 7 slope push/range/speed modifiers, shaded relief, S36–S39.
 
 ---
 
@@ -41,6 +51,10 @@ factor = 1 + bonus × (grade_along_axis / slope_reference_grade)
 
 Movement: `slope_speed_mult` multiplies **top speed and accel/decel** in `ChargeCombat` (R6 emergent movement — **no charge-specific slope code**).
 
+### S37 run-up
+
+Identical run-up distance **120 m** for downhill and uphill cavalry (same as S20/S27 long-runup family).
+
 ### S37 `slope_speed_bonus` sweep
 
 | bonus | down_v | down_i | up_v | up_i | ratio |
@@ -60,6 +74,19 @@ Movement: `slope_speed_mult` multiplies **top speed and accel/decel** in `Charge
 
 Charge-specific slope grep: **empty** (only shared movement `slope_speed_mult`).
 
+### March sub-stepping (carry-forward VERIFY)
+
+Dynamic — **not** hardcoded at 2×. Formula in `ChargeCombat.march_substep_count`:
+
+```
+peak = min(target_speed, speed_now + accel × delta)
+disp = peak × delta
+n = 1                          if disp < engage_snap_max_m
+n = floor(disp / snap) + 1     otherwise
+```
+
+Per-substep displacement stays ≤ `engage_snap_max_m` (1.0 m) by construction for **any** speed; maximum safe velocity is unbounded (n grows with `peak × delta`). Example: at ~18.2 m/s and δ=0.1 s, `disp=1.82 m` → **n=2** sub-steps (~0.91 m each).
+
 ---
 
 ## Task 3 — Rendering
@@ -75,7 +102,7 @@ Charge-specific slope grep: **empty** (only shared movement `slope_speed_mult`).
 | ID | Expectation | Actual |
 |----|-------------|--------|
 | **S36** | Downhill wins push | displace **12.13 m** west; combat **50.0 s** (flat S1 ~81.6 s); routed blue_uphill |
-| **S37** | Ratio ≥ 1.4 emerge from movement | down 13.122 / 21.121; up 8.775 / 14.124; **ratio 1.495** |
+| **S37** | Ratio ≥ 1.4 emerge from movement | down 13.122 / 21.121; up 8.775 / 14.124; **ratio 1.495** (run-up **120 m**) |
 | **S38** | ±15% range at ref grade | down first **172.5 m**; up first **127.3 m** |
 | **S39** | Defender holds from geometry | winner **blue_hold**; combat **64.0 s**; climb routed @ **67.25** |
 
@@ -105,6 +132,13 @@ Charge-specific slope grep: **empty** (only shared movement `slope_speed_mult`).
 - [x] Atomic code+report commit
 
 ---
+
+## Assumptions made
+NONE
+
+## Known issues
+- Grid `peak_grade` metric still spikes at ramp plateau kinks (~0.93); mid-ramp grade 0.100 is the design truth.
+- Carry-forward header stamp / Assumptions / Known issues restored in WO-022 (governance erosion fix).
 
 ## Attestation links
 

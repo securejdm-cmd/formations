@@ -41,8 +41,8 @@ const SCENARIO_EXTRA_TICKS := 120
 ## Gated PASS lines emitted when every check is green (WO-015).
 ## Compass, Fast+Threaded cert, S1×11, S2×11, Determinism, S3, Overlap, S4, S5–S8, S9,
 ## S10–S11, S12, S13×3, S14×2, S15, S16×2, S17×2 retired, S17b, S18, S19, S20×2, S21, S22,
-## S23–S26, S27–S29, S30–S34, S36–S39 = 70
-const EXPECTED_GREEN_PASS_COUNT := 70
+## S23–S26, S27–S29, S30–S34, S35, S36–S39, S40 = 72
+const EXPECTED_GREEN_PASS_COUNT := 72
 
 var _scenario: Scenario01 = null
 var _exit_code := 0
@@ -313,6 +313,9 @@ func _spawn_and_run() -> void:
 		"s34_pinning":
 			scene = "scenario_34"
 			seed_value = 1000
+		"s35_agility_isolate":
+			scene = "scenario_35"
+			seed_value = 1000
 		"s36_uphill_push":
 			scene = "scenario_36"
 			seed_value = 1000
@@ -324,6 +327,9 @@ func _spawn_and_run() -> void:
 			seed_value = 1000
 		"s39_high_ground":
 			scene = "scenario_39"
+			seed_value = 1000
+		"s40_mixed":
+			scene = "scenario_40_mixed"
 			seed_value = 1000
 
 	if _scenario != null:
@@ -438,10 +444,12 @@ func _run_when_ready() -> void:
 		"s32_hit_and_run",
 		"s33_gravity_square",
 		"s34_pinning",
+		"s35_agility_isolate",
 		"s36_uphill_push",
 		"s37_slope_charge",
 		"s38_missile_high",
 		"s39_high_ground",
+		"s40_mixed",
 	]:
 		_sim_harness.run_ticks(_scenario, 4500)
 	else:
@@ -693,6 +701,10 @@ func _finish() -> void:
 			_spawn_and_run()
 		"s34_pinning":
 			_check_s34_pinning()
+			_mode = "s35_agility_isolate"
+			_spawn_and_run()
+		"s35_agility_isolate":
+			_check_s35_agility()
 			_mode = "s36_uphill_push"
 			_spawn_and_run()
 		"s36_uphill_push":
@@ -709,6 +721,10 @@ func _finish() -> void:
 			_spawn_and_run()
 		"s39_high_ground":
 			_check_s39_high_ground()
+			_mode = "s40_mixed"
+			_spawn_and_run()
+		"s40_mixed":
+			_check_s40_mixed()
 			_mode = "perf_40"
 			_spawn_and_run()
 		"perf_40":
@@ -1836,6 +1852,33 @@ func _check_s34_pinning() -> void:
 	_record_check("[WO-020b] S34", ok, detail)
 
 
+func _check_s35_agility() -> void:
+	var ok := true
+	if float(_scenario.low_withdraw_s) < 0.0 or float(_scenario.high_withdraw_s) < 0.0:
+		push_error("S35 missing withdraw timings")
+		ok = false
+	if float(_scenario.low_withdraw_s) <= float(_scenario.high_withdraw_s):
+		push_error(
+			"S35 A30 duration %.2f should exceed A80 %.2f"
+			% [float(_scenario.low_withdraw_s), float(_scenario.high_withdraw_s)]
+		)
+		ok = false
+	# Report isolation actuals — do NOT tune to 1.71 (R20 / Gate 2).
+	_record_check(
+		"[WO-022] S35",
+		ok,
+		"a30_t=%.2fs lost=%.2f a80_t=%.2fs lost=%.2f str_ratio=%.2f dur_ratio=%.2f (ref~1.71)"
+		% [
+			float(_scenario.low_withdraw_s),
+			float(_scenario.low_str_lost),
+			float(_scenario.high_withdraw_s),
+			float(_scenario.high_str_lost),
+			float(_scenario.str_loss_ratio()),
+			float(_scenario.duration_ratio()),
+		],
+	)
+
+
 func _check_s36_uphill_push() -> void:
 	var phases: Dictionary = _scenario.get_phase_durations_sec()
 	var displace: float = float(_scenario.ground_displacement_m())
@@ -1928,6 +1971,35 @@ func _check_s39_high_ground() -> void:
 			float(phases.get("combat_sec", -1.0)),
 			_scenario.get_routed_id(),
 			float(_scenario.strength_at_rout()),
+		],
+	)
+
+
+func _check_s40_mixed() -> void:
+	var phases: Dictionary = _scenario.get_phase_durations_sec()
+	var ok := true
+	# Soft observability gates — battle must be dynamic/readable, not a balance target.
+	if not bool(_scenario.observed_volley):
+		push_error("S40 expected archer volleys during approach")
+		ok = false
+	if not bool(_scenario.observed_melee):
+		push_error("S40 expected lines to meet")
+		ok = false
+	if not bool(_scenario.observed_brace):
+		push_error("S40 expected BLUE spears braced")
+		ok = false
+	_record_check(
+		"[WO-022] S40",
+		ok,
+		"winner=%s combat=%.1fs volley=%s melee=%s flank=%s shock=%s brace=%s"
+		% [
+			_scenario.get_winner_id(),
+			float(phases.get("combat_sec", -1.0)),
+			_scenario.observed_volley,
+			_scenario.observed_melee,
+			_scenario.observed_flank_charge,
+			_scenario.observed_rout_shock,
+			_scenario.observed_brace,
 		],
 	)
 
