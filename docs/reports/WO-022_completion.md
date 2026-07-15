@@ -1,9 +1,9 @@
-# COMPLETION REPORT — WO-022 — Date 2026-07-15 — Commit PLACEHOLDER
+# COMPLETION REPORT — WO-022 — Date 2026-07-15 — Commit a594843599d7f269fd6287dead4d13b92024d91e
 
 **Work order:** WO-022 Gate 2: The Triangle & The Battle  
 **Branch:** `cursor/wo-022-gate2-triangle-fd84`  
 **Date:** 2026-07-15  
-**Commit:** `9b17fcd21dfdcb42490cf4b3132673f7790900a5`
+**Commit:** `a594843599d7f269fd6287dead4d13b92024d91e`
 **Base:** `main` post WO-021 merge (`3b3c752` tip includes post-merge suite)  
 **Evidence:** `docs/reports/evidence_wo022/`  
 **Suite:** Meta PASS=72 FAIL=0 **exit 0**
@@ -135,7 +135,7 @@ Scripted 6v6 on test hill (`scripts/scenario_40_mixed.gd`, mode `s40_mixed`).
 ## Attestation
 
 - Branch: `cursor/wo-022-gate2-triangle-fd84`
-- Full SHA: `9b17fcd21dfdcb42490cf4b3132673f7790900a5`
+- Full SHA: `a594843599d7f269fd6287dead4d13b92024d91e`
 - Report: https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-022-gate2-triangle-fd84/docs/reports/WO-022_completion.md
 - Suite: https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-022-gate2-triangle-fd84/docs/reports/evidence_wo022/suite_stdout.log
 
