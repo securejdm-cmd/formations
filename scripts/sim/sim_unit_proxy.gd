@@ -470,6 +470,10 @@ func begin_disengage() -> void:
 	disengaging = true
 	_disengage_time_left = _Magnetism.disengage_duration_s(self)
 	wheeling = false
+	wheel_under_contact = false
+	current_speed_m_s = 0.0
+	charge_committed = false
+	_charge_commit_target_id = ""
 
 
 func complete_disengage() -> void:

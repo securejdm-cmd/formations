@@ -11,7 +11,12 @@ var contact_edge_red: String = ""
 var contact_edge_blue: String = ""
 var red_facing_dot_at_contact: float = -2.0
 var blue_facing_dot_at_contact: float = -2.0
+## Squared-up rotation achieved (degrees from spawn facing toward contact vector).
+var red_rotation_deg: float = 0.0
+var blue_rotation_deg: float = 0.0
 var _logged: bool = false
+var _red_spawn_facing: Vector2 = Vector2.RIGHT
+var _blue_spawn_facing: Vector2 = Vector2.LEFT
 
 
 func _spawn_units() -> void:
@@ -24,12 +29,14 @@ func _spawn_units() -> void:
 	_red = UNIT_SCENE.instantiate()
 	add_child(_red)
 	_red.configure("red_1", "red", inf_p, Vector2(-half, 0.0), Vector2.RIGHT)
+	_red_spawn_facing = Vector2.RIGHT
 	_red.set_march_to(Vector2(half + 20.0 * px, offset_y))
 	_units.append(_red)
 
 	_blue = UNIT_SCENE.instantiate()
 	add_child(_blue)
 	_blue.configure("blue_1", "blue", inf_p, Vector2(half, offset_y), Vector2.LEFT)
+	_blue_spawn_facing = Vector2.LEFT
 	_blue.set_march_to(Vector2(-half - 20.0 * px, 0.0))
 	_units.append(_blue)
 
@@ -56,6 +63,8 @@ func advance_one_tick() -> void:
 	var to_red: Vector2 = (_red.position - _blue.position).normalized()
 	red_facing_dot_at_contact = _red.facing.normalized().dot(to_blue)
 	blue_facing_dot_at_contact = _blue.facing.normalized().dot(to_red)
+	red_rotation_deg = rad_to_deg(absf(_red_spawn_facing.angle_to(_red.facing)))
+	blue_rotation_deg = rad_to_deg(absf(_blue_spawn_facing.angle_to(_blue.facing)))
 	_sim_core.battle_over = true
 	_battle_over = true
 
