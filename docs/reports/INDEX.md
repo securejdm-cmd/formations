@@ -2,6 +2,7 @@
 
 Canonical index of FORMATIONS work-order reports (newest first). Raw `main` branch links.
 
+- [WO-021_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-021-test-hill-fd84/docs/reports/WO-021_completion.md) — WO-021 test hill slope & high ground (S36–S39)
 - [MAIN_MERGE_wo020_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/MAIN_MERGE_wo020_completion.md) — WO-020+020b merge; Magnetism complete; suite exit 0
 - [WO-020b_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/WO-020b_completion.md) — WO-020b magnetism teeth (withdrawal mult + turn rate)
 - [WO-020b_escalation.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/WO-020b_escalation.md) — WO-020b Task1 ratio (armor skew)

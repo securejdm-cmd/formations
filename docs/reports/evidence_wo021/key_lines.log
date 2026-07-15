@@ -1,0 +1,16 @@
+[WO-010] Fast-mode certification PASS (seed 12345 trace byte-identical)
+[WO-011] Threaded certification PASS (seed 12345 trace byte-identical)
+[WO-014] S12 PASS volleys=18 approach_lost=8.04% total_lost=9.33 panic=true
+[WO-017] S23 PASS tier=1 shock=46.01 land=53.99 combat=52.7s winner=blue_inf cav_str=66.1 inf_str=93.5
+[WO-017] S24 PASS tier=3 shock=76.68 land=23.32 winner=red_cav
+[WO-017] S25 PASS tier=3 shock=71.20 land=28.80
+[WO-017] S26 PASS tier=3 shock=76.68 land=23.32
+[WO-019] S27 PASS closing=13.420 unit_speed=13.420 samples=450 commit=true accel=true
+[WO-019] S28 PASS impact=3.018 shock=6.43 land=93.57 closing=3.000 tier=1 (WO-018 was 7.79/16.6/83.4)
+[WO-019] S29 PASS 20m:v=2.82/i=0.00 60m:v=7.44/i=11.98 120m:v=11.28/i=18.16 200m:v=13.42/i=21.60
+[WO-021] S36 PASS combat=50.0s displace_m=12.13 routed=blue_uphill (flat S1 combat~81.6s)
+[WO-021] S37 PASS down_v=13.122/i=21.121 up_v=8.775/i=14.124 ratio=1.495
+[WO-021] S38 PASS down_first=172.5m up_first=127.3m
+[WO-021] S39 PASS winner=blue_hold combat=64.0s routed=red_climb str_at_rout=67.25
+[WO-011] Perf40 sim_thread avg_tick_ms=1.997 p95_tick_ms=1.847 max_tick_ms=290898.843 ticks=766463
+[WO-015] Meta PASS=70 FAIL=0 expected_green_pass=70 exit=0

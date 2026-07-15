@@ -25,7 +25,7 @@ Profile tag doubles as weight class: Low/Medium/High/Massive → Mass values (da
 **HARD LINE: no momentum transfer, no knockback, no free-body physics.** Engaged lines move ONLY via the push contest. Mass shapes impact moments and movement feel — never post-contact physics. **STATUS: DESIGNED — Phase 2.**
 
 ## R6. Elevation (designer request; TD phasing)
-Coarse height grid under the battlefield, rendered as shaded relief (K&G style). Effects mostly emerge: downhill charges arrive faster (R4), uphill attackers arrive slower, slope push/range modifiers per Damage&Cat §7. Phase 2 ships a single test hill (WO-021) to validate modifiers; full elevation with deployment is Phase 3 (contesting ground becomes a player decision). **STATUS: PHASE 2 TEST HILL — WO-021; full elevation Phase 3.**
+Coarse height grid under the battlefield, rendered as shaded relief (K&G style). Effects mostly emerge: downhill charges arrive faster (R4), uphill attackers arrive slower, slope push/range modifiers per Damage&Cat §7. Phase 2 ships a single test hill (WO-021: 20m cells, constant 10% ramp) to validate modifiers; full elevation with deployment is Phase 3 (contesting ground becomes a player decision). **STATUS: PHASE 2 TEST HILL BUILT — WO-021; full elevation Phase 3.**
 
 ## R7. Per-Channel Edge Multipliers (designer ruling; SUPERSEDES Combat Core §2 "×2/×3 on all combat drains")
 Edge multipliers split by drain channel, four constants:
