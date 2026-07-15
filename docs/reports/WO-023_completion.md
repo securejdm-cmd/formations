@@ -1,5 +1,5 @@
 # COMPLETION REPORT — WO-023 — 2026-07-15 — Commit 60effa77fb1008c816278b47da3306084b9b5ab0
-Tip SHA: d6e5f21782cc1b5aa10f242a36e801750dbde602
+Tip SHA: 248a857342aba6765be2260b6dbb798056389760
 
 Project: FORMATIONS — Phase 2 — Gate 2 Blockers
 Issued by: Technical Director
@@ -152,13 +152,8 @@ Evidence: `docs/reports/evidence_wo023/`.
 
 ## Attestation
 
-```
-SHA: d6e5f21782cc1b5aa10f242a36e801750dbde602
-Suite: exit 0 ; Meta PASS=72 FAIL=0
-Smoke: 0 ; Compass: 0 ; Matrix: 0 + DETERMINISM PASS
-Task1: (b) measurement change; MAIN_TICK like-for-like WO-021≈57.5 / WO-023 suite 44.6
-Task2: defect fixed (dest-exhausted head-on snap); 0/11 timeouts both cells
-Task3: FULL/NO_AMP/NO_SHOCK=100%; NO_BOTH=63.6% — no tuning
-Task4: FRONTAL_VS_STANDING documented + configuration column; Phase 5 TD finding recorded
-Assumptions made: NONE
-```
+- Branch: `cursor/wo-023-gate2-blockers-fd84`
+- Full SHA: `248a857342aba6765be2260b6dbb798056389760`
+- Report: https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-023-gate2-blockers-fd84/docs/reports/WO-023_completion.md
+- Suite: https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-023-gate2-blockers-fd84/docs/reports/evidence_wo023/suite_stdout.log
+
