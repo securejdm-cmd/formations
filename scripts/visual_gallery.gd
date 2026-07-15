@@ -200,7 +200,7 @@ func _spawn_brace_charge_exhibit(origin: Vector2, px: float) -> void:
 
 func _spawn_test_hill_exhibit(origin: Vector2, px: float) -> void:
 	## WO-021: shaded-relief clip of the test ridge with a unit on the slope.
-	var hf := _HeightField.make_test_hill()
+	var hf = _HeightField.make_test_hill()
 	var img: Image = hf.build_relief_image(px, Color(0.45, 0.55, 0.35, 1.0))
 	# Crop a battlefield-zoom window centered on the west flank.
 	var crop_w := 280
