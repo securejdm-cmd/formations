@@ -90,7 +90,8 @@ func _initialize() -> void:
 	# WO_SKIP_NESTED_GODOT=1 and run those gates serially outside, or keep the
 	# nested path for local desktop runs.
 	if OS.get_environment("WO_SKIP_NESTED_GODOT") == "1":
-		_record_check("[WO-010] SceneSmoke gate", true, "(skipped nested; run externally)")
+		# Match nested accounting: SceneSmoke only records on FAIL; Compass PASS.
+		print("[WO-010] SceneSmoke gate skipped nested (run externally)")
 		_record_check("[WO-010] Compass test", true, "(skipped nested; run externally)")
 	else:
 		var smoke_out: Array = []
