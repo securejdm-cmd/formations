@@ -74,7 +74,7 @@ A momentum charge (R4) against **FRESH** (100% cohesion) medium infantry on a **
 ## R16. Three-tier brace (TD; WO-017)
 Charge shock is modulated by the defender's readiness at the moment of contact:
 
-1. **Tier 1 — Instinctive brace (automatic, any unit).** All must hold at impact: (a) charger was in the defender's front arc with closing (sim m/s) ≥ `charge_min_speed` for ≥ `brace_reaction_s`; (b) defender is not already engaged with another enemy; (c) defender own speed ≤ `brace_max_own_speed_pct` of its top tactical speed; (d) contact edge is **front**. Effect: shock × `instinctive_brace_mult`. Never applies to side/rear.
+1. **Tier 1 — Instinctive brace (automatic, any unit).** All must hold at impact: (a) charger was in the defender's front arc with closing (sim m/s) ≥ own `Speed × charge_min_speed_pct` (R18) for ≥ `brace_reaction_s`; (b) defender is not already engaged with another enemy; (c) defender own speed ≤ `brace_max_own_speed_pct` of its top tactical speed; (d) contact edge is **front**. Effect: shock × `instinctive_brace_mult`. Never applies to side/rear.
 
 2. **Tier 2 — Set to receive (Pierce).** Stationary Pierce facing ≥ `brace_time_s` negates shock and reflects. Supersedes Tier 1 when both qualify.
 
@@ -91,3 +91,9 @@ A unit's Speed stat governs **tactical** movement (march / trot). A unit may als
 - On losing the target / contact / order change: decelerate back to tactical Speed.
 
 **STATUS: DESIGN LAW — effective WO-018.**
+
+## R18. Reachable gait + relative charge threshold (TD; WO-019)
+1. **`base_accel`** is tuned so a cavalry unit reaches its gait ceiling within a realistic run-up: standstill distance-to-gait ∈ **[100m, 160m]**. Committed value must also produce a real S29 velocity/Impact curve (short run-ups cannot gallop).
+2. **`charge_min_speed_pct`** (propose 1.25): a charge registers only when closing speed exceeds the attacker's **own** tactical `Speed × charge_min_speed_pct`. Absolute `charge_min_speed` is deleted. Units with `charge_gait_mult = 1.0` are structurally incapable of charging.
+
+High-speed movement integration sub-steps so per-substep displacement stays **< `engage_snap_max_m`**. **STATUS: DESIGN LAW — effective WO-019.**

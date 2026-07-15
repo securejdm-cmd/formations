@@ -240,12 +240,18 @@ func max_unit_dimension_m() -> float:
 
 
 func march_enemy_query_radius_px() -> float:
+	## Contact-scale radius for collision clamping, plus charge_commit_range so
+	## R17 gait commitment can see targets before the final 50m (WO-019/R18).
 	var px_per_meter := Constants.get_float("px_per_meter")
-	var radius_m := (
+	var contact_radius_m := (
 		max_closing_speed_m() * current_tick_interval
 		+ max_unit_dimension_m()
 	)
-	return radius_m * px_per_meter
+	var commit_radius_m := (
+		Constants.get_float("charge_commit_range_m")
+		+ max_unit_dimension_m()
+	)
+	return maxf(contact_radius_m, commit_radius_m) * px_per_meter
 
 
 func grid_units_within_radius_sorted(unit: SimUnitProxy, radius_px: float) -> Array:
@@ -395,8 +401,8 @@ func apply_charge_impacts(attacker: SimUnitProxy, defender: SimUnitProxy) -> voi
 	var contact: Dictionary = EdgeContact.classify_contact(attacker, defender)
 	var edges: Dictionary = contact.get("edge_lengths_m", {})
 	var closing := _Charge.closing_speed_along_contact(attacker, defender, edges)
-	# charge_min_speed is in sim m/s (same units as measured velocity — R17).
-	var min_speed := Constants.get_float("charge_min_speed")
+	# R18: relative charge threshold (own Speed × charge_min_speed_pct), sim m/s.
+	var min_speed := _Charge.charge_min_closing_m_s(attacker)
 	if closing < min_speed:
 		last_charge_events.append({
 			"attacker": attacker.unit_id,

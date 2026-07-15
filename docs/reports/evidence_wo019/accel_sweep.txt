@@ -1,0 +1,10 @@
+Task 1 base_accel sweep (test_cavalry mass=1.6, gait=13.5, standstill):
+ base  a(m/s2)  d_gait(m)  t(s)  v20   v60(%gait)  v200  notes
+ 0.90  0.5625   162.0      24.0  —     —           —    d_gait >160 REJECT
+ 0.92  0.5750   158.5      23.5  4.80  8.31(62%)   13.5  ok band
+ 0.96  0.6000   151.9      22.5  4.90  8.49(63%)   13.5  COMMITTED
+ 0.99  0.6187   147.3      21.8  4.97  8.62(64%)   13.5  ok band
+ 1.00  0.6250   145.8      21.6  5.00  —           —    v20 hits threshold REJECT
+
+Selection rule: d_gait∈[100,160]; S29 v200≥0.95×ceiling; v60∈[50%,80%]; v20 < Speed×1.25; Impact monotonic.
+Committed measured S29: 20=2.82(no charge) 60=7.44(55%) 120=11.28 200=13.42(99%) Impact 0→11.98→18.16→21.60
