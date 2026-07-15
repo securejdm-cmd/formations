@@ -1,9 +1,9 @@
-# COMPLETION REPORT — WO-019 — Date 2026-07-15 — Commit PENDING_STAMP
+# COMPLETION REPORT — WO-019 — Date 2026-07-15 — Commit 77fdca05a575e58afa5d7e6b6341494488bee179
 
 **Work order:** WO-019 Making the Gallop Reachable (R18)  
 **Branch:** `cursor/wo-019-reachable-gallop-fd84`  
 **Date:** 2026-07-15  
-**Commit:** `PENDING_STAMP`  
+**Commit:** `77fdca05a575e58afa5d7e6b6341494488bee179`  
 **Base:** `cursor/wo-018-charge-gait-fd84`  
 **Evidence:** `docs/reports/evidence_wo019/`  
 
@@ -91,7 +91,7 @@ Designer: watch S27 at battlefield zoom — 13.4 m/s gallop may look fast; do no
 ## Attestation
 
 - Branch: `cursor/wo-019-reachable-gallop-fd84`
-- Full SHA: `PENDING_STAMP`
+- Full SHA: `77fdca05a575e58afa5d7e6b6341494488bee179`
 - Report: https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-019-reachable-gallop-fd84/docs/reports/WO-019_completion.md
 - Suite: https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-019-reachable-gallop-fd84/docs/reports/evidence_wo019/suite_stdout.log
 
