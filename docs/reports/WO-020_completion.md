@@ -1,9 +1,9 @@
-# COMPLETION REPORT — WO-020 — Date 2026-07-15 — Commit 388a07228dbf4eeab0438de652c1bdfdbc10d5e0
+# COMPLETION REPORT — WO-020 — Date 2026-07-15 — Commit e025745e46f80b655170eb50cfb900b92951fedf
 
 **Work order:** WO-020 Full Magnetism — Gravity, Rotation & Disengage (R19)  
 **Branch:** `cursor/wo-020-full-magnetism-fd84`  
 **Date:** 2026-07-15  
-**Commit:** `388a07228dbf4eeab0438de652c1bdfdbc10d5e0`  
+**Commit:** `e025745e46f80b655170eb50cfb900b92951fedf`  
 **Base:** `main` (post WO-016..019 merge)  
 **Evidence:** `docs/reports/evidence_wo020/`  
 
@@ -98,7 +98,7 @@ none
 ## Attestation
 
 - Branch: `cursor/wo-020-full-magnetism-fd84`
-- Full SHA: `388a07228dbf4eeab0438de652c1bdfdbc10d5e0`
+- Full SHA: `e025745e46f80b655170eb50cfb900b92951fedf`
 - Report: https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-020-full-magnetism-fd84/docs/reports/WO-020_completion.md
 - Suite: https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-020-full-magnetism-fd84/docs/reports/evidence_wo020/suite_stdout.log
 
