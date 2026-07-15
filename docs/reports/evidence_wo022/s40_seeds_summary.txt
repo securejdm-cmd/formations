@@ -1,0 +1,14 @@
+S40_SEEDS_START
+S40_SEED 1000 winner=none combat=47.2 showcase=true alive_b/r=5/2 volley=true melee=true flank=true shock=true brace=true
+S40_SEED 1001 winner=none combat=47.2 showcase=true alive_b/r=5/2 volley=true melee=true flank=true shock=true brace=true
+S40_SEED 1002 winner=none combat=47.2 showcase=true alive_b/r=5/2 volley=true melee=true flank=true shock=true brace=true
+S40_SEED 1003 winner=none combat=47.2 showcase=true alive_b/r=5/2 volley=true melee=true flank=true shock=true brace=true
+S40_SEED 1004 winner=none combat=47.2 showcase=true alive_b/r=5/2 volley=true melee=true flank=true shock=true brace=true
+S40_SEED 1005 winner=none combat=47.2 showcase=true alive_b/r=5/2 volley=true melee=true flank=true shock=true brace=true
+S40_SEED 1006 winner=none combat=47.2 showcase=true alive_b/r=5/2 volley=true melee=true flank=true shock=true brace=true
+S40_SEED 1007 winner=none combat=47.2 showcase=true alive_b/r=5/2 volley=true melee=true flank=true shock=true brace=true
+S40_SEED 1008 winner=none combat=47.2 showcase=true alive_b/r=5/2 volley=true melee=true flank=true shock=true brace=true
+S40_SEED 1009 winner=none combat=47.2 showcase=true alive_b/r=5/2 volley=true melee=true flank=true shock=true brace=true
+S40_SEED 12345 winner=none combat=47.2 showcase=true alive_b/r=5/2 volley=true melee=true flank=true shock=true brace=true
+S40_FPS_SAMPLE
+S40_FPS equiv_fps=530.7 avg_step_ms=1.884 p95_step_ms=1.979 samples=300 (cloud env; designer desktop Gate is 

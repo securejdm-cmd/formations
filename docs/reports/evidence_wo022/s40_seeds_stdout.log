@@ -1,0 +1,40 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+S40_SEEDS_START
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+S40_SEED 1000 winner=none combat=47.2 showcase=true alive_b/r=5/2 volley=true melee=true flank=true shock=true brace=true
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+S40_SEED 1001 winner=none combat=47.2 showcase=true alive_b/r=5/2 volley=true melee=true flank=true shock=true brace=true
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+S40_SEED 1002 winner=none combat=47.2 showcase=true alive_b/r=5/2 volley=true melee=true flank=true shock=true brace=true
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+S40_SEED 1003 winner=none combat=47.2 showcase=true alive_b/r=5/2 volley=true melee=true flank=true shock=true brace=true
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+S40_SEED 1004 winner=none combat=47.2 showcase=true alive_b/r=5/2 volley=true melee=true flank=true shock=true brace=true
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+S40_SEED 1005 winner=none combat=47.2 showcase=true alive_b/r=5/2 volley=true melee=true flank=true shock=true brace=true
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+S40_SEED 1006 winner=none combat=47.2 showcase=true alive_b/r=5/2 volley=true melee=true flank=true shock=true brace=true
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+S40_SEED 1007 winner=none combat=47.2 showcase=true alive_b/r=5/2 volley=true melee=true flank=true shock=true brace=true
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+S40_SEED 1008 winner=none combat=47.2 showcase=true alive_b/r=5/2 volley=true melee=true flank=true shock=true brace=true
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+S40_SEED 1009 winner=none combat=47.2 showcase=true alive_b/r=5/2 volley=true melee=true flank=true shock=true brace=true
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+S40_SEED 12345 winner=none combat=47.2 showcase=true alive_b/r=5/2 volley=true melee=true flank=true shock=true brace=true
+S40_FPS_SAMPLE
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+S40_FPS equiv_fps=530.7 avg_step_ms=1.884 p95_step_ms=1.979 samples=300 (cloud env; designer desktop Gate is ≥60 FPS)
