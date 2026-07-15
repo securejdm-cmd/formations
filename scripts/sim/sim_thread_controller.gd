@@ -84,7 +84,10 @@ func _worker_loop() -> void:
 		var done: bool = _core != null and _core.battle_over
 		_mutex.unlock()
 		_last_tick_usec = Time.get_ticks_usec() - tick_start
-		_tick_times_usec.append(_last_tick_usec)
+		# Cap samples — unpaced headless workers can otherwise grow this array
+		# unboundedly and stall later stats sorts (S40→perf_40 cloud hang).
+		if _tick_times_usec.size() < 10000:
+			_tick_times_usec.append(_last_tick_usec)
 		if done:
 			break
 		if _realtime_pacing:
