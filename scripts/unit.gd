@@ -82,6 +82,9 @@ var wheeling: bool = false
 var wheel_facing_target: Vector2 = Vector2.ZERO
 var wheel_under_contact: bool = false
 var rotate_under_contact_drain_accum: float = 0.0
+## WO-021 slope caches (synced from sim; identity at grade 0).
+var slope_speed_mult: float = 1.0
+var slope_push_mod: float = 1.0
 
 
 func _ready() -> void:

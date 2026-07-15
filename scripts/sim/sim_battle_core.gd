@@ -37,6 +37,8 @@ var battle_seed: int = 0
 var _rng: SimRng = SimRng.new()
 var shock_floater_callback: Callable = Callable()
 var volley_visual_callback: Callable = Callable()
+## WO-021: optional coarse height grid (null = absent; flat grid = identity modifiers).
+var height_field = null
 
 
 func configure_rng(seed_value: int) -> void:
@@ -80,6 +82,7 @@ func unit_moved_this_tick(unit: SimUnitProxy) -> bool:
 
 func advance_one_tick_fast(tick_interval: float) -> void:
 	rebuild_spatial_grid()
+	refresh_slope_mods()
 	update_movement(tick_interval)
 	process_rout_events()
 	ranged_volley_tick(tick_interval)
@@ -98,9 +101,29 @@ func advance_one_tick_fast(tick_interval: float) -> void:
 	check_epilogue_end()
 
 
+func refresh_slope_mods() -> void:
+	## Sample height/gradient once per unit per tick; identical in fast/threaded/realtime.
+	for unit in units:
+		if unit == null or unit.get_state() == Unit.State.REMOVED:
+			continue
+		if height_field == null:
+			unit.slope_speed_mult = 1.0
+			unit.slope_push_mod = 1.0
+			continue
+		unit.slope_speed_mult = height_field.speed_mult_at(unit.position, unit.facing)
+		unit.slope_push_mod = height_field.push_mod_at(unit.position, unit.facing)
+
+
+func slope_range_mult(shooter: SimUnitProxy, target: SimUnitProxy) -> float:
+	if height_field == null or shooter == null or target == null:
+		return 1.0
+	return height_field.range_mult_toward(shooter.position, target.position)
+
+
 func advance_one_tick_profiled(tick_interval: float) -> void:
 	var t0 := _TickProfiler.begin_section("grid_overhead")
 	rebuild_spatial_grid()
+	refresh_slope_mods()
 	_TickProfiler.end_section("grid_overhead", t0)
 
 	t0 = _TickProfiler.begin_section("movement")
@@ -605,7 +628,9 @@ func try_fire_volley(shooter: SimUnitProxy) -> void:
 		return
 
 	var distance_m := CombatResolver.center_distance_m(shooter, target)
-	var damage := CombatResolver.calc_ranged_volley_damage(shooter, target, distance_m)
+	var damage := CombatResolver.calc_ranged_volley_damage(
+		shooter, target, distance_m, slope_range_mult(shooter, target)
+	)
 	var applied := CombatResolver.apply_strength_loss(target, damage)
 	shooter.record_damage_dealt(applied)
 	shooter.consume_ammo_volley()
@@ -650,7 +675,7 @@ func pick_volley_target(shooter: SimUnitProxy) -> SimUnitProxy:
 
 
 func volley_target_permitted(shooter: SimUnitProxy, target: SimUnitProxy) -> bool:
-	var max_range_m := float(shooter.profile.get("range", 0.0))
+	var max_range_m := float(shooter.profile.get("range", 0.0)) * slope_range_mult(shooter, target)
 	var min_range_m := float(shooter.profile.get("min_range_m", 0.0))
 	var dist_m := CombatResolver.center_distance_m(shooter, target)
 	if dist_m < min_range_m or dist_m > max_range_m:

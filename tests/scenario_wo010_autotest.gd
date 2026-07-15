@@ -41,8 +41,8 @@ const SCENARIO_EXTRA_TICKS := 120
 ## Gated PASS lines emitted when every check is green (WO-015).
 ## Compass, Fast+Threaded cert, S1×11, S2×11, Determinism, S3, Overlap, S4, S5–S8, S9,
 ## S10–S11, S12, S13×3, S14×2, S15, S16×2, S17×2 retired, S17b, S18, S19, S20×2, S21, S22,
-## S23–S26, S27–S29, S30–S34 = 66
-const EXPECTED_GREEN_PASS_COUNT := 66
+## S23–S26, S27–S29, S30–S34, S36–S39 = 70
+const EXPECTED_GREEN_PASS_COUNT := 70
 
 var _scenario: Scenario01 = null
 var _exit_code := 0
@@ -313,6 +313,18 @@ func _spawn_and_run() -> void:
 		"s34_pinning":
 			scene = "scenario_34"
 			seed_value = 1000
+		"s36_uphill_push":
+			scene = "scenario_36"
+			seed_value = 1000
+		"s37_slope_charge":
+			scene = "scenario_37"
+			seed_value = 1000
+		"s38_missile_high":
+			scene = "scenario_38"
+			seed_value = 1000
+		"s39_high_ground":
+			scene = "scenario_39"
+			seed_value = 1000
 
 	if _scenario != null:
 		_scenario.free()
@@ -426,6 +438,10 @@ func _run_when_ready() -> void:
 		"s32_hit_and_run",
 		"s33_gravity_square",
 		"s34_pinning",
+		"s36_uphill_push",
+		"s37_slope_charge",
+		"s38_missile_high",
+		"s39_high_ground",
 	]:
 		_sim_harness.run_ticks(_scenario, 4500)
 	else:
@@ -677,6 +693,22 @@ func _finish() -> void:
 			_spawn_and_run()
 		"s34_pinning":
 			_check_s34_pinning()
+			_mode = "s36_uphill_push"
+			_spawn_and_run()
+		"s36_uphill_push":
+			_check_s36_uphill_push()
+			_mode = "s37_slope_charge"
+			_spawn_and_run()
+		"s37_slope_charge":
+			_check_s37_slope_charge()
+			_mode = "s38_missile_high"
+			_spawn_and_run()
+		"s38_missile_high":
+			_check_s38_missile_high()
+			_mode = "s39_high_ground"
+			_spawn_and_run()
+		"s39_high_ground":
+			_check_s39_high_ground()
 			_mode = "perf_40"
 			_spawn_and_run()
 		"perf_40":
@@ -1802,6 +1834,102 @@ func _check_s34_pinning() -> void:
 		_scenario.a_did_not_reface,
 	]
 	_record_check("[WO-020b] S34", ok, detail)
+
+
+func _check_s36_uphill_push() -> void:
+	var phases: Dictionary = _scenario.get_phase_durations_sec()
+	var displace: float = float(_scenario.ground_displacement_m())
+	var ok := true
+	if not bool(_scenario.downhill_won_push()):
+		push_error("S36 downhill fighter did not win push (routed=%s displace=%.2f)" % [_scenario.get_routed_id(), displace])
+		ok = false
+	if displace < 0.5:
+		push_error("S36 expected material downhill ground gain (displace=%.2f)" % displace)
+		ok = false
+	_record_check(
+		"[WO-021] S36",
+		ok,
+		"combat=%.1fs displace_m=%.2f routed=%s (flat S1 combat~81.6s)"
+		% [float(phases.get("combat_sec", -1.0)), displace, _scenario.get_routed_id()],
+	)
+
+
+func _check_s37_slope_charge() -> void:
+	var dn: Dictionary = _scenario.downhill_charge()
+	var up: Dictionary = _scenario.uphill_charge()
+	var ratio: float = float(_scenario.impact_ratio())
+	var ok := true
+	if not bool(dn.get("charged", false)):
+		push_error("S37 downhill charge missing")
+		ok = false
+	if not bool(up.get("charged", false)):
+		push_error("S37 uphill charge missing")
+		ok = false
+	if float(dn.get("closing_speed", 0.0)) <= float(up.get("closing_speed", 0.0)):
+		push_error(
+			"S37 downhill closing %.3f should exceed uphill %.3f"
+			% [float(dn.get("closing_speed", 0.0)), float(up.get("closing_speed", 0.0))]
+		)
+		ok = false
+	if ratio < 1.4:
+		push_error("S37 impact ratio %.3f < 1.4 design target" % ratio)
+		ok = false
+	_record_check(
+		"[WO-021] S37",
+		ok,
+		"down_v=%.3f/i=%.3f up_v=%.3f/i=%.3f ratio=%.3f"
+		% [
+			float(dn.get("closing_speed", 0.0)),
+			float(dn.get("impact", 0.0)),
+			float(up.get("closing_speed", 0.0)),
+			float(up.get("impact", 0.0)),
+			ratio,
+		],
+	)
+
+
+func _check_s38_missile_high() -> void:
+	var d_down: float = float(_scenario.first_volley_down_m)
+	var d_up: float = float(_scenario.first_volley_up_m)
+	var base: float = 150.0
+	var ok := true
+	if d_down < 0.0 or d_up < 0.0:
+		push_error("S38 missing first volley (down=%.1f up=%.1f)" % [d_down, d_up])
+		ok = false
+	# At ~10% grade: expect ~+15% downhill / ~−15% uphill (±8m tolerance).
+	if absf(d_down - base * 1.15) > 12.0:
+		push_error("S38 downhill first volley %.1fm expected ~172.5m (±12)" % d_down)
+		ok = false
+	if absf(d_up - base * 0.85) > 12.0:
+		push_error("S38 uphill first volley %.1fm expected ~127.5m (±12)" % d_up)
+		ok = false
+	if d_down <= d_up:
+		push_error("S38 downhill range %.1f should exceed uphill %.1f" % [d_down, d_up])
+		ok = false
+	_record_check(
+		"[WO-021] S38",
+		ok,
+		"down_first=%.1fm up_first=%.1fm" % [d_down, d_up],
+	)
+
+
+func _check_s39_high_ground() -> void:
+	var phases: Dictionary = _scenario.get_phase_durations_sec()
+	var ok := true
+	if not bool(_scenario.defender_won()):
+		push_error("S39 defender should win from high ground (winner=%s routed=%s)" % [_scenario.get_winner_id(), _scenario.get_routed_id()])
+		ok = false
+	_record_check(
+		"[WO-021] S39",
+		ok,
+		"winner=%s combat=%.1fs routed=%s str_at_rout=%.2f"
+		% [
+			_scenario.get_winner_id(),
+			float(phases.get("combat_sec", -1.0)),
+			_scenario.get_routed_id(),
+			float(_scenario.strength_at_rout()),
+		],
+	)
 
 
 func _record_check(tag: String, ok: bool, detail: String = "") -> void:

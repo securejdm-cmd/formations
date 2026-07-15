@@ -1,0 +1,10 @@
+{
+  "id": "test_hill",
+  "kind": "triangular_ridge",
+  "cell_m": 20.0,
+  "peak_height_m": 20.0,
+  "half_width_m": 200.0,
+  "crest_x_m": 0.0,
+  "design_flank_grade": 0.10,
+  "notes": "E–W triangular ridge (WO-021). Flank grade = peak/half_width = 0.10 = Sec 7 reference. Bilinear sample from 20m cell grid."
+}

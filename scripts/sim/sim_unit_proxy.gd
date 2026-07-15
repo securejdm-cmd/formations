@@ -59,6 +59,9 @@ var wheel_under_contact: bool = false
 var rotate_under_contact_drain_accum: float = 0.0
 var _pending_charge_latch_clear: bool = false
 var _pending_latch_partner_ids: Array[String] = []
+## WO-021 slope caches (refreshed each tick from HeightField; identity at grade 0).
+var slope_speed_mult: float = 1.0
+var slope_push_mod: float = 1.0
 
 
 static func from_unit(unit: Unit) -> SimUnitProxy:
@@ -204,6 +207,8 @@ func duplicate_render_state() -> SimUnitProxy:
 	p.wheel_facing_target = wheel_facing_target
 	p.wheel_under_contact = wheel_under_contact
 	p.rotate_under_contact_drain_accum = rotate_under_contact_drain_accum
+	p.slope_speed_mult = slope_speed_mult
+	p.slope_push_mod = slope_push_mod
 	return p
 
 
@@ -249,6 +254,8 @@ func apply_to_unit(unit: Unit, all_units: Array = []) -> void:
 	unit.wheel_facing_target = wheel_facing_target
 	unit.wheel_under_contact = wheel_under_contact
 	unit.rotate_under_contact_drain_accum = rotate_under_contact_drain_accum
+	unit.slope_speed_mult = slope_speed_mult
+	unit.slope_push_mod = slope_push_mod
 	if unit.has_method("_update_brace_visual"):
 		unit._update_brace_visual()
 	unit.set_active_contact_edges(_active_contact_edges)

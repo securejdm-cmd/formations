@@ -81,5 +81,10 @@
   "brace_stationary_speed": 0.2,
   "brace_reaction_s": 1.5,
   "brace_max_own_speed_pct": 0.25,
-  "instinctive_brace_mult": 0.6
+  "instinctive_brace_mult": 0.6,
+  "height_cell_m": 20.0,
+  "slope_reference_grade": 0.10,
+  "slope_push_bonus": 0.10,
+  "slope_range_bonus": 0.15,
+  "slope_speed_bonus": 0.35
 }

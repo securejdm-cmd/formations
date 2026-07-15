@@ -6,6 +6,7 @@ const TRACE_DIR := "res://tests/traces/"
 const _TickProfiler := preload("res://scripts/tick_profiler.gd")
 const _SimBattleCore := preload("res://scripts/sim/sim_battle_core.gd")
 const _SimThreadController := preload("res://scripts/sim/sim_thread_controller.gd")
+const _HeightField := preload("res://scripts/height_field.gd")
 
 enum BattlePhase { ACTIVE, VICTORY_PENDING, VICTORY_EPILOGUE, FINISHED }
 
@@ -45,6 +46,9 @@ var _fast_finish_handled: bool = false
 @onready var _stat_card = $StatCardLayer/UnitStatCard
 var _shock_floater_layer: CanvasLayer = null
 @onready var _results_overlay = $ResultsOverlay
+## WO-021: per-scenario height field (null = absent / flat world).
+var _height_field = null
+var _relief_sprite: Sprite2D = null
 
 
 func set_battle_seed(seed_value: int) -> void:
@@ -120,6 +124,7 @@ func _ensure_sim_core() -> void:
 	_sim_core.fast_sim_mode = fast_sim_mode
 	_sim_core.shock_floater_callback = _spawn_shock_floater_from_proxy
 	_sim_core.volley_visual_callback = _spawn_volley_visual_from_proxy
+	_sim_core.height_field = _height_field
 
 
 func _dispatch_core_event_hooks() -> void:
@@ -466,6 +471,50 @@ func _setup_ground() -> void:
 	var height_px := Constants.get_float("battlefield_height_m") * Constants.get_float("px_per_meter")
 	_ground.size = Vector2(width_px, height_px)
 	_ground.position = Vector2(-width_px * 0.5, -height_px * 0.5)
+	_apply_shaded_relief()
+
+
+func set_height_field(hf) -> void:
+	## Attach height grid before _ready / after for probes. Sim uses the same object.
+	_height_field = hf
+	if _sim_core != null:
+		_sim_core.height_field = hf
+	if is_node_ready():
+		_apply_shaded_relief()
+
+
+func ensure_test_hill() -> void:
+	if _height_field == null:
+		set_height_field(_HeightField.make_test_hill())
+
+
+func get_height_field():
+	return _height_field
+
+
+func _apply_shaded_relief() -> void:
+	## Render-only shaded relief. Zero effect on traces.
+	if _relief_sprite != null and is_instance_valid(_relief_sprite):
+		_relief_sprite.queue_free()
+		_relief_sprite = null
+	if _height_field == null or headless_mode:
+		_ground.visible = true
+		return
+	if str(_height_field.label) == "flat":
+		_ground.visible = true
+		return
+	var ppm: float = Constants.get_float("px_per_meter")
+	var img: Image = _height_field.build_relief_image(ppm, _ground.color)
+	var tex := ImageTexture.create_from_image(img)
+	_relief_sprite = Sprite2D.new()
+	_relief_sprite.name = "ShadedRelief"
+	_relief_sprite.texture = tex
+	_relief_sprite.centered = true
+	_relief_sprite.position = Vector2.ZERO
+	_relief_sprite.z_index = -10
+	add_child(_relief_sprite)
+	move_child(_relief_sprite, 0)
+	_ground.visible = false
 
 
 func _spawn_units() -> void:

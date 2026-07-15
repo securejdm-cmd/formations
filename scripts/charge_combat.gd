@@ -58,9 +58,16 @@ static func gait_top_speed_m_s(unit: Variant) -> float:
 
 static func target_speed_m_s(unit: Variant) -> float:
 	## Movement ceiling this tick: gait top when charge-committed, else tactical.
+	## WO-021: slope_speed_mult emerges from HeightField (identity at grade 0).
+	var base: float
 	if unit != null and "charge_committed" in unit and bool(unit.charge_committed):
-		return gait_top_speed_m_s(unit)
-	return top_speed_m_s(unit)
+		base = gait_top_speed_m_s(unit)
+	else:
+		base = top_speed_m_s(unit)
+	var slope_mult: float = 1.0
+	if unit != null and "slope_speed_mult" in unit:
+		slope_mult = float(unit.slope_speed_mult)
+	return base * maxf(0.05, slope_mult)
 
 
 static func accel_m_s2(unit: Variant) -> float:

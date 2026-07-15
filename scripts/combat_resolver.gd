@@ -56,6 +56,12 @@ static func calc_push_score(unit: Variant, contact_frontage_pct: float = 1.0, co
 	return base * SimRngBridge.randf_wobble(Constants.get_float("wobble_pct"))
 
 
+static func _slope_push_mod(unit: Variant) -> float:
+	if unit != null and "slope_push_mod" in unit:
+		return float(unit.slope_push_mod)
+	return 1.0
+
+
 static func units_have_front_contact(unit_a: Variant, unit_b: Variant) -> bool:
 	var gap_m: float = _raw_center_gap_m(unit_a, unit_b)
 	return gap_m <= contact_epsilon_m() and gap_m >= -contact_epsilon_m()
@@ -341,8 +347,8 @@ static func clamp_march_distance(unit: Variant, enemy: Variant, move_px: float) 
 
 
 static func resolve_engagement(unit_a: Variant, unit_b: Variant) -> Dictionary:
-	var push_a: Variant = calc_push_score(unit_a)
-	var push_b: Variant = calc_push_score(unit_b)
+	var push_a: Variant = calc_push_score(unit_a, 1.0, _slope_push_mod(unit_a))
+	var push_b: Variant = calc_push_score(unit_b, 1.0, _slope_push_mod(unit_b))
 
 	var result: Variant = {
 		"push_a": push_a,
@@ -451,8 +457,8 @@ static func resolve_contact_segment(attacker: Variant, defender: Variant, contac
 	var edge_lengths: Dictionary = contact.get("edge_lengths_m", {})
 	var push_normal: Vector2 = contact.get("push_normal", defender.facing)
 
-	var push_attacker: Variant = calc_push_score(attacker, frontage_pct)
-	var push_defender: Variant = calc_push_score(defender, defender_edge_pct)
+	var push_attacker: Variant = calc_push_score(attacker, frontage_pct, _slope_push_mod(attacker))
+	var push_defender: Variant = calc_push_score(defender, defender_edge_pct, _slope_push_mod(defender))
 
 	var result: Variant = {
 		"attacker_push": push_attacker,
@@ -701,12 +707,14 @@ static func ranged_falloff_multiplier(distance_m: float, max_range_m: float) -> 
 
 ## Missile volley damage — WO-013b coupling via k_ranged_scale (not k_melee_scale).
 ## No push-loser term. Casualty cohesion: front-edge channel only (no flank multipliers in v1).
+## range_mult: WO-021 slope range factor (identity at grade 0).
 static func calc_ranged_volley_damage(
 	attacker: Variant,
 	defender: Variant,
-	distance_m: float
+	distance_m: float,
+	range_mult: float = 1.0
 ) -> float:
-	var max_range_m: float = float(attacker.profile.get("range", 0.0))
+	var max_range_m: float = float(attacker.profile.get("range", 0.0)) * maxf(0.05, range_mult)
 	var falloff: float = ranged_falloff_multiplier(distance_m, max_range_m)
 	var strength_max: float = Constants.get_float("strength_max")
 	var strength_pct: float = attacker.strength / strength_max

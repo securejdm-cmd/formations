@@ -4,6 +4,7 @@ extends Node2D
 
 const UNIT_SCENE := preload("res://scenes/unit.tscn")
 const FLOATER_SCRIPT := preload("res://scripts/shock_floater.gd")
+const _HeightField := preload("res://scripts/height_field.gd")
 const GALLERY_FRONTAGE_M := 60.0
 const EXHIBIT_SPACING_PX := 180.0
 const ROW_SPACING_PX := 220.0
@@ -50,6 +51,7 @@ func _build_exhibits() -> void:
 	_spawn_state_row(profile, origin + Vector2(0.0, ROW_SPACING_PX * 2.0), px)
 	_spawn_volley_arc_exhibit(origin + Vector2(0.0, ROW_SPACING_PX * 3.0), px)
 	_spawn_brace_charge_exhibit(origin + Vector2(0.0, ROW_SPACING_PX * 4.0), px)
+	_spawn_test_hill_exhibit(origin + Vector2(0.0, ROW_SPACING_PX * 5.0), px)
 
 
 func _spawn_crack_progression_row(profile: Dictionary, origin: Vector2, px: float) -> void:
@@ -194,6 +196,37 @@ func _spawn_brace_charge_exhibit(origin: Vector2, px: float) -> void:
 	flash.size = Vector2(28.0, 28.0)
 	flash.position = origin - Vector2(14.0, 0.0)
 	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+
+func _spawn_test_hill_exhibit(origin: Vector2, px: float) -> void:
+	## WO-021: shaded-relief clip of the test ridge with a unit on the slope.
+	var hf := _HeightField.make_test_hill()
+	var img: Image = hf.build_relief_image(px, Color(0.45, 0.55, 0.35, 1.0))
+	# Crop a battlefield-zoom window centered on the west flank.
+	var crop_w := 280
+	var crop_h := 160
+	var src_w: int = img.get_width()
+	var src_h: int = img.get_height()
+	var cx: int = int(src_w * 0.35)
+	var cy: int = int(src_h * 0.5)
+	var x0: int = clampi(cx - crop_w / 2, 0, maxi(src_w - crop_w, 0))
+	var y0: int = clampi(cy - crop_h / 2, 0, maxi(src_h - crop_h, 0))
+	var cropped := img.get_region(Rect2i(x0, y0, mini(crop_w, src_w - x0), mini(crop_h, src_h - y0)))
+	var sprite := Sprite2D.new()
+	add_child(sprite)
+	sprite.texture = ImageTexture.create_from_image(cropped)
+	sprite.centered = true
+	sprite.position = origin
+	sprite.z_index = -5
+
+	var profile := _gallery_profile()
+	var unit: Unit = UNIT_SCENE.instantiate()
+	add_child(unit)
+	unit.configure("hill_unit", "red", profile, origin + Vector2(-20.0, 10.0), Vector2.LEFT)
+	unit.set_render_camera(_camera)
+	unit._set_state(Unit.State.MARCHING)
+	unit._update_dimensions()
+	_add_caption_below_unit(unit, "Test hill (10% grade)")
 
 
 func _fire_demo_floater() -> void:
