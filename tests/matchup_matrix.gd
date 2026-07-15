@@ -1,6 +1,16 @@
 extends SceneTree
-## Reusable Gate 2 / Phase 5 matchup matrix runner (flat ground, 200m approach).
-## Every profile × every profile as attacker/defender across standard 11 seeds.
+## Reusable Gate 2 / Phase 5 matchup matrix runner.
+##
+## SEMANTICS (read before interpreting CSV — WO-023):
+##   Configuration for this WO: FRONTAL_VS_STANDING
+##   - Attacker marches into a *standing* defender on flat ground (200 m approach).
+##   - Archer-as-attacker rows are *inverted*: shooter HOLDs, defender marches
+##     through fire (S12 attrition pattern) — not "archer charges infantry".
+##   - Pierce defenders are pre-braced (Gate 2 triangle uses braced spears).
+##   - Mirror cells at ~100% (cavalry, inf_charge, archer) prove the *setup*
+##     (first-mover / doctrine asymmetry), not that the profiles are gods.
+##   - This matrix does NOT measure flank, rear, unaware-defender, or engaged
+##     configurations. Cavalry's win condition lives outside FRONTAL_VS_STANDING.
 ## DO NOT TUNE — deliver as data.
 
 const PROFILES := [
@@ -12,9 +22,12 @@ const PROFILES := [
 	"test_skirmisher",
 ]
 
+## Phase 5 will extend this enum; only FRONTAL_VS_STANDING is implemented here.
+const CONFIGURATION := "FRONTAL_VS_STANDING"
+
 const SEEDS := [1000, 1001, 1002, 1003, 1004, 1005, 1006, 1007, 1008, 1009, 12345]
-const OUT_CSV := "res://docs/reports/evidence_wo022/matchup_matrix.csv"
-const OUT_MD := "res://docs/reports/evidence_wo022/matchup_matrix.md"
+const OUT_CSV := "res://docs/reports/evidence_wo023/matchup_matrix.csv"
+const OUT_MD := "res://docs/reports/evidence_wo023/matchup_matrix.md"
 
 
 func _initialize() -> void:
@@ -148,10 +161,19 @@ func _aggregate(rows: Array) -> Dictionary:
 
 func _write_outputs(cells: Dictionary) -> void:
 	var csv := FileAccess.open(OUT_CSV, FileAccess.WRITE)
-	csv.store_line("attacker,defender,win_rate_pct,n,mean_combat_sec,mean_winner_str,mean_loser_str_at_rout")
-	var md := "# Matchup matrix (WO-022)\n\n"
-	md += "Flat ground, 200m approach, 11 seeds. Attacker marches (archers hold-and-shoot); defender holds"
-	md += " (Pierce defenders pre-braced).\n\n"
+	csv.store_line(
+		"configuration,attacker,defender,win_rate_pct,n,mean_combat_sec,mean_winner_str,mean_loser_str_at_rout"
+	)
+	var md := "# Matchup matrix\n\n"
+	md += "## Configuration: `%s`\n\n" % CONFIGURATION
+	md += "What this measures:\n"
+	md += "- Attacker marches into a **standing** defender (flat, 200 m approach, 11 seeds).\n"
+	md += "- Archer rows are **inverted** (shooter HOLDs; defender marches through fire — S12).\n"
+	md += "- Pierce defenders are **pre-braced**.\n"
+	md += "- Mirror cells at ~100% (cavalry / infantry_charge / archer) are **setup artifacts** "
+	md += "(first-mover / doctrine), not profile divinity.\n\n"
+	md += "What this does **not** measure: flank, rear, unaware defender, already-engaged.\n"
+	md += "Cavalry's win condition is outside `%s`.\n\n" % CONFIGURATION
 	md += "| Attacker \\ Defender |"
 	for d in PROFILES:
 		md += " %s |" % d.replace("test_", "")
@@ -169,12 +191,14 @@ func _write_outputs(cells: Dictionary) -> void:
 			var mw: float = c.wstr_sum / float(c.wstr_n) if int(c.wstr_n) > 0 else -1.0
 			var ml: float = c.lstr_sum / float(c.lstr_n) if int(c.lstr_n) > 0 else -1.0
 			csv.store_line(
-				"%s,%s,%.1f,%d,%.2f,%.2f,%.2f" % [a, d, wr, c.n, mc, mw, ml]
+				"%s,%s,%s,%.1f,%d,%.2f,%.2f,%.2f"
+				% [CONFIGURATION, a, d, wr, c.n, mc, mw, ml]
 			)
 			md += " %.0f%% |" % wr
 		md += "\n"
 	md += "\n### Cell detail (mean combat / winner STR / loser STR@rout)\n\n"
-	md += "| Attacker | Defender | Win% | Combat_s | WinSTR | LoseSTR |\n|---|---|---:|---:|---:|---:|\n"
+	md += "| Config | Attacker | Defender | Win% | Combat_s | WinSTR | LoseSTR |\n"
+	md += "|---|---|---|---:|---:|---:|---:|\n"
 	for a in PROFILES:
 		for d in PROFILES:
 			var key2 := "%s|%s" % [a, d]
@@ -183,7 +207,8 @@ func _write_outputs(cells: Dictionary) -> void:
 			var mc2: float = c2.combat_sum / float(c2.n)
 			var mw2: float = c2.wstr_sum / float(c2.wstr_n) if int(c2.wstr_n) > 0 else -1.0
 			var ml2: float = c2.lstr_sum / float(c2.lstr_n) if int(c2.lstr_n) > 0 else -1.0
-			md += "| %s | %s | %.1f | %.1f | %.1f | %.1f |\n" % [
+			md += "| %s | %s | %s | %.1f | %.1f | %.1f | %.1f |\n" % [
+				CONFIGURATION,
 				a.replace("test_", ""),
 				d.replace("test_", ""),
 				wr2,
@@ -209,9 +234,12 @@ func _fingerprint(cells: Dictionary) -> String:
 
 
 func _run() -> void:
-	var abs_dir := ProjectSettings.globalize_path("res://docs/reports/evidence_wo022")
+	var abs_dir := ProjectSettings.globalize_path("res://docs/reports/evidence_wo023")
 	DirAccess.make_dir_recursive_absolute(abs_dir)
-	print("MATRIX_START profiles=%d seeds=%d pairs=%d" % [PROFILES.size(), SEEDS.size(), PROFILES.size() * PROFILES.size()])
+	print(
+		"MATRIX_START configuration=%s profiles=%d seeds=%d pairs=%d"
+		% [CONFIGURATION, PROFILES.size(), SEEDS.size(), PROFILES.size() * PROFILES.size()]
+	)
 	var rows: Array = []
 	for a in PROFILES:
 		for d in PROFILES:

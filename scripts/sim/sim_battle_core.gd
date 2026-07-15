@@ -988,7 +988,22 @@ func prune_broken_contacts() -> void:
 				and not EdgeContact.has_non_front_segment_contact(unit, partner)
 			):
 				if not CombatResolver.units_have_any_contact(unit, partner):
-					unit.remove_contact_partner(partner)
+					# WO-023 defect: head-on pairs at the half-depth-sum boundary
+					# oscillated engage→push→prune every tick (spears↔cavalry:
+					# ~50% contact duty cycle, then permanent stalemate). Hold the
+					# lock while center separation stays within half-depth-sum +
+					# engage_snap, and restick geometric contact.
+					var px := Constants.get_float("px_per_meter")
+					var dist_m: float = unit.position.distance_to(partner.position) / px
+					var stick_m: float = (
+						unit.effective_depth_m() * 0.5
+						+ partner.effective_depth_m() * 0.5
+						+ CombatResolver.engage_snap_max_m()
+					)
+					if dist_m > stick_m:
+						unit.remove_contact_partner(partner)
+					else:
+						CombatResolver.snap_pair_to_contact(unit, partner)
 
 
 func accumulate_directed_shift(
