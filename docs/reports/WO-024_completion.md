@@ -1,4 +1,4 @@
-# COMPLETION REPORT — WO-024 — 2026-07-15 — Commit PLACEHOLDER_SHA
+# COMPLETION REPORT — WO-024 — 2026-07-15 — Commit bef274db8e4de7c1721e8c408f2e1b7cb3344e03
 
 **Work order:** WO-024 Honest Numbers: Perf, Gravity & Sensitivity  
 **Branch:** `cursor/wo-024-honest-numbers-fd84`  
@@ -189,7 +189,7 @@ Note: S32 soft numbers drifted slightly under working gravity (`str_rech` 79.02�
 ## Attestation
 
 - Branch: `cursor/wo-024-honest-numbers-fd84`
-- Full SHA: `PLACEHOLDER_SHA`
+- Full SHA: `bef274db8e4de7c1721e8c408f2e1b7cb3344e03`
 - Report: https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-024-honest-numbers-fd84/docs/reports/WO-024_completion.md
 - Suite: https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-024-honest-numbers-fd84/docs/reports/evidence_wo024/suite_stdout.log
 
