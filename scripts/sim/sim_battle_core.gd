@@ -299,6 +299,10 @@ func _clear_charge_latch_if_requested(unit: SimUnitProxy) -> void:
 	unit._pending_latch_partner_ids.clear()
 
 
+func clear_charge_pair_latch(attacker_id: String, defender_id: String) -> void:
+	_charge_pair_done.erase("%s>%s" % [attacker_id, defender_id])
+
+
 func enemies_for(unit: SimUnitProxy) -> Array:
 	var enemies: Array = []
 	var candidates: Array = units
@@ -352,6 +356,8 @@ func try_begin_engagement(unit: SimUnitProxy) -> void:
 		return
 	if unit.profile.get("skip_auto_engage", false):
 		return
+	if unit.auto_engage_locked or unit.disengaging:
+		return
 
 	for other in spatial_neighbors_sorted(unit):
 		if other.get_state() == Unit.State.REMOVED:
@@ -361,6 +367,8 @@ func try_begin_engagement(unit: SimUnitProxy) -> void:
 		if other.team_id == unit.team_id:
 			continue
 		if other.profile.get("skip_auto_engage", false):
+			continue
+		if other.auto_engage_locked or other.disengaging:
 			continue
 		if not CombatResolver.units_have_any_contact(unit, other):
 			continue
@@ -732,6 +740,7 @@ func on_first_rout() -> void:
 
 func combat_tick() -> void:
 	prune_broken_contacts()
+	_apply_disengage_free_hits()
 
 	var processed_head_on: Array[String] = []
 	var processed_segments: Array[String] = []
@@ -744,11 +753,16 @@ func combat_tick() -> void:
 			continue
 		if unit.get_state() != Unit.State.ENGAGED and unit.get_state() != Unit.State.WAVERING:
 			continue
+		# Disengagers are handled exclusively by _apply_disengage_free_hits.
+		if unit.disengaging:
+			continue
 
 		for partner in unit.get_contact_partners():
 			if partner == null or partner.get_state() == Unit.State.REMOVED:
 				continue
 			if partner.get_state() == Unit.State.ROUTING:
+				continue
+			if partner.disengaging:
 				continue
 
 			if not CombatResolver.is_head_on_pair(unit, partner):
@@ -764,11 +778,6 @@ func combat_tick() -> void:
 			processed_head_on.append(pk)
 
 			var result := CombatResolver.resolve_engagement(unit, partner)
-			# WO-020: disengaging units take free hits and cannot strike back.
-			if unit.has_method("can_deal_melee") and not unit.can_deal_melee():
-				result.damage_b = 0.0
-			if partner.has_method("can_deal_melee") and not partner.can_deal_melee():
-				result.damage_a = 0.0
 			CombatResolver.apply_ground_shift(unit, result.shift_a_m)
 			CombatResolver.apply_ground_shift(partner, result.shift_b_m)
 
@@ -789,11 +798,15 @@ func combat_tick() -> void:
 			continue
 		if defender.get_state() != Unit.State.ENGAGED and defender.get_state() != Unit.State.WAVERING:
 			continue
+		if defender.disengaging:
+			continue
 
 		for attacker in defender.get_contact_partners():
 			if attacker == null or attacker.get_state() == Unit.State.REMOVED:
 				continue
 			if attacker.get_state() == Unit.State.ROUTING:
+				continue
+			if attacker.disengaging:
 				continue
 			if CombatResolver.is_head_on_pair(attacker, defender):
 				if not EdgeContact.has_non_front_segment_contact(attacker, defender):
@@ -818,11 +831,6 @@ func combat_tick() -> void:
 				(contact_edge_labels[seg_defender] as Array[String]).append(edge_label)
 
 			var segment := CombatResolver.resolve_contact_segment(seg_attacker, seg_defender, contact)
-			# WO-020 free hits: zero outgoing damage from a disengaging fighter.
-			if seg_attacker.has_method("can_deal_melee") and not seg_attacker.can_deal_melee():
-				segment.defender_damage = 0.0
-			if seg_defender.has_method("can_deal_melee") and not seg_defender.can_deal_melee():
-				segment.attacker_damage = 0.0
 			var edge_lengths: Dictionary = segment.get("edge_lengths_m", {})
 			var push_normal: Vector2 = segment.get("push_normal", seg_defender.facing)
 
@@ -893,9 +901,45 @@ func combat_tick() -> void:
 			unit.clear_bump_state()
 
 
+func _apply_disengage_free_hits() -> void:
+	## Fighting withdrawal: enemies still in contact deal full melee + cohesion;
+	## the withdrawing unit cannot strike back (D&C §5).
+	var processed: Array[String] = []
+	var dt: float = current_tick_interval
+	for unit in units:
+		if not unit.disengaging:
+			continue
+		if unit.get_state() == Unit.State.REMOVED or unit.get_state() == Unit.State.ROUTING:
+			continue
+		for partner in unit.get_contact_partners():
+			if partner == null or partner.get_state() == Unit.State.REMOVED:
+				continue
+			if partner.get_state() == Unit.State.ROUTING:
+				continue
+			var pk := pair_key(unit, partner)
+			if pk in processed:
+				continue
+			processed.append(pk)
+			if CombatResolver.is_head_on_pair(unit, partner):
+				CombatResolver.snap_pair_to_contact(unit, partner)
+			# partner strikes, unit receives (free hits).
+			var result := CombatResolver.resolve_engagement(partner, unit)
+			var incoming: float = float(result.damage_b)
+			var applied := CombatResolver.apply_strength_loss(unit, incoming)
+			partner.record_damage_dealt(applied)
+			var coh_drain: float = Constants.get_float("ordered_retreat_drain_per_sec") * dt
+			unit.apply_cohesion_drain(coh_drain)
+			if unit.get_state() == Unit.State.ROUTING:
+				on_first_rout()
+				try_start_victory_delay(unit)
+
+
 func prune_broken_contacts() -> void:
 	for unit in units:
 		if unit.get_state() == Unit.State.REMOVED or unit.get_state() == Unit.State.ROUTING:
+			continue
+		# Fighting withdrawal / wheel-under-contact: keep partners locked.
+		if unit.disengaging or unit.wheeling:
 			continue
 		for partner in unit.get_contact_partners().duplicate():
 			if partner == null or partner.get_state() == Unit.State.REMOVED:
@@ -903,6 +947,8 @@ func prune_broken_contacts() -> void:
 				continue
 			if partner.get_state() == Unit.State.ROUTING:
 				unit.remove_contact_partner(partner)
+				continue
+			if partner.disengaging:
 				continue
 			if (
 				CombatResolver.is_head_on_pair(unit, partner)
@@ -1083,13 +1129,20 @@ func apply_contact_adhesion() -> void:
 			if pk in processed:
 				continue
 			processed.append(pk)
-			if CombatResolver.apply_contact_adhesion_pair(unit, partner, units):
+			# Disengaging pairs: keep trying to hold classifier contact for free hits,
+			# but never prune the partnership on failure.
+			var should_prune: bool = CombatResolver.apply_contact_adhesion_pair(unit, partner, units)
+			if should_prune and not unit.disengaging and not partner.disengaging:
 				prune_keys.append(pk)
 	for unit in units:
 		if unit.get_state() == Unit.State.REMOVED or unit.get_state() == Unit.State.ROUTING:
 			continue
+		if unit.disengaging:
+			continue
 		for partner in unit.get_contact_partners().duplicate():
 			if partner == null:
+				continue
+			if partner.disengaging:
 				continue
 			var pk2 := pair_key(unit, partner)
 			if pk2 in prune_keys:
@@ -1101,10 +1154,14 @@ func assert_partner_classifier_contact_invariant() -> void:
 	for unit in units:
 		if unit.get_state() == Unit.State.REMOVED or unit.get_state() == Unit.State.ROUTING:
 			continue
+		if unit.disengaging:
+			continue
 		for partner in unit.get_contact_partners():
 			if partner == null or partner.get_state() == Unit.State.REMOVED:
 				continue
 			if partner.get_state() == Unit.State.ROUTING:
+				continue
+			if partner.disengaging:
 				continue
 			if partner.get_state() != Unit.State.ENGAGED and partner.get_state() != Unit.State.WAVERING:
 				continue

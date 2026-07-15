@@ -38,24 +38,36 @@ func _spawn_units() -> void:
 
 
 func advance_one_tick() -> void:
+	_maybe_script_orders()
 	super.advance_one_tick()
+	_maybe_collect_results()
+
+
+func _maybe_script_orders() -> void:
 	if _phase == "engage":
 		if _spears != null and _inf != null and _spears.has_contact_with(_inf):
-			_spears.begin_wheel_facing(Vector2.DOWN)
-			_inf.begin_wheel_facing(Vector2.DOWN)
+			# Wheel +90° from current facing (both stay engaged).
+			_spears.begin_wheel_facing(_spears.facing.rotated(PI * 0.5))
+			_inf.begin_wheel_facing(_inf.facing.rotated(PI * 0.5))
+			_spears.rotate_under_contact_drain_accum = 0.0
+			_inf.rotate_under_contact_drain_accum = 0.0
 			_wheel_start_tick = _sim_tick_count
 			_phase = "wheel"
-	elif _phase == "wheel":
-		if spears_time_s < 0.0 and _spears != null and not _spears.wheeling:
-			spears_time_s = (_sim_tick_count - _wheel_start_tick) * CombatResolver.tick_interval()
-			spears_drain = _spears.rotate_under_contact_drain_accum
-		if inf_time_s < 0.0 and _inf != null and not _inf.wheeling:
-			inf_time_s = (_sim_tick_count - _wheel_start_tick) * CombatResolver.tick_interval()
-			inf_drain = _inf.rotate_under_contact_drain_accum
-		if spears_time_s >= 0.0 and inf_time_s >= 0.0:
-			_phase = "done"
-			_sim_core.battle_over = true
-			_battle_over = true
+
+
+func _maybe_collect_results() -> void:
+	if _phase != "wheel":
+		return
+	if spears_time_s < 0.0 and _spears != null and not _spears.wheeling:
+		spears_time_s = (_sim_tick_count - _wheel_start_tick) * CombatResolver.tick_interval()
+		spears_drain = _spears.rotate_under_contact_drain_accum
+	if inf_time_s < 0.0 and _inf != null and not _inf.wheeling:
+		inf_time_s = (_sim_tick_count - _wheel_start_tick) * CombatResolver.tick_interval()
+		inf_drain = _inf.rotate_under_contact_drain_accum
+	if spears_time_s >= 0.0 and inf_time_s >= 0.0:
+		_phase = "done"
+		_sim_core.battle_over = true
+		_battle_over = true
 
 
 func _write_trace_file() -> void:

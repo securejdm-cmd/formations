@@ -76,8 +76,11 @@ var _instinctive_indicator: ColorRect = null
 ## WO-020 magnetism / disengage / wheel-under-contact.
 var disengaging: bool = false
 var _disengage_time_left: float = 0.0
+## After fighting withdrawal completes: suppress auto-re-engage until clear of contact.
+var auto_engage_locked: bool = false
 var wheeling: bool = false
 var wheel_facing_target: Vector2 = Vector2.ZERO
+var wheel_under_contact: bool = false
 var rotate_under_contact_drain_accum: float = 0.0
 
 
@@ -149,7 +152,13 @@ func complete_disengage() -> void:
 	_disengage_time_left = 0.0
 	_clear_contact_partners()
 	clear_bump_state()
+	# Break-off: do not instantly re-stick while still geometrically overlapping.
+	auto_engage_locked = true
 	if current_order == Order.MARCH_TO:
+		var to_target: Vector2 = march_target - position
+		if to_target.length_squared() > 0.0001:
+			facing = to_target.normalized()
+			rotation = facing.angle()
 		_set_state(State.MARCHING)
 	else:
 		_set_state(State.HOLD)
@@ -169,20 +178,22 @@ func begin_wheel_facing(desired: Vector2) -> void:
 		return
 	wheeling = true
 	wheel_facing_target = desired.normalized()
+	wheel_under_contact = not _contact_partners.is_empty()
 
 
 func tick_wheel(delta: float) -> void:
 	if not wheeling:
 		return
 	var stepped: float = _Magnetism.rotate_toward(self, wheel_facing_target, delta)
-	if stepped > 0.001 and not _contact_partners.is_empty():
+	if stepped > 0.001 and (wheel_under_contact or not _contact_partners.is_empty()):
 		var drain: float = _Magnetism.rotate_under_contact_drain_per_s(self) * delta
 		apply_cohesion_drain(drain)
 		rotate_under_contact_drain_accum += drain
-	if facing.angle_to(wheel_facing_target) <= 0.02:
+	if absf(facing.angle_to(wheel_facing_target)) <= 0.02:
 		facing = wheel_facing_target
 		rotation = facing.angle()
 		wheeling = false
+		wheel_under_contact = false
 
 
 func is_disengaging() -> bool:
@@ -439,9 +450,16 @@ func _update_marching_step(delta: float, enemies: Array[Unit] = []) -> void:
 	_update_charge_commit(enemies)
 	var to_target := march_target - position
 	var top := _ChargeCombat.target_speed_m_s(self)
+	# Explicit wheel: facing owned by tick_wheel; hold position.
+	if wheeling:
+		current_speed_m_s = 0.0
+		return
 	# WO-020 engagement gravity: unengaged + enemy in front arc within engage_radius_m
 	# → auto-rotate and close. R19: pinned (already engaged) never auto-rotates.
-	var gravity_target = _Magnetism.find_gravity_target(self, enemies)
+	# Skip gravity while auto_engage_locked (breaking contact after disengage).
+	var gravity_target = null
+	if not auto_engage_locked and not disengaging:
+		gravity_target = _Magnetism.find_gravity_target(self, enemies)
 	var desired_move: Vector2 = Vector2.ZERO
 	if gravity_target != null:
 		var to_enemy: Vector2 = gravity_target.position - position
@@ -479,19 +497,27 @@ func _update_marching_step(delta: float, enemies: Array[Unit] = []) -> void:
 			_set_state(State.HOLD)
 		return
 
+	var still_touching := false
 	for enemy in enemies:
 		if not CombatResolver.could_have_contact(self, enemy):
 			continue
-		if (
+		var touching: bool = (
 			EdgeContact.units_have_contact(self, enemy)
 			or EdgeContact.units_have_contact(enemy, self)
-		):
+		)
+		if touching:
+			still_touching = true
+			# While locked out after disengage, walk through geometric overlap to break off.
+			if auto_engage_locked:
+				continue
 			return
 		move_px = CombatResolver.clamp_march_distance(self, enemy, move_px)
 		if move_px <= 0.0:
 			return
 
 	position += desired_move * move_px
+	if auto_engage_locked and not enemies.is_empty() and not still_touching:
+		auto_engage_locked = false
 
 
 func _update_charge_commit(enemies: Array) -> void:

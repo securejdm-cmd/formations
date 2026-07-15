@@ -22,6 +22,8 @@ var skirm_str_lost: float = -1.0
 var spears_str_lost: float = -1.0
 var skirm_coh_lost: float = -1.0
 var spears_coh_lost: float = -1.0
+var _sk_was_disengaging: bool = false
+var _sp_was_disengaging: bool = false
 
 
 func _spawn_units() -> void:
@@ -62,7 +64,13 @@ func _spawn_units() -> void:
 
 
 func advance_one_tick() -> void:
+	# Apply mid-battle orders before the sim ticks so proxies see them this frame.
+	_maybe_script_orders()
 	super.advance_one_tick()
+	_maybe_collect_results()
+
+
+func _maybe_script_orders() -> void:
 	if _phase == "engage":
 		if (
 			_skirm != null and _skirm.has_contact_with(_inf_sk)
@@ -77,20 +85,29 @@ func advance_one_tick() -> void:
 			_sk_disengage_start_tick = _sim_tick_count
 			_sp_disengage_start_tick = _sim_tick_count
 			_phase = "withdraw"
-	elif _phase == "withdraw":
-		if skirm_withdraw_s < 0.0 and _skirm != null and not _skirm.is_disengaging() and not _skirm.has_contact_with(_inf_sk):
+
+
+func _maybe_collect_results() -> void:
+	if _phase != "withdraw":
+		return
+	if _skirm != null:
+		if _skirm.is_disengaging():
+			_sk_was_disengaging = true
+		elif _sk_was_disengaging and skirm_withdraw_s < 0.0:
 			skirm_withdraw_s = (_sim_tick_count - _sk_disengage_start_tick) * CombatResolver.tick_interval()
 			skirm_str_lost = _sk_start_str - _skirm.strength
 			skirm_coh_lost = _sk_start_coh - _skirm.cohesion
-		if spears_withdraw_s < 0.0 and _spears != null and not _spears.is_disengaging() and not _spears.has_contact_with(_inf_sp):
+	if _spears != null:
+		if _spears.is_disengaging():
+			_sp_was_disengaging = true
+		elif _sp_was_disengaging and spears_withdraw_s < 0.0:
 			spears_withdraw_s = (_sim_tick_count - _sp_disengage_start_tick) * CombatResolver.tick_interval()
 			spears_str_lost = _sp_start_str - _spears.strength
 			spears_coh_lost = _sp_start_coh - _spears.cohesion
-		if skirm_withdraw_s >= 0.0 and spears_withdraw_s >= 0.0:
-			_phase = "done"
-			# End battle early once both free.
-			_sim_core.battle_over = true
-			_battle_over = true
+	if skirm_withdraw_s >= 0.0 and spears_withdraw_s >= 0.0:
+		_phase = "done"
+		_sim_core.battle_over = true
+		_battle_over = true
 
 
 func _write_trace_file() -> void:

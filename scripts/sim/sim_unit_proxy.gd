@@ -52,8 +52,10 @@ var threat_front_sec: float:
 ## WO-020 magnetism.
 var disengaging: bool = false
 var _disengage_time_left: float = 0.0
+var auto_engage_locked: bool = false
 var wheeling: bool = false
 var wheel_facing_target: Vector2 = Vector2.ZERO
+var wheel_under_contact: bool = false
 var rotate_under_contact_drain_accum: float = 0.0
 var _pending_charge_latch_clear: bool = false
 var _pending_latch_partner_ids: Array[String] = []
@@ -96,8 +98,10 @@ static func from_unit(unit: Unit) -> SimUnitProxy:
 	p.brace_tier_last = unit.brace_tier_last
 	p.disengaging = unit.disengaging
 	p._disengage_time_left = unit._disengage_time_left
+	p.auto_engage_locked = unit.auto_engage_locked
 	p.wheeling = unit.wheeling
 	p.wheel_facing_target = unit.wheel_facing_target
+	p.wheel_under_contact = unit.wheel_under_contact
 	p.rotate_under_contact_drain_accum = unit.rotate_under_contact_drain_accum
 	if unit.ammo_remaining >= 0:
 		p._ammo_remaining = unit.ammo_remaining
@@ -143,8 +147,10 @@ func refresh_from_unit(unit: Unit) -> void:
 	brace_tier_last = unit.brace_tier_last
 	disengaging = unit.disengaging
 	_disengage_time_left = unit._disengage_time_left
+	auto_engage_locked = unit.auto_engage_locked
 	wheeling = unit.wheeling
 	wheel_facing_target = unit.wheel_facing_target
+	wheel_under_contact = unit.wheel_under_contact
 	rotate_under_contact_drain_accum = unit.rotate_under_contact_drain_accum
 	_partner_ids.clear()
 	_contact_partners.clear()
@@ -193,8 +199,10 @@ func duplicate_render_state() -> SimUnitProxy:
 	p.brace_tier_last = brace_tier_last
 	p.disengaging = disengaging
 	p._disengage_time_left = _disengage_time_left
+	p.auto_engage_locked = auto_engage_locked
 	p.wheeling = wheeling
 	p.wheel_facing_target = wheel_facing_target
+	p.wheel_under_contact = wheel_under_contact
 	p.rotate_under_contact_drain_accum = rotate_under_contact_drain_accum
 	return p
 
@@ -236,8 +244,10 @@ func apply_to_unit(unit: Unit, all_units: Array = []) -> void:
 	unit.brace_tier_last = brace_tier_last
 	unit.disengaging = disengaging
 	unit._disengage_time_left = _disengage_time_left
+	unit.auto_engage_locked = auto_engage_locked
 	unit.wheeling = wheeling
 	unit.wheel_facing_target = wheel_facing_target
+	unit.wheel_under_contact = wheel_under_contact
 	unit.rotate_under_contact_drain_accum = rotate_under_contact_drain_accum
 	if unit.has_method("_update_brace_visual"):
 		unit._update_brace_visual()
@@ -394,7 +404,12 @@ func _update_marching_step(delta: float, enemies: Array = []) -> void:
 	_update_charge_commit(enemies)
 	var to_target := march_target - position
 	var top := _ChargeCombat.target_speed_m_s(self)
-	var gravity_target = _Magnetism.find_gravity_target(self, enemies)
+	if wheeling:
+		current_speed_m_s = 0.0
+		return
+	var gravity_target = null
+	if not auto_engage_locked and not disengaging:
+		gravity_target = _Magnetism.find_gravity_target(self, enemies)
 	var desired_move: Vector2 = Vector2.ZERO
 	if gravity_target != null:
 		var to_enemy: Vector2 = gravity_target.position - position
@@ -429,15 +444,24 @@ func _update_marching_step(delta: float, enemies: Array = []) -> void:
 		if enemies.is_empty():
 			_set_state(Unit.State.HOLD)
 		return
+	var still_touching := false
 	for enemy in enemies:
 		if not CombatResolver.could_have_contact(self, enemy):
 			continue
-		if EdgeContact.units_have_contact(self, enemy) or EdgeContact.units_have_contact(enemy, self):
+		var touching: bool = (
+			EdgeContact.units_have_contact(self, enemy) or EdgeContact.units_have_contact(enemy, self)
+		)
+		if touching:
+			still_touching = true
+			if auto_engage_locked:
+				continue
 			return
 		move_px = CombatResolver.clamp_march_distance(self, enemy, move_px)
 		if move_px <= 0.0:
 			return
 	position += desired_move * move_px
+	if auto_engage_locked and not enemies.is_empty() and not still_touching:
+		auto_engage_locked = false
 
 
 func begin_disengage() -> void:
@@ -454,7 +478,14 @@ func complete_disengage() -> void:
 	_contact_partners.clear()
 	_partner_ids.clear()
 	clear_bump_state()
-	_set_state(Unit.State.MARCHING if current_order == Unit.Order.MARCH_TO else Unit.State.HOLD)
+	auto_engage_locked = true
+	if current_order == Unit.Order.MARCH_TO:
+		var to_target: Vector2 = march_target - position
+		if to_target.length_squared() > 0.0001:
+			facing = to_target.normalized()
+		_set_state(Unit.State.MARCHING)
+	else:
+		_set_state(Unit.State.HOLD)
 
 
 ## Called by core after complete_disengage to allow a fresh charge impact.
@@ -480,19 +511,21 @@ func begin_wheel_facing(desired: Vector2) -> void:
 		return
 	wheeling = true
 	wheel_facing_target = desired.normalized()
+	wheel_under_contact = not _contact_partners.is_empty()
 
 
 func tick_wheel(delta: float) -> void:
 	if not wheeling:
 		return
 	var stepped: float = _Magnetism.rotate_toward(self, wheel_facing_target, delta)
-	if stepped > 0.001 and not _contact_partners.is_empty():
+	if stepped > 0.001 and (wheel_under_contact or not _contact_partners.is_empty()):
 		var drain: float = _Magnetism.rotate_under_contact_drain_per_s(self) * delta
 		apply_cohesion_drain(drain)
 		rotate_under_contact_drain_accum += drain
-	if facing.angle_to(wheel_facing_target) <= 0.02:
+	if absf(facing.angle_to(wheel_facing_target)) <= 0.02:
 		facing = wheel_facing_target
 		wheeling = false
+		wheel_under_contact = false
 
 
 func is_disengaging() -> bool:

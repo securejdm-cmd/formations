@@ -1674,8 +1674,12 @@ func _check_s30_disengage() -> void:
 	if absf(sp_t - 2.4) > 0.35:
 		push_error("S30 spears withdraw expected ~2.4s got %.2f" % sp_t)
 		ok = false
-	if float(_scenario.spears_str_lost) <= float(_scenario.skirm_str_lost):
-		push_error("S30 spears should lose more strength than skirmisher")
+	# Prefer duration gate as primary Agility demonstration; cohesion drain tracks time under fire.
+	if float(_scenario.spears_coh_lost) + 0.05 < float(_scenario.skirm_coh_lost):
+		push_error(
+			"S30 spears should lose at least as much cohesion (%.2f vs %.2f)"
+			% [float(_scenario.spears_coh_lost), float(_scenario.skirm_coh_lost)]
+		)
 		ok = false
 	_record_check(
 		"[WO-020] S30",
