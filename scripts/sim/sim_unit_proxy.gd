@@ -48,6 +48,14 @@ var threat_front_sec: float:
 		return _threat_front_sec
 	set(value):
 		_threat_front_sec = value
+## WO-020 magnetism.
+var disengaging: bool = false
+var _disengage_time_left: float = 0.0
+var wheeling: bool = false
+var wheel_facing_target: Vector2 = Vector2.ZERO
+var rotate_under_contact_drain_accum: float = 0.0
+var _pending_charge_latch_clear: bool = false
+var _pending_latch_partner_ids: Array[String] = []
 
 
 static func from_unit(unit: Unit) -> SimUnitProxy:
@@ -85,6 +93,11 @@ static func from_unit(unit: Unit) -> SimUnitProxy:
 	p._braced = unit._braced
 	p._threat_front_sec = unit._threat_front_sec
 	p.brace_tier_last = unit.brace_tier_last
+	p.disengaging = unit.disengaging
+	p._disengage_time_left = unit._disengage_time_left
+	p.wheeling = unit.wheeling
+	p.wheel_facing_target = unit.wheel_facing_target
+	p.rotate_under_contact_drain_accum = unit.rotate_under_contact_drain_accum
 	if unit.ammo_remaining >= 0:
 		p._ammo_remaining = unit.ammo_remaining
 	for partner in unit.get_contact_partners():
@@ -127,6 +140,11 @@ func refresh_from_unit(unit: Unit) -> void:
 	_braced = unit._braced
 	_threat_front_sec = unit._threat_front_sec
 	brace_tier_last = unit.brace_tier_last
+	disengaging = unit.disengaging
+	_disengage_time_left = unit._disengage_time_left
+	wheeling = unit.wheeling
+	wheel_facing_target = unit.wheel_facing_target
+	rotate_under_contact_drain_accum = unit.rotate_under_contact_drain_accum
 	_partner_ids.clear()
 	_contact_partners.clear()
 	for partner in unit.get_contact_partners():
@@ -172,6 +190,11 @@ func duplicate_render_state() -> SimUnitProxy:
 	p._braced = _braced
 	p._threat_front_sec = _threat_front_sec
 	p.brace_tier_last = brace_tier_last
+	p.disengaging = disengaging
+	p._disengage_time_left = _disengage_time_left
+	p.wheeling = wheeling
+	p.wheel_facing_target = wheel_facing_target
+	p.rotate_under_contact_drain_accum = rotate_under_contact_drain_accum
 	return p
 
 
@@ -210,6 +233,11 @@ func apply_to_unit(unit: Unit, all_units: Array = []) -> void:
 	unit._braced = _braced
 	unit._threat_front_sec = _threat_front_sec
 	unit.brace_tier_last = brace_tier_last
+	unit.disengaging = disengaging
+	unit._disengage_time_left = _disengage_time_left
+	unit.wheeling = wheeling
+	unit.wheel_facing_target = wheel_facing_target
+	unit.rotate_under_contact_drain_accum = rotate_under_contact_drain_accum
 	if unit.has_method("_update_brace_visual"):
 		unit._update_brace_visual()
 	unit.set_active_contact_edges(_active_contact_edges)
@@ -365,9 +393,14 @@ func _update_marching_step(delta: float, enemies: Array = []) -> void:
 	_update_charge_commit(enemies)
 	var to_target := march_target - position
 	var top := _ChargeCombat.target_speed_m_s(self)
-	# Turn rate (R5): only steer when heading error is material. On-axis approaches
-	# (S1/S2) keep configure facing — micro-corrections were shifting contact geometry.
-	if to_target.length() > 0.001:
+	var gravity_target = Magnetism.find_gravity_target(self, enemies)
+	var desired_move := Vector2.ZERO
+	if gravity_target != null:
+		var to_enemy: Vector2 = gravity_target.position - position
+		if to_enemy.length_squared() > 0.0001:
+			Magnetism.rotate_toward(self, to_enemy, delta)
+			desired_move = to_enemy.normalized()
+	elif to_target.length() > 0.001:
 		var desired := to_target.normalized()
 		var angled := facing.angle_to(desired)
 		if absf(angled) > 0.15:
@@ -376,6 +409,7 @@ func _update_marching_step(delta: float, enemies: Array = []) -> void:
 				facing = desired
 			else:
 				facing = facing.rotated(signf(angled) * max_turn)
+		desired_move = desired
 	var accel: float = _ChargeCombat.accel_m_s2(self)
 	var decel: float = _ChargeCombat.decel_m_s2(self)
 	if current_speed_m_s < top:
@@ -384,7 +418,9 @@ func _update_marching_step(delta: float, enemies: Array = []) -> void:
 		current_speed_m_s = maxf(top, current_speed_m_s - decel * delta)
 	var speed_px := current_speed_m_s * Constants.get_float("px_per_meter")
 	var move_px := speed_px * delta
-	if to_target.length() <= move_px:
+	if desired_move == Vector2.ZERO:
+		desired_move = to_target.normalized() if to_target.length() > 0.001 else facing.normalized()
+	if gravity_target == null and to_target.length() <= move_px:
 		position = march_target
 		current_speed_m_s = maxf(0.0, current_speed_m_s - decel * delta)
 		charge_committed = false
@@ -400,7 +436,83 @@ func _update_marching_step(delta: float, enemies: Array = []) -> void:
 		move_px = CombatResolver.clamp_march_distance(self, enemy, move_px)
 		if move_px <= 0.0:
 			return
-	position += to_target.normalized() * move_px
+	position += desired_move * move_px
+
+
+func begin_disengage() -> void:
+	if disengaging:
+		return
+	disengaging = true
+	_disengage_time_left = Magnetism.disengage_duration_s(self)
+	wheeling = false
+
+
+func complete_disengage() -> void:
+	disengaging = false
+	_disengage_time_left = 0.0
+	_contact_partners.clear()
+	_partner_ids.clear()
+	clear_bump_state()
+	_set_state(Unit.State.MARCHING if current_order == Unit.Order.MARCH_TO else Unit.State.HOLD)
+
+
+## Called by core after complete_disengage to allow a fresh charge impact.
+
+
+func tick_disengage(delta: float) -> void:
+	if not disengaging:
+		return
+	_disengage_time_left = maxf(0.0, _disengage_time_left - delta)
+	if _disengage_time_left <= 0.0:
+		var old_partners: Array = _contact_partners.duplicate()
+		complete_disengage()
+		# Allow a fresh charge impact after break-off (S32 hit-and-run).
+		_pending_charge_latch_clear = true
+		_pending_latch_partner_ids.clear()
+		for p in old_partners:
+			if p != null:
+				_pending_latch_partner_ids.append(str(p.unit_id))
+
+
+func begin_wheel_facing(desired: Vector2) -> void:
+	if desired.length_squared() <= 0.0001:
+		return
+	wheeling = true
+	wheel_facing_target = desired.normalized()
+
+
+func tick_wheel(delta: float) -> void:
+	if not wheeling:
+		return
+	var stepped := Magnetism.rotate_toward(self, wheel_facing_target, delta)
+	if stepped > 0.001 and not _contact_partners.is_empty():
+		var drain := Magnetism.rotate_under_contact_drain_per_s(self) * delta
+		apply_cohesion_drain(drain)
+		rotate_under_contact_drain_accum += drain
+	if facing.angle_to(wheel_facing_target) <= 0.02:
+		facing = wheel_facing_target
+		wheeling = false
+
+
+func is_disengaging() -> bool:
+	return disengaging
+
+
+func can_deal_melee() -> bool:
+	return not disengaging
+
+
+func set_march_to(target: Vector2) -> void:
+	march_target = target
+	current_order = Unit.Order.MARCH_TO
+	if not _contact_partners.is_empty() and not disengaging:
+		begin_disengage()
+		return
+	if disengaging:
+		return
+	_contact_partners.clear()
+	_partner_ids.clear()
+	_set_state(Unit.State.MARCHING)
 
 
 func _update_charge_commit(enemies: Array) -> void:

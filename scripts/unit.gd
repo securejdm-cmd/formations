@@ -72,6 +72,12 @@ var _threat_front_sec: float = 0.0
 var brace_tier_last: int = 0
 var _brace_indicator: ColorRect = null
 var _instinctive_indicator: ColorRect = null
+## WO-020 magnetism / disengage / wheel-under-contact.
+var disengaging: bool = false
+var _disengage_time_left: float = 0.0
+var wheeling: bool = false
+var wheel_facing_target: Vector2 = Vector2.ZERO
+var rotate_under_contact_drain_accum: float = 0.0
 
 
 func _ready() -> void:
@@ -118,8 +124,72 @@ func configure(id: String, team: String, profile_data: Dictionary, spawn_positio
 func set_march_to(target: Vector2) -> void:
 	march_target = target
 	current_order = Order.MARCH_TO
+	# WO-020: if currently engaged, begin fighting withdrawal instead of instantly breaking.
+	if not _contact_partners.is_empty() and not disengaging:
+		begin_disengage()
+		return
+	if disengaging:
+		return
 	_clear_contact_partners()
 	_set_state(State.MARCHING)
+
+
+func begin_disengage() -> void:
+	## Fighting withdrawal: take free hits for disengage_duration_s, cannot strike back.
+	if disengaging:
+		return
+	disengaging = true
+	_disengage_time_left = Magnetism.disengage_duration_s(self)
+	wheeling = false
+
+
+func complete_disengage() -> void:
+	disengaging = false
+	_disengage_time_left = 0.0
+	_clear_contact_partners()
+	clear_bump_state()
+	if current_order == Order.MARCH_TO:
+		_set_state(State.MARCHING)
+	else:
+		_set_state(State.HOLD)
+
+
+func tick_disengage(delta: float) -> void:
+	if not disengaging:
+		return
+	_disengage_time_left = maxf(0.0, _disengage_time_left - delta)
+	if _disengage_time_left <= 0.0:
+		complete_disengage()
+
+
+func begin_wheel_facing(desired: Vector2) -> void:
+	## Rotate in place (may be under contact → cohesion drain).
+	if desired.length_squared() <= 0.0001:
+		return
+	wheeling = true
+	wheel_facing_target = desired.normalized()
+
+
+func tick_wheel(delta: float) -> void:
+	if not wheeling:
+		return
+	var stepped := Magnetism.rotate_toward(self, wheel_facing_target, delta)
+	if stepped > 0.001 and not _contact_partners.is_empty():
+		var drain := Magnetism.rotate_under_contact_drain_per_s(self) * delta
+		apply_cohesion_drain(drain)
+		rotate_under_contact_drain_accum += drain
+	if facing.angle_to(wheel_facing_target) <= 0.02:
+		facing = wheel_facing_target
+		rotation = facing.angle()
+		wheeling = false
+
+
+func is_disengaging() -> bool:
+	return disengaging
+
+
+func can_deal_melee() -> bool:
+	return not disengaging
 
 
 func get_state() -> State:
@@ -368,7 +438,16 @@ func _update_marching_step(delta: float, enemies: Array[Unit] = []) -> void:
 	_update_charge_commit(enemies)
 	var to_target := march_target - position
 	var top := _ChargeCombat.target_speed_m_s(self)
-	if to_target.length() > 0.001:
+	# WO-020 engagement gravity: unengaged + enemy in front arc within engage_radius_m
+	# → auto-rotate and close. R19: pinned (already engaged) never auto-rotates.
+	var gravity_target = Magnetism.find_gravity_target(self, enemies)
+	var desired_move := Vector2.ZERO
+	if gravity_target != null:
+		var to_enemy: Vector2 = gravity_target.position - position
+		if to_enemy.length_squared() > 0.0001:
+			Magnetism.rotate_toward(self, to_enemy, delta)
+			desired_move = to_enemy.normalized()
+	elif to_target.length() > 0.001:
 		var desired := to_target.normalized()
 		var angled := facing.angle_to(desired)
 		if absf(angled) > 0.15:
@@ -378,6 +457,7 @@ func _update_marching_step(delta: float, enemies: Array[Unit] = []) -> void:
 			else:
 				facing = facing.rotated(signf(angled) * max_turn)
 			rotation = facing.angle()
+		desired_move = desired
 	# Accelerate / decelerate toward target speed (gait or tactical).
 	var accel: float = _ChargeCombat.accel_m_s2(self)
 	var decel: float = _ChargeCombat.decel_m_s2(self)
@@ -387,7 +467,9 @@ func _update_marching_step(delta: float, enemies: Array[Unit] = []) -> void:
 		current_speed_m_s = maxf(top, current_speed_m_s - decel * delta)
 	var speed_px := current_speed_m_s * Constants.get_float("px_per_meter")
 	var move_px := speed_px * delta
-	if to_target.length() <= move_px:
+	if desired_move == Vector2.ZERO:
+		desired_move = to_target.normalized() if to_target.length() > 0.001 else facing.normalized()
+	if gravity_target == null and to_target.length() <= move_px:
 		position = march_target
 		current_speed_m_s = maxf(0.0, current_speed_m_s - decel * delta)
 		charge_committed = false
@@ -408,7 +490,7 @@ func _update_marching_step(delta: float, enemies: Array[Unit] = []) -> void:
 		if move_px <= 0.0:
 			return
 
-	position += to_target.normalized() * move_px
+	position += desired_move * move_px
 
 
 func _update_charge_commit(enemies: Array) -> void:

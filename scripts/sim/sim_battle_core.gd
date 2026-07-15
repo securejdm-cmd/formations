@@ -289,6 +289,16 @@ func uses_march_grid_enemies(unit: SimUnitProxy) -> bool:
 	)
 
 
+func _clear_charge_latch_if_requested(unit: SimUnitProxy) -> void:
+	if not unit._pending_charge_latch_clear:
+		return
+	for pid in unit._pending_latch_partner_ids:
+		var key := "%s>%s" % [unit.unit_id, pid]
+		_charge_pair_done.erase(key)
+	unit._pending_charge_latch_clear = false
+	unit._pending_latch_partner_ids.clear()
+
+
 func enemies_for(unit: SimUnitProxy) -> Array:
 	var enemies: Array = []
 	var candidates: Array = units
@@ -311,6 +321,9 @@ func update_movement(delta: float) -> void:
 			continue
 		unit.tick_charge_amp(delta)
 		unit.update_brace(delta, enemies_for(unit))
+		unit.tick_disengage(delta)
+		_clear_charge_latch_if_requested(unit)
+		unit.tick_wheel(delta)
 		# Decelerate only when deliberately holding / bracing — never while ENGAGED.
 		# Mid-fight partner flicker returns units to MARCHING briefly; decelerating in
 		# combat made those gaps crawl and drifted S1/S2/S8 grind timing.
@@ -751,6 +764,11 @@ func combat_tick() -> void:
 			processed_head_on.append(pk)
 
 			var result := CombatResolver.resolve_engagement(unit, partner)
+			# WO-020: disengaging units take free hits and cannot strike back.
+			if unit.has_method("can_deal_melee") and not unit.can_deal_melee():
+				result.damage_b = 0.0
+			if partner.has_method("can_deal_melee") and not partner.can_deal_melee():
+				result.damage_a = 0.0
 			CombatResolver.apply_ground_shift(unit, result.shift_a_m)
 			CombatResolver.apply_ground_shift(partner, result.shift_b_m)
 
@@ -800,6 +818,11 @@ func combat_tick() -> void:
 				(contact_edge_labels[seg_defender] as Array[String]).append(edge_label)
 
 			var segment := CombatResolver.resolve_contact_segment(seg_attacker, seg_defender, contact)
+			# WO-020 free hits: zero outgoing damage from a disengaging fighter.
+			if seg_attacker.has_method("can_deal_melee") and not seg_attacker.can_deal_melee():
+				segment.defender_damage = 0.0
+			if seg_defender.has_method("can_deal_melee") and not seg_defender.can_deal_melee():
+				segment.attacker_damage = 0.0
 			var edge_lengths: Dictionary = segment.get("edge_lengths_m", {})
 			var push_normal: Vector2 = segment.get("push_normal", seg_defender.facing)
 

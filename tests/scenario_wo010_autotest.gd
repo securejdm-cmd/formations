@@ -41,8 +41,8 @@ const SCENARIO_EXTRA_TICKS := 120
 ## Gated PASS lines emitted when every check is green (WO-015).
 ## Compass, Fast+Threaded cert, S1×11, S2×11, Determinism, S3, Overlap, S4, S5–S8, S9,
 ## S10–S11, S12, S13×3, S14×2, S15, S16×2, S17×2 retired, S17b, S18, S19, S20×2, S21, S22,
-## S23–S26, S27–S29 = 61
-const EXPECTED_GREEN_PASS_COUNT := 61
+## S23–S26, S27–S29, S30–S34 = 66
+const EXPECTED_GREEN_PASS_COUNT := 66
 
 var _scenario: Scenario01 = null
 var _exit_code := 0
@@ -298,6 +298,21 @@ func _spawn_and_run() -> void:
 		"s29_runup_curve":
 			scene = "scenario_29"
 			seed_value = 1000
+		"s30_disengage":
+			scene = "scenario_30"
+			seed_value = 1000
+		"s31_wheel_contact":
+			scene = "scenario_31"
+			seed_value = 1000
+		"s32_hit_and_run":
+			scene = "scenario_32"
+			seed_value = 1000
+		"s33_gravity_square":
+			scene = "scenario_33"
+			seed_value = 1000
+		"s34_pinning":
+			scene = "scenario_34"
+			seed_value = 1000
 
 	if _scenario != null:
 		_scenario.free()
@@ -406,6 +421,11 @@ func _run_when_ready() -> void:
 		"s27_gait_visibility",
 		"s28_infantry_charge",
 		"s29_runup_curve",
+		"s30_disengage",
+		"s31_wheel_contact",
+		"s32_hit_and_run",
+		"s33_gravity_square",
+		"s34_pinning",
 	]:
 		_sim_harness.run_ticks(_scenario, 4500)
 	else:
@@ -637,8 +657,28 @@ func _finish() -> void:
 				_spawn_and_run()
 			else:
 				_finalize_s29_runup()
-				_mode = "perf_40"
+				_mode = "s30_disengage"
 				_spawn_and_run()
+		"s30_disengage":
+			_check_s30_disengage()
+			_mode = "s31_wheel_contact"
+			_spawn_and_run()
+		"s31_wheel_contact":
+			_check_s31_wheel()
+			_mode = "s32_hit_and_run"
+			_spawn_and_run()
+		"s32_hit_and_run":
+			_check_s32_hit_and_run()
+			_mode = "s33_gravity_square"
+			_spawn_and_run()
+		"s33_gravity_square":
+			_check_s33_gravity()
+			_mode = "s34_pinning"
+			_spawn_and_run()
+		"s34_pinning":
+			_check_s34_pinning()
+			_mode = "perf_40"
+			_spawn_and_run()
 		"perf_40":
 			_check_perf_40()
 			_mode = "perf_scale"
@@ -1615,6 +1655,123 @@ func _finalize_s29_runup() -> void:
 			float(row.get("impact", 0.0)),
 		]
 	_record_check("[WO-019] S29", ok, detail.strip_edges())
+
+
+func _check_s30_disengage() -> void:
+	var ok := true
+	var sk_t: float = float(_scenario.skirm_withdraw_s)
+	var sp_t: float = float(_scenario.spears_withdraw_s)
+	# Expect ~1.4s skirmisher, ~2.4s spears (Agility 80 vs 30).
+	if sk_t < 0.0 or sp_t < 0.0:
+		push_error("S30 missing withdraw times sk=%.2f sp=%.2f" % [sk_t, sp_t])
+		ok = false
+	if sk_t > sp_t:
+		push_error("S30 skirmisher should finish before spears (%.2f vs %.2f)" % [sk_t, sp_t])
+		ok = false
+	if absf(sk_t - 1.4) > 0.35:
+		push_error("S30 skirmisher withdraw expected ~1.4s got %.2f" % sk_t)
+		ok = false
+	if absf(sp_t - 2.4) > 0.35:
+		push_error("S30 spears withdraw expected ~2.4s got %.2f" % sp_t)
+		ok = false
+	if float(_scenario.spears_str_lost) <= float(_scenario.skirm_str_lost):
+		push_error("S30 spears should lose more strength than skirmisher")
+		ok = false
+	_record_check(
+		"[WO-020] S30",
+		ok,
+		"sk_t=%.2fs lost_str=%.2f/coh=%.2f sp_t=%.2fs lost_str=%.2f/coh=%.2f"
+		% [
+			sk_t, float(_scenario.skirm_str_lost), float(_scenario.skirm_coh_lost),
+			sp_t, float(_scenario.spears_str_lost), float(_scenario.spears_coh_lost),
+		],
+	)
+
+
+func _check_s31_wheel() -> void:
+	var ok := true
+	var sp_t: float = float(_scenario.spears_time_s)
+	var inf_t: float = float(_scenario.inf_time_s)
+	var sp_d: float = float(_scenario.spears_drain)
+	var inf_d: float = float(_scenario.inf_drain)
+	if sp_t < 0.0 or inf_t < 0.0:
+		push_error("S31 missing wheel times")
+		ok = false
+	if sp_d <= inf_d:
+		push_error("S31 spears (A30) drain %.3f should exceed infantry (A50) %.3f" % [sp_d, inf_d])
+		ok = false
+	if sp_t <= inf_t:
+		push_error("S31 spears should take longer to wheel (%.2f vs %.2f)" % [sp_t, inf_t])
+		ok = false
+	_record_check(
+		"[WO-020] S31",
+		ok,
+		"spears_t=%.2fs drain=%.3f inf_t=%.2fs drain=%.3f" % [sp_t, sp_d, inf_t, inf_d],
+	)
+
+
+func _check_s32_hit_and_run() -> void:
+	var ok := true
+	var s1: float = float(_scenario.strength_after_fail)
+	var s2: float = float(_scenario.strength_after_disengage)
+	var s3: float = float(_scenario.strength_after_recharge)
+	var impact2: float = float(_scenario.second_charge_impact)
+	if s1 < 0.0 or s2 < 0.0 or s3 < 0.0:
+		push_error("S32 missing strength samples")
+		ok = false
+	if s2 <= 0.0 or s2 > 100.0:
+		push_error("S32 cavalry should survive disengage (str=%.2f)" % s2)
+		ok = false
+	# Full gait impact ≈ 21.6
+	if impact2 < 18.0:
+		push_error("S32 second charge should land full gait impact (got %.3f)" % impact2)
+		ok = false
+	if s3 <= 0.0:
+		push_error("S32 cavalry should still be alive after recharge")
+		ok = false
+	_record_check(
+		"[WO-020] S32",
+		ok,
+		"str_fail=%.2f str_dis=%.2f str_rech=%.2f impact2=%.3f" % [s1, s2, s3, impact2],
+	)
+
+
+func _check_s33_gravity() -> void:
+	var ok := true
+	var er: String = str(_scenario.contact_edge_red)
+	var eb: String = str(_scenario.contact_edge_blue)
+	if er != EdgeContact.EDGE_FRONT or eb != EdgeContact.EDGE_FRONT:
+		push_error("S33 expected FRONT/FRONT got %s/%s" % [er, eb])
+		ok = false
+	if float(_scenario.red_facing_dot_at_contact) < 0.85:
+		push_error("S33 red not facing contact (dot=%.3f)" % float(_scenario.red_facing_dot_at_contact))
+		ok = false
+	if float(_scenario.blue_facing_dot_at_contact) < 0.85:
+		push_error("S33 blue not facing contact (dot=%.3f)" % float(_scenario.blue_facing_dot_at_contact))
+		ok = false
+	_record_check(
+		"[WO-020] S33",
+		ok,
+		"edges=%s/%s red_dot=%.3f blue_dot=%.3f" % [
+			er, eb, float(_scenario.red_facing_dot_at_contact), float(_scenario.blue_facing_dot_at_contact)
+		],
+	)
+
+
+func _check_s34_pinning() -> void:
+	var ok := true
+	if not bool(_scenario.flank_persisted):
+		push_error("S34 flank edge/multiplier did not persist")
+		ok = false
+	if not bool(_scenario.a_did_not_reface):
+		push_error("S34 defender auto-refaced toward flanker (R19 pin violated)")
+		ok = false
+	var detail := "samples=%d flank_persist=%s no_reface=%s" % [
+		_scenario.edge_samples.size(),
+		_scenario.flank_persisted,
+		_scenario.a_did_not_reface,
+	]
+	_record_check("[WO-020] S34", ok, detail)
 
 
 func _record_check(tag: String, ok: bool, detail: String = "") -> void:

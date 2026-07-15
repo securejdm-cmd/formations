@@ -39,7 +39,10 @@ Corners blend per channel by contact length. Rationale: being displaced from a f
 ROUTING units drop collision entirely (formless fugitives streaming past formations); rendered pale, formless, semi-transparent. Pursuit interaction uses proximity, not collision. No-overlap assertions exempt routing units, explicitly. **STATUS: BUILT.**
 
 ## R9. Contact Adhesion — Phase 1 Magnetism Core (TD ruling; derived from Damage&Cat §5)
-Engaged pairs adhere continuously: each tick, pairs separated ≤ engage_snap_max_m (1.0) close the gap; single source of truth for "contact" is the edge classifier via shared contact_epsilon_m; permanent invariant — no pair may persist linked-but-unresolvable. This is the minimal core of §5 engagement gravity; full magnetism (auto-close from 4m, auto-rotate, disengage costs, rotation-under-contact drain) remains Phase 2. **STATUS: BUILT (core), Phase 2 (full).**
+Engaged pairs adhere continuously: each tick, pairs separated ≤ engage_snap_max_m (1.0) close the gap; single source of truth for "contact" is the edge classifier via shared contact_epsilon_m; permanent invariant — no pair may persist linked-but-unresolvable. This is the minimal core of §5 engagement gravity; full magnetism (auto-close from 4m, auto-rotate, disengage costs, rotation-under-contact drain) remains Phase 2. **STATUS: BUILT (core + full WO-020).**
+
+## R19. Pinning (TD; WO-020)
+Engagement gravity auto-rotates a unit to face contact **only if that unit is NOT already engaged**. A unit already in contact is **PINNED**: it does not auto-rotate toward new contacts, no matter which edge they land on. Refacing while engaged requires an explicit disengage (expensive). This preserves hammer-and-anvil: flank multipliers persist because a pinned line cannot swivel to face the flanker. **STATUS: DESIGN LAW — effective WO-020.**
 
 ## R10. Battle End, Results & Kill Accounting (designer rulings, WO-004)
 Victory declared victory_delay_s (2.5) after last enemy unit begins routing; flee is a skippable epilogue; results table ranks units by soldiers defeated. men_per_full_unit = 1000 (display-only conversion; per-unit data later). **STATUS: BUILT.**

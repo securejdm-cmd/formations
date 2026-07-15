@@ -1,0 +1,3 @@
+WORK ORDER 020 - Full Magnetism: Gravity, Rotation & Disengage
+Base: main post WO-016..019 merge. R19 pinning. Agility live.
+S30-S34 scenarios. Escalate if S1/S2/S3 byte drift.

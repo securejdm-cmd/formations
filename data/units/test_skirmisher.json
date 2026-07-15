@@ -1,0 +1,20 @@
+{
+  "id": "test_skirmisher",
+  "display_name": "Test Skirmisher",
+  "formation_frontage_m": 30.0,
+  "formation_depth_m": 10.0,
+  "close_damage": 12.0,
+  "ranged_damage": 0.0,
+  "armor": 4.0,
+  "anti_armor": 0.0,
+  "speed": 22.0,
+  "charge_gait_mult": 1.0,
+  "agility": 80.0,
+  "pushing_power": 25.0,
+  "retreating_skill": 50.0,
+  "range": 0.0,
+  "traits": [],
+  "armor_class": "Leather",
+  "melee_damage_type": "Slash",
+  "profile": "Low"
+}
