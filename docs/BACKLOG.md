@@ -2,6 +2,12 @@
 
 Items explicitly deferred by TD ruling. Do not implement until the listed phase unless re-authorized.
 
+## Gate 2 — Regression Guards
+
+| ID | Item | Notes |
+|----|------|-------|
+| G2-S35 | **S35 Agility-isolate disengage** — two identical profiles differing ONLY in Agility (e.g. A30 vs A80, same armor/class/damage), both ordered out of melee | Logged WO-020b TD review. Isolates the Agility-duration link and the clean ~1.71 exposure ratio that S30 cannot show (R20). Regression guard, not a tuning target. |
+
 ## Phase 5 — Real Unit Profiles
 
 | ID | Item | Notes |

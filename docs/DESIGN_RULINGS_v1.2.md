@@ -25,7 +25,7 @@ Profile tag doubles as weight class: Low/Medium/High/Massive → Mass values (da
 **HARD LINE: no momentum transfer, no knockback, no free-body physics.** Engaged lines move ONLY via the push contest. Mass shapes impact moments and movement feel — never post-contact physics. **STATUS: DESIGNED — Phase 2.**
 
 ## R6. Elevation (designer request; TD phasing)
-Coarse height grid under the battlefield, rendered as shaded relief (K&G style). Effects mostly emerge: downhill charges arrive faster (R4), uphill attackers arrive slower, slope push/range modifiers per Damage&Cat §7. Phase 2 keeps the single test hill; full elevation ships with Phase 3 deployment (contesting ground becomes a player decision). **STATUS: DESIGNED — Phase 3.**
+Coarse height grid under the battlefield, rendered as shaded relief (K&G style). Effects mostly emerge: downhill charges arrive faster (R4), uphill attackers arrive slower, slope push/range modifiers per Damage&Cat §7. Phase 2 ships a single test hill (WO-021) to validate modifiers; full elevation with deployment is Phase 3 (contesting ground becomes a player decision). **STATUS: PHASE 2 TEST HILL — WO-021; full elevation Phase 3.**
 
 ## R7. Per-Channel Edge Multipliers (designer ruling; SUPERSEDES Combat Core §2 "×2/×3 on all combat drains")
 Edge multipliers split by drain channel, four constants:
@@ -43,6 +43,9 @@ Engaged pairs adhere continuously: each tick, pairs separated ≤ engage_snap_ma
 
 ## R19. Pinning (TD; WO-020)
 Engagement gravity auto-rotates a unit to face contact **only if that unit is NOT already engaged**. A unit already in contact is **PINNED**: it does not auto-rotate toward new contacts, no matter which edge they land on. Refacing while engaged requires an explicit disengage (expensive). This preserves hammer-and-anvil: flank multipliers persist because a pinned line cannot swivel to face the flanker. **STATUS: DESIGN LAW — effective WO-020.**
+
+## R20. Disengage Exposure Differs by Armor Emergently (TD; WO-020b)
+Disengage exposure is governed by Agility (duration) and Armor (mitigation) independently; the resulting strength-loss ratio between differently-armored profiles is emergent and is not a tuning target. Keep `disengage_damage_mult = 2.0`. Criterion 3 (WO-020b Task 1) was withdrawn — it assumed armor-blind free hits; a shared free-hit multiplier cannot move an armor-driven ratio by construction, and Option 2 (armor-blind free hits) would break armor at the moment it matters most. Ratio ≈1.30 on S30 is the honest armored-differential outcome (TD Option 1). **STATUS: DESIGN LAW — WO-020b.**
 
 ## R10. Battle End, Results & Kill Accounting (designer rulings, WO-004)
 Victory declared victory_delay_s (2.5) after last enemy unit begins routing; flee is a skippable epilogue; results table ranks units by soldiers defeated. men_per_full_unit = 1000 (display-only conversion; per-unit data later). **STATUS: BUILT.**
