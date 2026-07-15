@@ -1,0 +1,15 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+WO024_FLANK_ANALYTIC flank_cross_s=0.299 inf_90_s=7.854 ratio=26.3 (radius=4.0 gallop=13.4 base_turn=0.200)
+WO024_FLANK_VERDICT safe=true (cross << 90deg wheel; R19 intent)
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+WO024_S33 edges=front/front dots=1.000/1.000 rot_deg=17.3/17.3 ticks=290
+WO024_S33_NOTE before_fix_rot≈1.1deg; after_fix expect substantially larger square-up
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+WO024_S34 flank_persist=true no_reface=true samples=20
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+     at: cleanup (core/object/object.cpp:2378)
+ERROR: 1 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:614)

@@ -1,0 +1,37 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+[RNG] Battle seed set: 12345
+[Scenario 03] Battle seed: 12345
+[Scenario 03] Trace written: res://tests/traces/scenario_03_12345.csv
+[Scenario 03] SUMMARY | winner=red_b | combat=21.5s | blue_a_strength_at_rout=76.23 | edge_drains front=0.00 left=59.20 right=0.00 rear=0.38
+S3_DIFF_META r=4.0 combat=21.5 winner=red_b ticks=2303 str_rout=-1.00
+[RNG] Battle seed set: 12345
+[Scenario 03] Battle seed: 12345
+[Scenario 03] Trace written: res://tests/traces/scenario_03_12345.csv
+[Scenario 03] SUMMARY | winner=red_b | combat=21.5s | blue_a_strength_at_rout=76.28 | edge_drains front=0.00 left=59.63 right=0.00 rear=0.40
+S3_DIFF_META r=0.0 combat=21.5 winner=red_b ticks=2303 str_rout=-1.00
+DIFF#1 line=218
+  r4=72.0,red_a,94.1525,85.3227,58,-12.86,-0.01,marching,
+  r0=72.0,red_a,94.1525,85.3227,58,-12.86,0.00,marching,
+DIFF#2 line=221
+  r4=73.0,red_a,93.8766,84.6329,62,-11.75,-0.77,engaged,
+  r0=73.0,red_a,93.6697,84.1152,64,-12.02,0.00,marching,
+DIFF#3 line=222
+  r4=73.0,blue_a,91.8303,74.2913,62,16.22,-1.54,engaged,left
+  r0=73.0,blue_a,91.5916,73.5639,64,15.92,-2.23,engaged,left
+DIFF#4 line=223
+  r4=73.0,red_b,99.9112,99.6665,20,44.36,53.48,engaged,
+  r0=73.0,red_b,99.9288,99.7326,20,43.63,52.79,engaged,
+DIFF#5 line=224
+  r4=74.0,red_a,93.5178,83.7360,67,-10.99,-1.16,marching,
+  r0=74.0,red_a,93.2239,83.0008,70,-10.87,0.00,marching,
+DIFF#6 line=225
+  r4=74.0,blue_a,90.3468,68.1194,67,17.20,-1.17,engaged,left
+  r0=74.0,blue_a,89.9632,66.9807,69,16.74,-2.22,engaged,left
+DIFF#7 line=226
+  r4=74.0,red_b,99.8183,99.3182,30,44.71,53.83,engaged,
+  r0=74.0,red_b,99.8348,99.3800,30,43.63,52.79,engaged,
+DIFF#8 line=227
+  r4=75.0,red_a,93.1703,82.8670,71,-9.48,-1.16,marching,
+  r0=75.0,red_a,93.0496,82.5650,72,-9.82,-1.05,marching,
+S3_DIFF_SUMMARY lines=739/739 differing=519 identical=false

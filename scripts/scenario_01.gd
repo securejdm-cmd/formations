@@ -14,6 +14,8 @@ enum BattlePhase { ACTIVE, VICTORY_PENDING, VICTORY_EPILOGUE, FINISHED }
 @export var headless_mode: bool = false
 ## When true (with headless_mode), autotest harness drives ticks via SimHarness — no _process loop.
 @export var fast_sim_mode: bool = false
+## See SimBattleCore.force_trace_logging — cert-only; not GAMEPLAY_TICK QA.
+var force_trace_logging: bool = false
 ## WO-011: worker-thread sim at 10 Hz (realtime only; fast-mode path stays on main thread).
 @export var use_sim_thread: bool = false
 
@@ -127,6 +129,7 @@ func _ensure_sim_core() -> void:
 	_sim_core.configure_rng(_battle_seed)
 	_sim_core.headless_mode = headless_mode
 	_sim_core.fast_sim_mode = fast_sim_mode
+	_sim_core.force_trace_logging = force_trace_logging
 	_sim_core.shock_floater_callback = _spawn_shock_floater_from_proxy
 	_sim_core.volley_visual_callback = _spawn_volley_visual_from_proxy
 	_sim_core.height_field = _height_field

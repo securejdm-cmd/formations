@@ -62,11 +62,12 @@ static func distance_m(a: Variant, b: Variant) -> float:
 
 
 static func find_gravity_target(unit: Variant, enemies: Array) -> Variant:
-	## Closest enemy in front arc within engage_radius_m. Null if pinned / none.
+	## Closest enemy in front arc within engage_radius_m SURFACE GAP (WO-024).
+	## DAMAGE_AND_CATEGORIES Sec 5: distance between blocks, not centers.
 	if is_pinned(unit) or is_disengaging(unit):
 		return null
 	var best = null
-	var best_d: float = INF
+	var best_gap: float = INF
 	var radius: float = Constants.get_float("engage_radius_m")
 	for enemy in enemies:
 		if enemy == null:
@@ -78,11 +79,12 @@ static func find_gravity_target(unit: Variant, enemies: Array) -> Variant:
 			continue
 		if not faces_in_front_arc(unit, enemy):
 			continue
-		var d: float = distance_m(unit, enemy)
-		if d > radius:
+		# Surface gap along unit facing; ≤ radius (incl. overlap ≤0) triggers.
+		var gap: float = FormationGeometry.surface_gap_along_facing_m(unit, enemy)
+		if gap > radius:
 			continue
-		if d < best_d:
-			best_d = d
+		if gap < best_gap:
+			best_gap = gap
 			best = enemy
 	return best
 

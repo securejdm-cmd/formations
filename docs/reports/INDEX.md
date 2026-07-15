@@ -2,6 +2,9 @@
 
 Canonical index of FORMATIONS work-order reports (newest first). Raw `main` branch links.
 
+- [WO-024_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-024-honest-numbers-fd84/docs/reports/WO-024_completion.md) — WO-024 Honest Numbers (GAMEPLAY_TICK, surface-gap gravity, sensitivity)
+- [WO-024_escalation.md](https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-024-honest-numbers-fd84/docs/reports/WO-024_escalation.md) — WO-024 S3 gravity A/B non-identity
+- [WO-023_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-023-gate2-blockers-fd84/docs/reports/WO-023_completion.md) — WO-023 Gate 2 blockers
 - [WO-021_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-021-test-hill-fd84/docs/reports/WO-021_completion.md) — WO-021 test hill slope & high ground (S36–S39)
 - [MAIN_MERGE_wo020_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/MAIN_MERGE_wo020_completion.md) — WO-020+020b merge; Magnetism complete; suite exit 0
 - [WO-020b_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/WO-020b_completion.md) — WO-020b magnetism teeth (withdrawal mult + turn rate)
