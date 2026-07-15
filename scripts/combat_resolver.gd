@@ -62,9 +62,16 @@ static func _slope_push_mod(unit: Variant) -> float:
 	return 1.0
 
 
+static func center_gap_m(unit_a: Variant, unit_b: Variant) -> float:
+	return _raw_center_gap_m(unit_a, unit_b)
+
+
 static func units_have_front_contact(unit_a: Variant, unit_b: Variant) -> bool:
 	var gap_m: float = _raw_center_gap_m(unit_a, unit_b)
-	return gap_m <= contact_epsilon_m() and gap_m >= -contact_epsilon_m()
+	# WO-023: penetration (gap < -eps) remains front contact. Separation beyond
+	# +eps is not. (Requiring |gap|<=eps left penetrated head-on pairs unable to
+	# classify after depth-shrink.)
+	return gap_m <= contact_epsilon_m()
 
 
 static func units_penetrating(unit_a: Variant, unit_b: Variant) -> bool:
@@ -441,6 +448,12 @@ static func is_head_on_pair(unit_a: Variant, unit_b: Variant) -> bool:
 
 
 static func units_have_any_contact(unit_a: Variant, unit_b: Variant) -> bool:
+	# Head-on classifier is the center-gap band (incl. penetration per WO-023).
+	if (
+		is_head_on_pair(unit_a, unit_b)
+		and not EdgeContact.has_non_front_segment_contact(unit_a, unit_b)
+	):
+		return units_have_front_contact(unit_a, unit_b)
 	return (
 		EdgeContact.units_have_contact(unit_a, unit_b)
 		or EdgeContact.units_have_contact(unit_b, unit_a)
