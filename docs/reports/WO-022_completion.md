@@ -135,7 +135,7 @@ Scripted 6v6 on test hill (`scripts/scenario_40_mixed.gd`, mode `s40_mixed`).
 ## Attestation
 
 - Branch: `cursor/wo-022-gate2-triangle-fd84`
-- Full SHA: `a594843599d7f269fd6287dead4d13b92024d91e`
+- Full SHA: `85943f0a63fb31e742fea9353a02bf79b84ce2a3`
 - Report: https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-022-gate2-triangle-fd84/docs/reports/WO-022_completion.md
 - Suite: https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-022-gate2-triangle-fd84/docs/reports/evidence_wo022/suite_stdout.log
 
