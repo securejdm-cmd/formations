@@ -13,12 +13,12 @@ func _run() -> void:
 	])
 	# Analytic flank timing check
 	var gallop := 13.4
-	var radius := C.get_float("engage_radius_m")
-	var cross_s := radius / gallop
+	var radius: float = C.get_float("engage_radius_m")
+	var cross_s: float = radius / gallop
 	print("flank_timing: gallop crosses %.1fm in %.3fs" % [radius, cross_s])
 	# infantry turn 90 deg
-	var turn_inf := 2.5 * (50.0 / 50.0) / 1.0
-	var t90 := (PI * 0.5) / turn_inf
+	var turn_inf: float = 2.5 * (50.0 / 50.0) / 1.0
+	var t90: float = (PI * 0.5) / turn_inf
 	print("infantry_90deg_turn=%.3fs (> cross => cannot reface even if unpinned)" % t90)
 	print("pinned_defender: gravity skip by R19; flanker not in defender front arc")
 

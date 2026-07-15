@@ -1,4 +1,3 @@
-class_name Magnetism
 extends RefCounted
 
 ## WO-020 full magnetism — engagement gravity, agility rotation, disengage (R19).
@@ -22,12 +21,12 @@ static func turn_rate_deg_s(unit: Variant) -> float:
 
 
 static func disengage_duration_s(unit: Variant) -> float:
-	var a := agility_of(unit)
+	var a: float = agility_of(unit)
 	return Constants.get_float("disengage_base_s") * (1.0 - a / 150.0)
 
 
 static func rotate_under_contact_drain_per_s(unit: Variant) -> float:
-	var a := agility_of(unit)
+	var a: float = agility_of(unit)
 	return Constants.get_float("rotate_under_contact_drain") * (1.0 - a / 150.0)
 
 
@@ -67,8 +66,8 @@ static func find_gravity_target(unit: Variant, enemies: Array) -> Variant:
 	if is_pinned(unit) or is_disengaging(unit):
 		return null
 	var best = null
-	var best_d := INF
-	var radius := Constants.get_float("engage_radius_m")
+	var best_d: float = INF
+	var radius: float = Constants.get_float("engage_radius_m")
 	for enemy in enemies:
 		if enemy == null:
 			continue
@@ -79,7 +78,7 @@ static func find_gravity_target(unit: Variant, enemies: Array) -> Variant:
 			continue
 		if not faces_in_front_arc(unit, enemy):
 			continue
-		var d := distance_m(unit, enemy)
+		var d: float = distance_m(unit, enemy)
 		if d > radius:
 			continue
 		if d < best_d:
@@ -92,12 +91,12 @@ static func rotate_toward(unit: Variant, desired: Vector2, delta: float) -> floa
 	## Rotate facing toward desired; returns abs angle moved this tick (rad).
 	if desired.length_squared() <= 0.0001:
 		return 0.0
-	var want := desired.normalized()
-	var angled := unit.facing.angle_to(want)
+	var want: Vector2 = desired.normalized()
+	var angled: float = unit.facing.angle_to(want)
 	if absf(angled) <= 0.001:
 		return 0.0
-	var max_turn := turn_rate_rad_s(unit) * delta
-	var stepped: float
+	var max_turn: float = turn_rate_rad_s(unit) * delta
+	var stepped: float = 0.0
 	if absf(angled) <= max_turn:
 		unit.facing = want
 		stepped = absf(angled)

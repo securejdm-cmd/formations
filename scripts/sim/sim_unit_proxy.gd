@@ -2,6 +2,7 @@ class_name SimUnitProxy
 extends RefCounted
 
 const _ChargeCombat := preload("res://scripts/charge_combat.gd")
+const _Magnetism := preload("res://scripts/magnetism.gd")
 
 var unit_id: String = ""
 var team_id: String = ""
@@ -393,16 +394,16 @@ func _update_marching_step(delta: float, enemies: Array = []) -> void:
 	_update_charge_commit(enemies)
 	var to_target := march_target - position
 	var top := _ChargeCombat.target_speed_m_s(self)
-	var gravity_target = Magnetism.find_gravity_target(self, enemies)
-	var desired_move := Vector2.ZERO
+	var gravity_target = _Magnetism.find_gravity_target(self, enemies)
+	var desired_move: Vector2 = Vector2.ZERO
 	if gravity_target != null:
 		var to_enemy: Vector2 = gravity_target.position - position
 		if to_enemy.length_squared() > 0.0001:
-			Magnetism.rotate_toward(self, to_enemy, delta)
+			_Magnetism.rotate_toward(self, to_enemy, delta)
 			desired_move = to_enemy.normalized()
 	elif to_target.length() > 0.001:
-		var desired := to_target.normalized()
-		var angled := facing.angle_to(desired)
+		var desired: Vector2 = to_target.normalized()
+		var angled: float = facing.angle_to(desired)
 		if absf(angled) > 0.15:
 			var max_turn: float = _ChargeCombat.turn_rate_rad_s(self) * delta
 			if absf(angled) <= max_turn:
@@ -443,7 +444,7 @@ func begin_disengage() -> void:
 	if disengaging:
 		return
 	disengaging = true
-	_disengage_time_left = Magnetism.disengage_duration_s(self)
+	_disengage_time_left = _Magnetism.disengage_duration_s(self)
 	wheeling = false
 
 
@@ -484,9 +485,9 @@ func begin_wheel_facing(desired: Vector2) -> void:
 func tick_wheel(delta: float) -> void:
 	if not wheeling:
 		return
-	var stepped := Magnetism.rotate_toward(self, wheel_facing_target, delta)
+	var stepped: float = _Magnetism.rotate_toward(self, wheel_facing_target, delta)
 	if stepped > 0.001 and not _contact_partners.is_empty():
-		var drain := Magnetism.rotate_under_contact_drain_per_s(self) * delta
+		var drain: float = _Magnetism.rotate_under_contact_drain_per_s(self) * delta
 		apply_cohesion_drain(drain)
 		rotate_under_contact_drain_accum += drain
 	if facing.angle_to(wheel_facing_target) <= 0.02:
