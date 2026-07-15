@@ -1,0 +1,64 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+SWEEP_HEADER bonus,down_v,down_i,up_v,up_i,ratio
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 37] Trace written: res://tests/traces/scenario_37_1000.csv
+[Scenario 37] SUMMARY | down_v=12.144/i=19.547 up_v=10.404/i=16.746 ratio=1.167
+[Scenario 01] SUMMARY | winner=blue_inf_up | march=17.6s | combat=52.4s | flee=72.2s | winner_strength=94.02 | winner_cohesion=49.05
+SWEEP 0.15,12.144,19.547,10.404,16.746,1.167
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 37] Trace written: res://tests/traces/scenario_37_1000.csv
+[Scenario 37] SUMMARY | down_v=12.384/i=19.933 up_v=10.128/i=16.302 ratio=1.223
+[Scenario 01] SUMMARY | winner=blue_inf_up | march=17.2s | combat=53.5s | flee=71.2s | winner_strength=94.02 | winner_cohesion=50.00
+SWEEP 0.20,12.384,19.933,10.128,16.302,1.223
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 37] Trace written: res://tests/traces/scenario_37_1000.csv
+[Scenario 37] SUMMARY | down_v=12.675/i=20.402 up_v=9.810/i=15.790 ratio=1.292
+[Scenario 01] SUMMARY | winner=blue_inf_up | march=16.9s | combat=54.3s | flee=71.0s | winner_strength=94.03 | winner_cohesion=51.12
+SWEEP 0.25,12.675,20.402,9.810,15.790,1.292
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 37] Trace written: res://tests/traces/scenario_37_1000.csv
+[Scenario 37] SUMMARY | down_v=12.870/i=20.716 up_v=9.450/i=15.211 ratio=1.362
+[Scenario 01] SUMMARY | winner=blue_inf_up | march=16.5s | combat=55.4s | flee=69.8s | winner_strength=94.03 | winner_cohesion=52.37
+SWEEP 0.30,12.870,20.716,9.450,15.211,1.362
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 37] Trace written: res://tests/traces/scenario_37_1000.csv
+[Scenario 37] SUMMARY | down_v=13.122/i=21.121 up_v=8.775/i=14.124 ratio=1.495
+[Scenario 01] SUMMARY | winner=blue_inf_up | march=16.2s | combat=56.6s | flee=68.6s | winner_strength=94.03 | winner_cohesion=54.68
+SWEEP 0.35,13.122,21.121,8.775,14.124,1.495
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 37] Trace written: res://tests/traces/scenario_37_1000.csv
+[Scenario 37] SUMMARY | down_v=13.356/i=21.498 up_v=8.100/i=13.038 ratio=1.649
+[Scenario 01] SUMMARY | winner=blue_inf_up | march=15.9s | combat=57.7s | flee=68.1s | winner_strength=94.06 | winner_cohesion=57.09
+SWEEP 0.40,13.356,21.498,8.100,13.038,1.649
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 37] Trace written: res://tests/traces/scenario_37_1000.csv
+[Scenario 37] SUMMARY | down_v=13.659/i=21.986 up_v=7.425/i=11.951 ratio=1.840
+[Scenario 01] SUMMARY | winner=blue_inf_up | march=15.7s | combat=57.9s | flee=68.4s | winner_strength=94.05 | winner_cohesion=59.36
+SWEEP 0.45,13.659,21.986,7.425,11.951,1.840
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 37] Trace written: res://tests/traces/scenario_37_1000.csv
+[Scenario 37] SUMMARY | down_v=13.860/i=22.309 up_v=6.750/i=10.865 ratio=2.053
+[Scenario 01] SUMMARY | winner=blue_inf_up | march=15.4s | combat=58.0s | flee=70.0s | winner_strength=94.05 | winner_cohesion=61.70
+SWEEP 0.50,13.860,22.309,6.750,10.865,2.053
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 37] Trace written: res://tests/traces/scenario_37_1000.csv
+[Scenario 37] SUMMARY | down_v=14.043/i=22.604 up_v=6.075/i=9.778 ratio=2.312
+[Scenario 01] SUMMARY | winner=blue_inf_up | march=15.1s | combat=58.5s | flee=71.4s | winner_strength=94.08 | winner_cohesion=64.08
+SWEEP 0.55,14.043,22.604,6.075,9.778,2.312
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 37] Trace written: res://tests/traces/scenario_37_1000.csv
+[Scenario 37] SUMMARY | down_v=14.304/i=23.024 up_v=5.400/i=8.692 ratio=2.649
+[Scenario 01] SUMMARY | winner=blue_inf_up | march=14.9s | combat=59.0s | flee=73.1s | winner_strength=94.09 | winner_cohesion=66.44
+SWEEP 0.60,14.304,23.024,5.400,8.692,2.649
+SWEEP_PICK bonus=0.35 ratio=1.495 (lowest that meets ≥1.4; -1 if none)

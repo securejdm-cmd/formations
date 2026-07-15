@@ -21,8 +21,8 @@ func _ready() -> void:
 func _spawn_units() -> void:
 	var profile := UnitProfileLoader.load_profile("test_infantry")
 	var px := Constants.get_float("px_per_meter")
-	# West flank mid-slope (~10% grade). Higher unit is downhill fighter facing west.
-	var meet_x := -100.0 * px
+	# Mid-ramp: downhill faces west; uphill faces east.
+	var meet_x := 0.0
 	var half_gap := 40.0 * px
 
 	_downhill = UNIT_SCENE.instantiate()

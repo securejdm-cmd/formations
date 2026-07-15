@@ -1,0 +1,28 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+HILL_GEOM {"cell_m":20.0,"cols":30,"design_grade":0.1,"kind":"constant_grade_ramp","label":"test_hill","origin_m":{"x":-300.0,"y":-200.0},"peak_grade":0.930389702320099,"peak_height_m":40.0,"ramp_x0_m":-200.0,"ramp_x1_m":200.0,"rows":20}
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 36] Trace written: res://tests/traces/scenario_36_1000.csv
+[Scenario 36] SUMMARY | winner=red_downhill | combat=50.0s | displace_m=12.13 | routed=blue_uphill | str_at_rout=69.88
+[Scenario 01] SUMMARY | winner=red_downhill | march=21.6s | combat=50.0s | flee=139.1s | winner_strength=81.10 | winner_cohesion=52.75
+PROBE_TICKS scenario_36.tscn 2107
+S36 displace=12.13 routed=blue_uphill combat=50.0 downhill_won=true
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 37] Trace written: res://tests/traces/scenario_37_1000.csv
+[Scenario 37] SUMMARY | down_v=13.122/i=21.121 up_v=8.775/i=14.124 ratio=1.495
+[Scenario 01] SUMMARY | winner=blue_inf_up | march=16.2s | combat=56.6s | flee=68.6s | winner_strength=94.03 | winner_cohesion=54.68
+PROBE_TICKS scenario_37.tscn 1414
+S37 down_v=13.122/i=21.121 up_v=8.775/i=14.124 ratio=1.495
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+PROBE_TICKS scenario_38.tscn 366
+S38 down=172.5 up=127.3
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 39] Trace written: res://tests/traces/scenario_39_1000.csv
+[Scenario 39] SUMMARY | winner=blue_hold | combat=64.0s | routed=red_climb | str_at_rout=67.25
+[Scenario 01] SUMMARY | winner=blue_hold | march=189.3s | combat=64.0s | flee=189.4s | winner_strength=76.24 | winner_cohesion=40.60
+PROBE_TICKS scenario_39.tscn 4427
+S39 winner=blue_hold combat=64.0 routed=red_climb str=67.25

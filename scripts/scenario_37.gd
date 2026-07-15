@@ -26,35 +26,35 @@ func _spawn_units() -> void:
 	var lane_dn := -80.0 * px
 	var lane_up := 80.0 * px
 
-	# Downhill charge on west flank: cav starts near crest, rides west (down).
-	var crest_x := -40.0 * px
+	# Downhill (mid-ramp): cav starts uphill (east), rides west.
+	var contact_dn := 0.0
 	_cav_down = UNIT_SCENE.instantiate()
 	add_child(_cav_down)
-	_cav_down.configure("red_cav_down", "red", cav_p, Vector2(crest_x, lane_dn), Vector2.LEFT)
+	_cav_down.configure("red_cav_down", "red", cav_p, Vector2(contact_dn + half, lane_dn), Vector2.LEFT)
 	_cav_down.start_from_rest()
-	_cav_down.set_march_to(Vector2(crest_x - RUN_UP_M * px - 40.0 * px, lane_dn))
+	_cav_down.set_march_to(Vector2(contact_dn - half - 40.0 * px, lane_dn))
 	_units.append(_cav_down)
 
 	_inf_down = UNIT_SCENE.instantiate()
 	add_child(_inf_down)
-	_inf_down.configure("blue_inf_down", "blue", inf_p, Vector2(crest_x - RUN_UP_M * px, lane_dn), Vector2.RIGHT)
+	_inf_down.configure("blue_inf_down", "blue", inf_p, Vector2(contact_dn - half, lane_dn), Vector2.RIGHT)
 	_inf_down.current_order = Unit.Order.HOLD
 	_inf_down._set_state(Unit.State.HOLD)
 	_inf_down.current_speed_m_s = 0.0
 	_units.append(_inf_down)
 
-	# Uphill charge: cav starts low on west flank, rides east (up toward crest).
-	var low_x := crest_x - RUN_UP_M * px
+	# Uphill: cav starts downhill (west), rides east.
+	var contact_up := 0.0
 	_cav_up = UNIT_SCENE.instantiate()
 	add_child(_cav_up)
-	_cav_up.configure("red_cav_up", "red", cav_p, Vector2(low_x, lane_up), Vector2.RIGHT)
+	_cav_up.configure("red_cav_up", "red", cav_p, Vector2(contact_up - half, lane_up), Vector2.RIGHT)
 	_cav_up.start_from_rest()
-	_cav_up.set_march_to(Vector2(crest_x + 40.0 * px, lane_up))
+	_cav_up.set_march_to(Vector2(contact_up + half + 40.0 * px, lane_up))
 	_units.append(_cav_up)
 
 	_inf_up = UNIT_SCENE.instantiate()
 	add_child(_inf_up)
-	_inf_up.configure("blue_inf_up", "blue", inf_p, Vector2(crest_x, lane_up), Vector2.LEFT)
+	_inf_up.configure("blue_inf_up", "blue", inf_p, Vector2(contact_up + half, lane_up), Vector2.LEFT)
 	_inf_up.current_order = Unit.Order.HOLD
 	_inf_up._set_state(Unit.State.HOLD)
 	_inf_up.current_speed_m_s = 0.0

@@ -3,9 +3,11 @@ extends RefCounted
 
 ## Coarse height grid (R6 / WO-021). World meters; sample from battlefield px via px_per_meter.
 
-const TEST_HILL_PEAK_HEIGHT_M := 20.0
-const TEST_HILL_HALF_WIDTH_M := 200.0
-const TEST_HILL_CREST_X_M := 0.0
+## Constant-grade ramp (west low → east high). Design grade = 0.10 everywhere on-slope.
+const TEST_HILL_GRADE := 0.10
+const TEST_HILL_X0_M := -200.0 ## west edge of ramp (height 0)
+const TEST_HILL_X1_M := 200.0 ## east edge of ramp
+const SELF_PATH := "res://scripts/height_field.gd"
 
 var cell_m: float = 20.0
 var origin_m: Vector2 = Vector2.ZERO ## SW corner of cell (0,0), meters.
@@ -16,15 +18,19 @@ var enabled: bool = true
 var label: String = "flat"
 
 
+static func _consts():
+	return Engine.get_main_loop().root.get_node("/root/Constants")
+
+
 static func px_to_m(pos_px: Vector2) -> Vector2:
-	var ppm: float = Constants.get_float("px_per_meter")
+	var ppm: float = float(_consts().get_float("px_per_meter"))
 	if ppm <= 0.0:
 		return Vector2.ZERO
 	return pos_px / ppm
 
 
-static func make_flat(cell_m_in: float = -1.0) -> HeightField:
-	var hf := HeightField.new()
+static func make_flat(cell_m_in: float = -1.0):
+	var hf = (load(SELF_PATH) as GDScript).new()
 	hf.label = "flat"
 	hf._init_grid(cell_m_in)
 	hf.heights.resize(hf.cols * hf.rows)
@@ -32,33 +38,38 @@ static func make_flat(cell_m_in: float = -1.0) -> HeightField:
 	return hf
 
 
-static func make_test_hill(cell_m_in: float = -1.0) -> HeightField:
-	## Triangular E–W ridge: crest at x=0, linear flanks.
-	## Flank grade = peak_height / half_width = 20/200 = 0.10 (Sec 7 reference).
-	var hf := HeightField.new()
+static func make_test_hill(cell_m_in: float = -1.0):
+	## Constant 10% grade ramp (west low → east high). Sec 7 reference grade everywhere on-ramp.
+	## ∇h ≈ (+0.10, 0): facing west = downhill, facing east = uphill.
+	var hf = (load(SELF_PATH) as GDScript).new()
 	hf.label = "test_hill"
 	hf._init_grid(cell_m_in)
 	hf.heights.resize(hf.cols * hf.rows)
-	var peak: float = TEST_HILL_PEAK_HEIGHT_M
-	var half_w: float = TEST_HILL_HALF_WIDTH_M
-	var crest_x: float = TEST_HILL_CREST_X_M
+	var grade: float = TEST_HILL_GRADE
+	var x0: float = TEST_HILL_X0_M
+	var x1: float = TEST_HILL_X1_M
+	var h_peak: float = grade * (x1 - x0)
 	for r in hf.rows:
 		for c in hf.cols:
 			var p: Vector2 = hf.cell_center_m(c, r)
-			var dx: float = absf(p.x - crest_x)
 			var h: float = 0.0
-			if dx < half_w:
-				h = peak * (1.0 - dx / half_w)
+			if p.x <= x0:
+				h = 0.0
+			elif p.x >= x1:
+				h = h_peak
+			else:
+				h = grade * (p.x - x0)
 			hf.heights[r * hf.cols + c] = h
 	return hf
 
 
 func _init_grid(cell_m_in: float = -1.0) -> void:
-	cell_m = cell_m_in if cell_m_in > 0.0 else Constants.get_float("height_cell_m")
+	var C = _consts()
+	cell_m = cell_m_in if cell_m_in > 0.0 else float(C.get_float("height_cell_m"))
 	if cell_m <= 0.0:
 		cell_m = 20.0
-	var bw: float = Constants.get_float("battlefield_width_m")
-	var bh: float = Constants.get_float("battlefield_height_m")
+	var bw: float = float(C.get_float("battlefield_width_m"))
+	var bh: float = float(C.get_float("battlefield_height_m"))
 	cols = int(ceil(bw / cell_m))
 	rows = int(ceil(bh / cell_m))
 	origin_m = Vector2(-bw * 0.5, -bh * 0.5)
@@ -76,11 +87,16 @@ func peak_height_m() -> float:
 
 
 func peak_grade() -> float:
-	## Max |∇h| sampled at cell centers (meters rise per meter run).
+	## Max |∇h| on the interior ramp (exclude plateau kinks at ramp ends).
 	var peak: float = 0.0
+	var x0: float = TEST_HILL_X0_M + cell_m
+	var x1: float = TEST_HILL_X1_M - cell_m
 	for r in rows:
 		for c in cols:
-			var g: Vector2 = sample_gradient_m(cell_center_m(c, r))
+			var p: Vector2 = cell_center_m(c, r)
+			if p.x < x0 or p.x > x1:
+				continue
+			var g: Vector2 = sample_gradient_m(p)
 			peak = maxf(peak, g.length())
 	return peak
 
@@ -132,7 +148,7 @@ func grade_along_direction(pos_m: Vector2, direction: Vector2) -> float:
 
 func slope_factor(grade: float, bonus: float) -> float:
 	## Sec 7 calibration: at slope_reference_grade, factor = 1 ± bonus.
-	var ref: float = Constants.get_float("slope_reference_grade")
+	var ref: float = float(_consts().get_float("slope_reference_grade"))
 	if ref <= 0.0:
 		return 1.0
 	return 1.0 + bonus * (grade / ref)
@@ -142,7 +158,7 @@ func speed_mult_at(pos_px: Vector2, facing: Vector2) -> float:
 	if not enabled:
 		return 1.0
 	var grade: float = grade_along_direction(px_to_m(pos_px), facing)
-	var mult: float = slope_factor(grade, Constants.get_float("slope_speed_bonus"))
+	var mult: float = slope_factor(grade, float(_consts().get_float("slope_speed_bonus")))
 	return maxf(0.05, mult)
 
 
@@ -150,7 +166,7 @@ func push_mod_at(pos_px: Vector2, facing: Vector2) -> float:
 	if not enabled:
 		return 1.0
 	var grade: float = grade_along_direction(px_to_m(pos_px), facing)
-	return maxf(0.05, slope_factor(grade, Constants.get_float("slope_push_bonus")))
+	return maxf(0.05, slope_factor(grade, float(_consts().get_float("slope_push_bonus"))))
 
 
 func range_mult_toward(shooter_px: Vector2, target_px: Vector2) -> float:
@@ -158,7 +174,7 @@ func range_mult_toward(shooter_px: Vector2, target_px: Vector2) -> float:
 		return 1.0
 	var to_t: Vector2 = target_px - shooter_px
 	var grade: float = grade_along_direction(px_to_m(shooter_px), to_t)
-	return maxf(0.05, slope_factor(grade, Constants.get_float("slope_range_bonus")))
+	return maxf(0.05, slope_factor(grade, float(_consts().get_float("slope_range_bonus"))))
 
 
 func geometry_report() -> Dictionary:
@@ -167,19 +183,21 @@ func geometry_report() -> Dictionary:
 		"cell_m": cell_m,
 		"cols": cols,
 		"rows": rows,
-		"origin_m": origin_m,
+		"origin_m": {"x": origin_m.x, "y": origin_m.y},
 		"peak_height_m": peak_height_m(),
 		"peak_grade": peak_grade(),
-		"design_grade": TEST_HILL_PEAK_HEIGHT_M / TEST_HILL_HALF_WIDTH_M,
-		"half_width_m": TEST_HILL_HALF_WIDTH_M,
-		"crest_x_m": TEST_HILL_CREST_X_M,
+		"design_grade": TEST_HILL_GRADE,
+		"ramp_x0_m": TEST_HILL_X0_M,
+		"ramp_x1_m": TEST_HILL_X1_M,
+		"kind": "constant_grade_ramp",
 	}
 
 
 func build_relief_image(px_per_meter: float, base_color: Color = Color(0.45, 0.55, 0.35, 1.0)) -> Image:
 	## Cheap shaded relief (NW light). Render-only; never touches traces.
-	var bw: float = Constants.get_float("battlefield_width_m")
-	var bh: float = Constants.get_float("battlefield_height_m")
+	var C = _consts()
+	var bw: float = float(C.get_float("battlefield_width_m"))
+	var bh: float = float(C.get_float("battlefield_height_m"))
 	var w: int = maxi(int(round(bw * px_per_meter)), 1)
 	var h: int = maxi(int(round(bh * px_per_meter)), 1)
 	var img := Image.create(w, h, false, Image.FORMAT_RGB8)

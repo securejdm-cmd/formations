@@ -1,7 +1,7 @@
 class_name Scenario39
 extends Scenario01
 
-## S39 — High ground composite: defender holds crest; identical attacker climbs.
+## S39 — High ground composite: defender holds high ground; identical attacker climbs.
 
 const TRACE_PREFIX := "scenario_39"
 
@@ -19,10 +19,10 @@ func _ready() -> void:
 func _spawn_units() -> void:
 	var profile := UnitProfileLoader.load_profile("test_infantry")
 	var px := Constants.get_float("px_per_meter")
-	# Defender on crest; attacker climbs from west.
+	# Defender higher (east); attacker climbs from west.
 	_defender = UNIT_SCENE.instantiate()
 	add_child(_defender)
-	_defender.configure("blue_hold", "blue", profile, Vector2(0.0, 0.0), Vector2.LEFT)
+	_defender.configure("blue_hold", "blue", profile, Vector2(80.0 * px, 0.0), Vector2.LEFT)
 	_defender.current_order = Unit.Order.HOLD
 	_defender._set_state(Unit.State.HOLD)
 	_defender.current_speed_m_s = 0.0
@@ -30,8 +30,8 @@ func _spawn_units() -> void:
 
 	_attacker = UNIT_SCENE.instantiate()
 	add_child(_attacker)
-	_attacker.configure("red_climb", "red", profile, Vector2(-160.0 * px, 0.0), Vector2.RIGHT)
-	_attacker.set_march_to(Vector2(40.0 * px, 0.0))
+	_attacker.configure("red_climb", "red", profile, Vector2(-120.0 * px, 0.0), Vector2.RIGHT)
+	_attacker.set_march_to(Vector2(100.0 * px, 0.0))
 	_units.append(_attacker)
 
 	for unit in _units:

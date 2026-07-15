@@ -64,18 +64,30 @@ static func target_speed_m_s(unit: Variant) -> float:
 		base = gait_top_speed_m_s(unit)
 	else:
 		base = top_speed_m_s(unit)
-	var slope_mult: float = 1.0
+	return base * _slope_speed_mult(unit)
+
+
+static func _slope_speed_mult(unit: Variant) -> float:
 	if unit != null and "slope_speed_mult" in unit:
-		slope_mult = float(unit.slope_speed_mult)
-	return base * maxf(0.05, slope_mult)
+		return maxf(0.05, float(unit.slope_speed_mult))
+	return 1.0
 
 
 static func accel_m_s2(unit: Variant) -> float:
-	return Constants.get_float("base_accel") / maxf(mass_of(unit), 0.01)
+	## WO-021: same slope mult as top speed — downhill accelerates faster (R6), no charge-specific path.
+	return (
+		Constants.get_float("base_accel")
+		/ maxf(mass_of(unit), 0.01)
+		* _slope_speed_mult(unit)
+	)
 
 
 static func decel_m_s2(unit: Variant) -> float:
-	return Constants.get_float("base_decel") / maxf(mass_of(unit), 0.01)
+	return (
+		Constants.get_float("base_decel")
+		/ maxf(mass_of(unit), 0.01)
+		* _slope_speed_mult(unit)
+	)
 
 
 static func charge_min_closing_m_s(attacker: Variant) -> float:

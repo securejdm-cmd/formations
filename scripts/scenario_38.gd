@@ -22,13 +22,12 @@ func _spawn_units() -> void:
 	var archer_p := UnitProfileLoader.load_profile("test_archer")
 	var inf_p := UnitProfileLoader.load_profile("test_infantry")
 	var px := Constants.get_float("px_per_meter")
-	# Mid-flank positions at ~10% design grade. Downhill shot faces west.
-	var shoot_x := -80.0 * px
 	var start_gap_m := 200.0
 
+	# Downhill shot: archer faces west (downslope), target marches up from west.
 	_archer_down = UNIT_SCENE.instantiate()
 	add_child(_archer_down)
-	_archer_down.configure("red_archer_down", "red", archer_p, Vector2(shoot_x, -70.0 * px), Vector2.LEFT)
+	_archer_down.configure("red_archer_down", "red", archer_p, Vector2(0.0, -90.0 * px), Vector2.LEFT)
 	_archer_down.current_order = Unit.Order.HOLD
 	_archer_down._set_state(Unit.State.HOLD)
 	_units.append(_archer_down)
@@ -39,22 +38,16 @@ func _spawn_units() -> void:
 		"blue_tgt_down",
 		"blue",
 		inf_p,
-		Vector2(shoot_x - start_gap_m * px, -70.0 * px),
+		Vector2(-start_gap_m * px, -90.0 * px),
 		Vector2.RIGHT
 	)
-	_tgt_down.set_march_to(Vector2(shoot_x + 20.0 * px, -70.0 * px))
+	_tgt_down.set_march_to(Vector2(20.0 * px, -90.0 * px))
 	_units.append(_tgt_down)
 
-	# Uphill shot: archer lower (west), target higher (east) — firing uphill.
+	# Uphill shot: archer faces east (upslope), target marches down from east.
 	_archer_up = UNIT_SCENE.instantiate()
 	add_child(_archer_up)
-	_archer_up.configure(
-		"red_archer_up",
-		"red",
-		archer_p,
-		Vector2(shoot_x - 40.0 * px, 70.0 * px),
-		Vector2.RIGHT
-	)
+	_archer_up.configure("red_archer_up", "red", archer_p, Vector2(0.0, 90.0 * px), Vector2.RIGHT)
 	_archer_up.current_order = Unit.Order.HOLD
 	_archer_up._set_state(Unit.State.HOLD)
 	_units.append(_archer_up)
@@ -65,10 +58,10 @@ func _spawn_units() -> void:
 		"blue_tgt_up",
 		"blue",
 		inf_p,
-		Vector2(shoot_x - 40.0 * px + start_gap_m * px, 70.0 * px),
+		Vector2(start_gap_m * px, 90.0 * px),
 		Vector2.LEFT
 	)
-	_tgt_up.set_march_to(Vector2(shoot_x - 60.0 * px, 70.0 * px))
+	_tgt_up.set_march_to(Vector2(-20.0 * px, 90.0 * px))
 	_units.append(_tgt_up)
 
 	for unit in _units:
