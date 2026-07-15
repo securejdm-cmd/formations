@@ -21,6 +21,10 @@ func _initialize() -> void:
 	call_deferred("_run")
 
 
+func _consts():
+	return Engine.get_main_loop().root.get_node("/root/Constants")
+
+
 func _run_pair(atk_id: String, def_id: String, seed_value: int) -> Dictionary:
 	var packed: PackedScene = load("res://tests/scenario_01.tscn")
 	var sc = packed.instantiate()
@@ -40,8 +44,8 @@ func _run_pair(atk_id: String, def_id: String, seed_value: int) -> Dictionary:
 	sc._units.clear()
 	var atk_p := UnitProfileLoader.load_profile(atk_id)
 	var def_p := UnitProfileLoader.load_profile(def_id)
-	var px := Constants.get_float("px_per_meter")
-	var half := Constants.get_float("scenario_01_start_distance_m") * 0.5 * px
+	var px := float(_consts().get_float("px_per_meter"))
+	var half := float(_consts().get_float("scenario_01_start_distance_m")) * 0.5 * px
 	var atk: Unit = load("res://scenes/unit.tscn").instantiate()
 	sc.add_child(atk)
 	atk.configure("attacker", "red", atk_p, Vector2(-half, 0.0), Vector2.RIGHT)
@@ -66,7 +70,7 @@ func _run_pair(atk_id: String, def_id: String, seed_value: int) -> Dictionary:
 		deff.current_speed_m_s = 0.0
 	# Spears facing charge: pre-warm brace (Gate 2 triangle uses braced spears).
 	if str(def_p.get("melee_damage_type", "")) == "Pierce":
-		deff._brace_hold_sec = Constants.get_float("brace_time_s") + 0.1
+		deff._brace_hold_sec = float(_consts().get_float("brace_time_s")) + 0.1
 		deff._braced = true
 		if deff.has_method("_update_brace_visual"):
 			deff._update_brace_visual()
