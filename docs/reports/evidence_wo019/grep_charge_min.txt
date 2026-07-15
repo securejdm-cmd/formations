@@ -1,0 +1,3 @@
+charge_min_speed absolute refs in scripts/data/tests:
+(none)
+charge_speed_si_scale: none in scripts/data/tests

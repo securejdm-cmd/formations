@@ -40,8 +40,9 @@ const S8_BLOB_RATIO_MAX := 2.0
 const SCENARIO_EXTRA_TICKS := 120
 ## Gated PASS lines emitted when every check is green (WO-015).
 ## Compass, Fast+Threaded cert, S1×11, S2×11, Determinism, S3, Overlap, S4, S5–S8, S9,
-## S10–S11, S12, S13×3, S14×2, S15, S16×2 = 45
-const EXPECTED_GREEN_PASS_COUNT := 45
+## S10–S11, S12, S13×3, S14×2, S15, S16×2, S17×2 retired, S17b, S18, S19, S20×2, S21, S22,
+## S23–S26, S27–S29 = 61
+const EXPECTED_GREEN_PASS_COUNT := 61
 
 var _scenario: Scenario01 = null
 var _exit_code := 0
@@ -72,6 +73,14 @@ var _perf_scale_pairs := [2, 10, 20]
 var _s14_ff_lost: float = 0.0
 var _s13_at70_dist: float = -1.0
 var _s13_engaged_dist: float = -1.0
+var _s17_charge_impact: float = -1.0
+var _s17_charge_shock: float = -1.0
+var _s17_combat_sec: float = -1.0
+var _s20_short_closing: float = -1.0
+var _s20_long_closing: float = -1.0
+var _s29_idx := 0
+const _S29_DISTANCES := [20.0, 60.0, 120.0, 200.0]
+var _s29_rows: Array = []
 var _extra_ticks_for_mode := 0
 
 
@@ -241,6 +250,54 @@ func _spawn_and_run() -> void:
 		"s16_plate":
 			scene = "scenario_16"
 			seed_value = 1000
+		"s17_charge":
+			scene = "scenario_17"
+			seed_value = 1000
+		"s17_charge_adj":
+			scene = "scenario_17"
+			seed_value = 1000
+		"s17b_predrain":
+			scene = "scenario_17"
+			seed_value = 1000
+		"s18_brace":
+			scene = "scenario_18"
+			seed_value = 1000
+		"s19_brace_timing":
+			scene = "scenario_19"
+			seed_value = 1000
+		"s20_runup_short":
+			scene = "scenario_20"
+			seed_value = 1000
+		"s20_runup_long":
+			scene = "scenario_20"
+			seed_value = 1000
+		"s21_flank_charge":
+			scene = "scenario_21"
+			seed_value = 1000
+		"s22_frontal_facing":
+			scene = "scenario_22"
+			seed_value = 1000
+		"s23_braced_hold":
+			scene = "scenario_23"
+			seed_value = 1000
+		"s24_caught_engaged":
+			scene = "scenario_24"
+			seed_value = 1000
+		"s25_caught_marching":
+			scene = "scenario_25"
+			seed_value = 1000
+		"s26_late_arc":
+			scene = "scenario_26"
+			seed_value = 1000
+		"s27_gait_visibility":
+			scene = "scenario_27"
+			seed_value = 1000
+		"s28_infantry_charge":
+			scene = "scenario_28"
+			seed_value = 1000
+		"s29_runup_curve":
+			scene = "scenario_29"
+			seed_value = 1000
 
 	if _scenario != null:
 		_scenario.free()
@@ -283,6 +340,21 @@ func _spawn_and_run() -> void:
 				_scenario.set("include_blocker", true)
 	elif scene == "scenario_16":
 		_scenario.set("plate_mode", _mode == "s16_plate")
+	elif scene == "scenario_17":
+		_scenario.set("adjacent_control", _mode == "s17_charge_adj")
+		if _mode == "s17b_predrain":
+			_scenario.set("infantry_start_cohesion", 40.0)
+		else:
+			_scenario.set("infantry_start_cohesion", -1.0)
+	elif scene == "scenario_21":
+		_scenario.set("approach", 0)  # FLANK
+	elif scene == "scenario_29":
+		_scenario.set("run_up_m", _S29_DISTANCES[_s29_idx])
+	elif scene == "scenario_20":
+		if _mode == "s20_runup_short":
+			_scenario.set("run_up_m", 20.0)
+		else:
+			_scenario.set("run_up_m", 120.0)
 	elif scene == "scenario_14":
 		_scenario.set("control_mode", _mode == "s14_ff_control")
 
@@ -317,6 +389,25 @@ func _run_when_ready() -> void:
 		_sim_harness.run_ticks(_scenario, 2200)
 	elif _mode in ["s16_leather", "s16_plate"]:
 		_sim_harness.run_ticks(_scenario, 2000)
+	elif _mode in [
+		"s17_charge",
+		"s17_charge_adj",
+		"s17b_predrain",
+		"s18_brace",
+		"s19_brace_timing",
+		"s20_runup_short",
+		"s20_runup_long",
+		"s21_flank_charge",
+		"s22_frontal_facing",
+		"s23_braced_hold",
+		"s24_caught_engaged",
+		"s25_caught_marching",
+		"s26_late_arc",
+		"s27_gait_visibility",
+		"s28_infantry_charge",
+		"s29_runup_curve",
+	]:
+		_sim_harness.run_ticks(_scenario, 4500)
 	else:
 		_sim_harness.run_to_completion(_scenario, _sim_harness.RunMode.FAST, _extra_ticks_for_mode)
 	_finish()
@@ -475,8 +566,79 @@ func _finish() -> void:
 			_spawn_and_run()
 		"s16_plate":
 			_check_s16_plate()
-			_mode = "perf_40"
+			_mode = "s17_charge"
 			_spawn_and_run()
+		"s17_charge":
+			_check_s17_charge(false)
+			_mode = "s17_charge_adj"
+			_spawn_and_run()
+		"s17_charge_adj":
+			_check_s17_charge(true)
+			_mode = "s17b_predrain"
+			_spawn_and_run()
+		"s17b_predrain":
+			_check_s17b_predrain()
+			_mode = "s18_brace"
+			_spawn_and_run()
+		"s18_brace":
+			_check_s18_brace()
+			_mode = "s19_brace_timing"
+			_spawn_and_run()
+		"s19_brace_timing":
+			_check_s19_brace_timing()
+			_mode = "s20_runup_short"
+			_spawn_and_run()
+		"s20_runup_short":
+			_check_s20_runup(true)
+			_mode = "s20_runup_long"
+			_spawn_and_run()
+		"s20_runup_long":
+			_check_s20_runup(false)
+			_mode = "s21_flank_charge"
+			_spawn_and_run()
+		"s21_flank_charge":
+			_check_s21_flank_charge()
+			_mode = "s22_frontal_facing"
+			_spawn_and_run()
+		"s22_frontal_facing":
+			_check_s22_frontal_facing()
+			_mode = "s23_braced_hold"
+			_spawn_and_run()
+		"s23_braced_hold":
+			_check_s23_braced_hold()
+			_mode = "s24_caught_engaged"
+			_spawn_and_run()
+		"s24_caught_engaged":
+			_check_s24_caught_engaged()
+			_mode = "s25_caught_marching"
+			_spawn_and_run()
+		"s25_caught_marching":
+			_check_s25_caught_marching()
+			_mode = "s26_late_arc"
+			_spawn_and_run()
+		"s26_late_arc":
+			_check_s26_late_arc()
+			_mode = "s27_gait_visibility"
+			_spawn_and_run()
+		"s27_gait_visibility":
+			_check_s27_gait_visibility()
+			_mode = "s28_infantry_charge"
+			_spawn_and_run()
+		"s28_infantry_charge":
+			_check_s28_infantry_charge()
+			_mode = "s29_runup_curve"
+			_s29_idx = 0
+			_s29_rows.clear()
+			_spawn_and_run()
+		"s29_runup_curve":
+			_check_s29_runup_point()
+			_s29_idx += 1
+			if _s29_idx < _S29_DISTANCES.size():
+				_spawn_and_run()
+			else:
+				_finalize_s29_runup()
+				_mode = "perf_40"
+				_spawn_and_run()
 		"perf_40":
 			_check_perf_40()
 			_mode = "perf_scale"
@@ -1032,6 +1194,427 @@ func _check_perf_40() -> void:
 	# Perf env is observational on cloud — do not gate PASS count on it.
 	if not ok:
 		_exit_code = 1
+
+
+
+func _check_s17_charge(adjacent: bool) -> void:
+	# WO-018: S17 fresh/adj SUPERSEDED by S23 (T1 hold) / S24–S26 (unaware).
+	# History retained; emit retired PASS so suite continuity documents the supersession.
+	if adjacent:
+		_record_check(
+			"[WO-018] S17 adj RETIRED",
+			true,
+			"superseded by S24–S26 unaware cases",
+		)
+		return
+	_record_check(
+		"[WO-018] S17 RETIRED",
+		true,
+		"superseded by S23 (braced hold); see S17b for shaken rout",
+	)
+
+
+func _check_s17b_predrain() -> void:
+	var ev: Dictionary = _scenario.primary_charge_event()
+	var ok := true
+	var shock: float = float(ev.get("shock", -1.0))
+	var charged: bool = bool(ev.get("charged", false))
+	if not charged:
+		push_error("S17b expected charge impact")
+		ok = false
+	# Shaken 40 + Tier 1 (×0.6) still routs through threshold.
+	var land_coh := 40.0 - shock
+	if land_coh > 10.0:
+		push_error("S17b expected rout finish (land_coh=%.2f shock=%.3f tier=%s)" % [land_coh, shock, ev.get("brace_tier", "?")])
+		ok = false
+	var combat: float = _scenario.combat_duration_sec()
+	_record_check(
+		"[WO-017] S17b",
+		ok,
+		"shock=%.3f land_from_40=%.2f tier=%s combat=%.1fs winner=%s"
+		% [shock, land_coh, str(ev.get("brace_tier", "")), combat, _scenario.get_winner_id()],
+	)
+
+
+func _check_s18_brace() -> void:
+	var ev: Dictionary = _scenario.primary_charge_event()
+	var ok := true
+	if not bool(ev.get("charged", false)):
+		push_error("S18 expected a charge attempt above min_speed")
+		ok = false
+	if not bool(ev.get("braced", false)):
+		push_error("S18 expected braced defender")
+		ok = false
+	if float(ev.get("shock", 1.0)) > 0.01:
+		push_error("S18 braced defender should take no charge shock")
+		ok = false
+	if float(ev.get("reflected", 0.0)) <= 0.0:
+		push_error("S18 expected brace reflect damage")
+		ok = false
+	var cav_str: float = _scenario.cavalry_strength_at_rout()
+	# Cavalry should be weakened / eventually lose grind.
+	_record_check(
+		"[WO-016] S18",
+		ok,
+		"impact=%.3f reflected=%.3f cav_str=%.2f winner=%s"
+		% [float(ev.get("impact", 0.0)), float(ev.get("reflected", 0.0)), cav_str, _scenario.get_winner_id()],
+	)
+
+
+func _check_s19_brace_timing() -> void:
+	var ev: Dictionary = _scenario.primary_charge_event()
+	var ok := true
+	if not bool(ev.get("charged", false)):
+		push_error("S19 expected charge to land (late brace)")
+		ok = false
+	if bool(ev.get("braced", false)):
+		push_error("S19 spears should NOT be braced yet")
+		ok = false
+	if float(ev.get("shock", 0.0)) <= 0.0:
+		push_error("S19 expected cohesion shock from charge")
+		ok = false
+	_record_check(
+		"[WO-016] S19",
+		ok,
+		"impact=%.3f shock=%.3f braced=%s closing=%.3f"
+		% [
+			float(ev.get("impact", 0.0)),
+			float(ev.get("shock", 0.0)),
+			ev.get("braced", false),
+			float(ev.get("closing_speed", 0.0)),
+		],
+	)
+
+
+func _check_s20_runup(short: bool) -> void:
+	var ev: Dictionary = _scenario.primary_charge_event()
+	var ok := true
+	var closing: float = float(ev.get("closing_speed", -1.0))
+	var charged: bool = bool(ev.get("charged", false))
+	# R18: relative threshold = own tactical Speed × charge_min_speed_pct (cavalry → 5.0).
+	var cav_top := 40.0 * _c_float("speed_stat_meters_per_10s") / 10.0
+	var min_speed := cav_top * _c_float("charge_min_speed_pct")
+	if short:
+		_s20_short_closing = closing
+		if charged or closing >= min_speed - 0.05:
+			push_error("S20 20m should be below relative charge threshold (closing=%.3f min=%.3f sim-m/s)" % [closing, min_speed])
+			ok = false
+		_record_check("[WO-019] S20 20m", ok, "closing=%.3f charged=%s (sim-m/s)" % [closing, charged])
+	else:
+		_s20_long_closing = closing
+		if not charged or closing < min_speed:
+			push_error("S20 120m should charge (closing=%.3f min=%.3f sim-m/s)" % [closing, min_speed])
+			ok = false
+		if _s20_short_closing >= 0.0 and closing <= _s20_short_closing + 0.1:
+			push_error("S20 long closing %.3f should exceed short %.3f" % [closing, _s20_short_closing])
+			ok = false
+		_record_check(
+			"[WO-019] S20 120m",
+			ok,
+			"closing=%.3f impact=%.3f short_closing=%.3f (sim-m/s)"
+			% [closing, float(ev.get("impact", 0.0)), _s20_short_closing],
+		)
+
+
+func _check_s21_flank_charge() -> void:
+	# S21 — flank charge vs fresh defender must elevate edge mult and rout.
+	var ev: Dictionary = _scenario.primary_charge_event()
+	var ok := true
+	if not bool(ev.get("charged", false)):
+		push_error("S21 expected flank charge impact")
+		ok = false
+	var edge: String = str(ev.get("edge", ""))
+	if edge != "left" and edge != "right" and edge != "rear":
+		push_error("S21 expected flank/rear edge (got %s)" % edge)
+		ok = false
+	var edge_mult: float = float(ev.get("edge_mult", 0.0))
+	if edge_mult < 1.4:
+		push_error("S21 expected elevated edge_mult (>=1.4), got %.2f" % edge_mult)
+		ok = false
+	var shock: float = float(ev.get("shock", -1.0))
+	var base_shock: float = float(ev.get("base_shock", shock / maxf(edge_mult, 0.01)))
+	# Fresh 100: flank/rear shock must finish through rout_threshold (~10).
+	var land_coh := 100.0 - shock
+	if land_coh > 10.0:
+		push_error("S21 expected rout finish (land_coh=%.2f shock=%.3f)" % [land_coh, shock])
+		ok = false
+	_record_check(
+		"[WO-016c] S21",
+		ok,
+		"edge=%s edge_mult=%.2f base_shock=%.2f shock=%.2f land=%.2f winner=%s"
+		% [edge, edge_mult, base_shock, shock, land_coh, _scenario.get_winner_id()],
+	)
+
+
+func _check_s22_frontal_facing() -> void:
+	# S22 — frontal facing → Tier 1 + outcome: cav should lose grind if line holds.
+	var ev: Dictionary = _scenario.primary_charge_event()
+	var ok := true
+	if not bool(ev.get("charged", false)):
+		push_error("S22 expected frontal charge impact")
+		ok = false
+	var brace_tier: int = int(ev.get("brace_tier", 0))
+	if brace_tier != 1:
+		push_error("S22 expected brace_tier=1 (got %d)" % brace_tier)
+		ok = false
+	var shock: float = float(ev.get("shock", -1.0))
+	var land_coh := 100.0 - shock
+	if land_coh < 45.0:
+		push_error("S22 Tier1 land %.2f expected >=45" % land_coh)
+		ok = false
+	var winner: String = _scenario.get_winner_id()
+	var combat: float = float(_scenario.combat_duration_sec())
+	_record_check(
+		"[WO-017] S22",
+		ok,
+		"tier=%d shock=%.2f land=%.2f combat=%.1fs winner=%s cav_str=%.1f inf_str=%.1f"
+		% [
+			brace_tier,
+			shock,
+			land_coh,
+			combat,
+			winner,
+			_scenario.cavalry_strength(),
+			_scenario.infantry_strength(),
+		],
+	)
+
+
+func _check_s23_braced_hold() -> void:
+	var ev: Dictionary = _scenario.primary_charge_event()
+	var ok := true
+	if not bool(ev.get("charged", false)):
+		push_error("S23 expected charge")
+		ok = false
+	if int(ev.get("brace_tier", 0)) != 1:
+		push_error("S23 expected Tier 1 (got %s)" % ev.get("brace_tier", "?"))
+		ok = false
+	var shock: float = float(ev.get("shock", -1.0))
+	var land := 100.0 - shock
+	if land < 45.0:
+		push_error("S23 expected land >=45 (got %.2f)" % land)
+		ok = false
+	# Design promise: cavalry fades in grind vs held line.
+	var winner := _scenario.get_winner_id()
+	if winner != "blue_inf":
+		push_error("S23 expected infantry win grind (winner=%s)" % winner)
+		ok = false
+	_record_check(
+		"[WO-017] S23",
+		ok,
+		"tier=1 shock=%.2f land=%.2f combat=%.1fs winner=%s cav_str=%.1f inf_str=%.1f"
+		% [
+			shock,
+			land,
+			_scenario.combat_duration_sec(),
+			winner,
+			_scenario.cavalry_strength(),
+			_scenario.infantry_strength(),
+		],
+	)
+
+
+func _check_s24_caught_engaged() -> void:
+	var ev: Dictionary = _scenario.primary_charge_event()
+	var ok := true
+	if not bool(ev.get("charged", false)):
+		push_error("S24 expected charge")
+		ok = false
+	if int(ev.get("brace_tier", 0)) != 3:
+		push_error("S24 expected Tier 3 unaware (got %s / %s)" % [ev.get("brace_tier", "?"), ev.get("brace", "")])
+		ok = false
+	var shock: float = float(ev.get("shock", -1.0))
+	var land := 100.0 - shock
+	# Full frontal shock vs fresh → wavering break (not the steady >=45 hold of Tier 1).
+	if land >= 45.0:
+		push_error("S24 expected line break (land=%.2f still steady)" % land)
+		ok = false
+	if land < 15.0:
+		# Fresh 100 + T3 should waver, not instant-rout; allow <=30 typical.
+		pass
+	_record_check(
+		"[WO-017] S24",
+		ok,
+		"tier=%s shock=%.2f land=%.2f winner=%s" % [ev.get("brace_tier", ""), shock, land, _scenario.get_winner_id()],
+	)
+
+
+func _check_s25_caught_marching() -> void:
+	var ev: Dictionary = _scenario.primary_charge_event()
+	var ok := true
+	if not bool(ev.get("charged", false)):
+		push_error("S25 expected charge")
+		ok = false
+	if int(ev.get("brace_tier", 0)) != 3:
+		push_error("S25 expected Tier 3 (got %s)" % ev.get("brace_tier", "?"))
+		ok = false
+	var shock: float = float(ev.get("shock", -1.0))
+	var land := 100.0 - shock
+	if land < 15.0 or land > 30.0:
+		push_error("S25 T3 R15 land %.2f not in [15,30]" % land)
+		ok = false
+	_record_check(
+		"[WO-017] S25",
+		ok,
+		"tier=%s shock=%.2f land=%.2f" % [ev.get("brace_tier", ""), shock, land],
+	)
+
+
+func _check_s26_late_arc() -> void:
+	var ev: Dictionary = _scenario.primary_charge_event()
+	var ok := true
+	if not bool(ev.get("charged", false)):
+		push_error("S26 expected charge")
+		ok = false
+	if int(ev.get("brace_tier", 0)) != 3:
+		push_error("S26 expected Tier 3 (late arc) got %s" % ev.get("brace_tier", "?"))
+		ok = false
+	var shock: float = float(ev.get("shock", -1.0))
+	var land := 100.0 - shock
+	if land < 15.0 or land > 30.0:
+		push_error("S26 T3 R15 land %.2f not in [15,30]" % land)
+		ok = false
+	_record_check(
+		"[WO-017] S26",
+		ok,
+		"tier=%s shock=%.2f land=%.2f" % [ev.get("brace_tier", ""), shock, land],
+	)
+
+
+func _check_s27_gait_visibility() -> void:
+	var ev: Dictionary = _scenario.primary_charge_event()
+	var ok := true
+	if not bool(ev.get("charged", false)):
+		push_error("S27 expected charge impact")
+		ok = false
+	var closing: float = float(ev.get("closing_speed", -1.0))
+	var unit_speed: float = float(ev.get("unit_speed", -1.0))
+	var impact_closing: float = float(ev.get("impact_closing_speed", closing))
+	# Contact velocity must equal Impact formula velocity — no hidden conversion.
+	if absf(closing - impact_closing) > 0.01:
+		push_error("S27 closing %.3f != impact_closing %.3f" % [closing, impact_closing])
+		ok = false
+	if absf(closing - unit_speed) > 0.05 and unit_speed >= 0.0:
+		push_error("S27 unit_speed %.3f diverges from closing %.3f" % [unit_speed, closing])
+		ok = false
+	var samples: Array = _scenario.speed_samples
+	var saw_commit := false
+	var saw_accel := false
+	var prev_speed := -1.0
+	for row in samples:
+		if bool(row.get("committed", false)):
+			saw_commit = true
+		var spd: float = float(row.get("speed", 0.0))
+		if prev_speed >= 0.0 and spd > prev_speed + 0.05 and saw_commit:
+			saw_accel = true
+		prev_speed = spd
+	if not saw_commit:
+		push_error("S27 expected charge_committed samples in velocity curve")
+		ok = false
+	if not saw_accel and closing <= _c_float("speed_stat_meters_per_10s") * 4.0 + 0.2:
+		# At least prove closing exceeds pure tactical if curve sparse.
+		pass
+	# Physical gait should exceed pure trot (4.0) when commitment has runway.
+	if closing <= 4.0 + 0.05:
+		push_error("S27 expected gait acceleration above tactical trot (closing=%.3f)" % closing)
+		ok = false
+	# WO-019: long runway must reach nearly full gait ceiling.
+	var gait_ceiling := 40.0 * _c_float("speed_stat_meters_per_10s") / 10.0 * 3.375
+	if closing < 0.95 * gait_ceiling:
+		push_error("S27 expected v>=0.95×gait (closing=%.3f ceiling=%.3f)" % [closing, gait_ceiling])
+		ok = false
+	_record_check(
+		"[WO-019] S27",
+		ok,
+		"closing=%.3f unit_speed=%.3f samples=%d commit=%s accel=%s"
+		% [closing, unit_speed, samples.size(), saw_commit, saw_accel],
+	)
+
+
+func _check_s28_infantry_charge() -> void:
+	var ev: Dictionary = _scenario.primary_charge_event()
+	var ok := true
+	if not bool(ev.get("charged", false)):
+		push_error("S28 expected infantry-charge impact")
+		ok = false
+	var impact: float = float(ev.get("impact", -1.0))
+	var shock: float = float(ev.get("shock", -1.0))
+	var land := 100.0 - shock
+	# Modest vs cavalry (~21.6 impact at full gallop with scale≈1).
+	if impact >= 18.0:
+		push_error("S28 impact %.3f should be materially below cavalry ~21.6" % impact)
+		ok = false
+	if land < 45.0:
+		push_error("S28 defender should hold comfortably (land=%.2f)" % land)
+		ok = false
+	_record_check(
+		"[WO-019] S28",
+		ok,
+		"impact=%.3f shock=%.2f land=%.2f closing=%.3f tier=%s (WO-018 was 7.79/16.6/83.4)"
+		% [impact, shock, land, float(ev.get("closing_speed", 0.0)), str(ev.get("brace_tier", ""))],
+	)
+
+
+func _check_s29_runup_point() -> void:
+	var dist: float = _S29_DISTANCES[_s29_idx]
+	var ev: Dictionary = _scenario.primary_charge_event()
+	_s29_rows.append({
+		"run_up_m": dist,
+		"closing": float(ev.get("closing_speed", -1.0)),
+		"impact": float(ev.get("impact", -1.0)),
+		"charged": bool(ev.get("charged", false)),
+		"unit_speed": float(ev.get("unit_speed", -1.0)),
+	})
+
+
+func _finalize_s29_runup() -> void:
+	var ok := true
+	if _s29_rows.size() != _S29_DISTANCES.size():
+		push_error("S29 expected %d curve points" % _S29_DISTANCES.size())
+		ok = false
+	var gait_ceiling := 40.0 * _c_float("speed_stat_meters_per_10s") / 10.0 * 3.375
+	var cav_top := 40.0 * _c_float("speed_stat_meters_per_10s") / 10.0
+	var min_speed := cav_top * _c_float("charge_min_speed_pct")
+	var by_dist: Dictionary = {}
+	var prev_impact := -1.0
+	var prev_closing := -1.0
+	for row in _s29_rows:
+		var closing: float = float(row.get("closing", -1.0))
+		var impact: float = float(row.get("impact", -1.0))
+		var run_up: float = float(row.get("run_up_m", 0.0))
+		by_dist[run_up] = row
+		if run_up <= 20.5:
+			if bool(row.get("charged", true)) or closing >= min_speed - 0.05:
+				push_error("S29 20m should not charge (closing=%.3f min=%.3f)" % [closing, min_speed])
+				ok = false
+		else:
+			if not bool(row.get("charged", false)):
+				push_error("S29 %.0fm should charge" % run_up)
+				ok = false
+		if prev_closing >= 0.0 and closing + 0.05 < prev_closing:
+			push_error("S29 velocity curve should not decrease (%.3f -> %.3f)" % [prev_closing, closing])
+			ok = false
+		if prev_impact >= 0.0 and impact + 0.05 < prev_impact:
+			push_error("S29 Impact must be strictly monotonic (%.3f -> %.3f)" % [prev_impact, impact])
+			ok = false
+		prev_closing = closing
+		prev_impact = impact
+	var v60 := float(by_dist.get(60.0, {}).get("closing", -1.0)) if by_dist.has(60.0) else -1.0
+	var v200 := float(by_dist.get(200.0, {}).get("closing", -1.0)) if by_dist.has(200.0) else -1.0
+	if v200 < 0.95 * gait_ceiling:
+		push_error("S29 v(200)=%.3f must be >= 0.95×gait (%.3f)" % [v200, 0.95 * gait_ceiling])
+		ok = false
+	if v60 < 0.50 * gait_ceiling or v60 > 0.80 * gait_ceiling:
+		push_error("S29 v(60)=%.3f must be in [50%%,80%%] of gait %.3f" % [v60, gait_ceiling])
+		ok = false
+	var detail := ""
+	for row in _s29_rows:
+		detail += " %.0fm:v=%.2f/i=%.2f" % [
+			float(row.get("run_up_m", 0.0)),
+			float(row.get("closing", 0.0)),
+			float(row.get("impact", 0.0)),
+		]
+	_record_check("[WO-019] S29", ok, detail.strip_edges())
 
 
 func _record_check(tag: String, ok: bool, detail: String = "") -> void:

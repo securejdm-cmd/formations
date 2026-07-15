@@ -2,6 +2,12 @@
 
 Canonical index of FORMATIONS work-order reports (newest first). Raw `main` branch links.
 
+- [WO-018_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/WO-018_completion.md) — WO-018 charge gait (R17); delete SI scale
+- [WO-017_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/WO-017_completion.md) — WO-017 three-tier brace (R16) + spectrum / S23–S26
+- [WO-016b_speed_scale_root_cause.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/WO-016b_speed_scale_root_cause.md) — WO-016b SI charge scale root cause (TD record)
+- [WO-016c_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/WO-016c_completion.md) — WO-016c directional charge shock (edge casualty mult, S21–S22)
+- [WO-016b_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/WO-016b_completion.md) — WO-016b SI charge scale + R15 + S17b
+- [WO-016_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/WO-016_completion.md) — WO-016 mounted charge, mass, brace (S17–S20)
 - [WO-015_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/WO-015_completion.md) — WO-015 S6 harness repair
 - [WO-014b_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/WO-014b_completion.md) — WO-014b fresh report path (sweep/S12–S16/suite)
 - [WO-014_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/WO-014_completion.md) — WO-014 ranged combat completion

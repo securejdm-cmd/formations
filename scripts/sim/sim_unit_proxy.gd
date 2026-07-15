@@ -1,6 +1,8 @@
 class_name SimUnitProxy
 extends RefCounted
 
+const _ChargeCombat := preload("res://scripts/charge_combat.gd")
+
 var unit_id: String = ""
 var team_id: String = ""
 var profile: Dictionary = {}
@@ -31,6 +33,21 @@ var _crack_intensity: float = 0.0  # Legacy sync field; crack band is strength%-
 var _ammo_remaining: int = -1
 var _reload_timer: float = 0.0
 var _dead_zone_panic_done: bool = false
+var current_speed_m_s: float = 0.0
+var charge_amp_factor: float = 1.0
+var _charge_amp_time_left: float = 0.0
+## R17: charge gait commitment (physical acceleration to gait top).
+var charge_committed: bool = false
+var _charge_commit_target_id: String = ""
+var _brace_hold_sec: float = 0.0
+var _braced: bool = false
+var _threat_front_sec: float = 0.0
+var brace_tier_last: int = 0
+var threat_front_sec: float:
+	get:
+		return _threat_front_sec
+	set(value):
+		_threat_front_sec = value
 
 
 static func from_unit(unit: Unit) -> SimUnitProxy:
@@ -59,6 +76,15 @@ static func from_unit(unit: Unit) -> SimUnitProxy:
 	p._pending_rout_event = unit._pending_rout_event
 	p._crack_intensity = 0.0
 	p._init_ranged_state_from_profile()
+	p.current_speed_m_s = unit.current_speed_m_s
+	p.charge_amp_factor = unit.charge_amp_factor
+	p._charge_amp_time_left = unit._charge_amp_time_left
+	p.charge_committed = unit.charge_committed
+	p._charge_commit_target_id = unit._charge_commit_target_id
+	p._brace_hold_sec = unit._brace_hold_sec
+	p._braced = unit._braced
+	p._threat_front_sec = unit._threat_front_sec
+	p.brace_tier_last = unit.brace_tier_last
 	if unit.ammo_remaining >= 0:
 		p._ammo_remaining = unit.ammo_remaining
 	for partner in unit.get_contact_partners():
@@ -92,6 +118,15 @@ func refresh_from_unit(unit: Unit) -> void:
 	_crack_intensity = 0.0
 	if _ammo_remaining < 0:
 		_init_ranged_state_from_profile()
+	current_speed_m_s = unit.current_speed_m_s
+	charge_amp_factor = unit.charge_amp_factor
+	_charge_amp_time_left = unit._charge_amp_time_left
+	charge_committed = unit.charge_committed
+	_charge_commit_target_id = unit._charge_commit_target_id
+	_brace_hold_sec = unit._brace_hold_sec
+	_braced = unit._braced
+	_threat_front_sec = unit._threat_front_sec
+	brace_tier_last = unit.brace_tier_last
 	_partner_ids.clear()
 	_contact_partners.clear()
 	for partner in unit.get_contact_partners():
@@ -128,6 +163,15 @@ func duplicate_render_state() -> SimUnitProxy:
 	p._ammo_remaining = _ammo_remaining
 	p._reload_timer = _reload_timer
 	p._dead_zone_panic_done = _dead_zone_panic_done
+	p.current_speed_m_s = current_speed_m_s
+	p.charge_amp_factor = charge_amp_factor
+	p._charge_amp_time_left = _charge_amp_time_left
+	p.charge_committed = charge_committed
+	p._charge_commit_target_id = _charge_commit_target_id
+	p._brace_hold_sec = _brace_hold_sec
+	p._braced = _braced
+	p._threat_front_sec = _threat_front_sec
+	p.brace_tier_last = brace_tier_last
 	return p
 
 
@@ -157,6 +201,17 @@ func apply_to_unit(unit: Unit, all_units: Array = []) -> void:
 	unit._pending_rout_event = _pending_rout_event
 	unit._edge_cohesion_drain_totals = _edge_cohesion_drain_totals.duplicate()
 	unit.ammo_remaining = _ammo_remaining
+	unit.current_speed_m_s = current_speed_m_s
+	unit.charge_amp_factor = charge_amp_factor
+	unit._charge_amp_time_left = _charge_amp_time_left
+	unit.charge_committed = charge_committed
+	unit._charge_commit_target_id = _charge_commit_target_id
+	unit._brace_hold_sec = _brace_hold_sec
+	unit._braced = _braced
+	unit._threat_front_sec = _threat_front_sec
+	unit.brace_tier_last = brace_tier_last
+	if unit.has_method("_update_brace_visual"):
+		unit._update_brace_visual()
 	unit.set_active_contact_edges(_active_contact_edges)
 	unit._rallied_hold = _rallied_hold
 	_set_unit_state(unit, _state)
@@ -298,11 +353,42 @@ func apply_cohesion_drain(amount: float, edge_name: String = "") -> void:
 func update_marching(delta: float, enemies: Array = []) -> void:
 	if _state != Unit.State.MARCHING:
 		return
-	var speed_px := speed_m_per_sec() * Constants.get_float("px_per_meter")
+	var steps := maxi(1, _ChargeCombat.march_substep_count(self, delta))
+	var sub := delta / float(steps)
+	for _i in range(steps):
+		if _state != Unit.State.MARCHING:
+			return
+		_update_marching_step(sub, enemies)
+
+
+func _update_marching_step(delta: float, enemies: Array = []) -> void:
+	_update_charge_commit(enemies)
 	var to_target := march_target - position
+	var top := _ChargeCombat.target_speed_m_s(self)
+	# Turn rate (R5): only steer when heading error is material. On-axis approaches
+	# (S1/S2) keep configure facing — micro-corrections were shifting contact geometry.
+	if to_target.length() > 0.001:
+		var desired := to_target.normalized()
+		var angled := facing.angle_to(desired)
+		if absf(angled) > 0.15:
+			var max_turn: float = _ChargeCombat.turn_rate_rad_s(self) * delta
+			if absf(angled) <= max_turn:
+				facing = desired
+			else:
+				facing = facing.rotated(signf(angled) * max_turn)
+	var accel: float = _ChargeCombat.accel_m_s2(self)
+	var decel: float = _ChargeCombat.decel_m_s2(self)
+	if current_speed_m_s < top:
+		current_speed_m_s = minf(top, current_speed_m_s + accel * delta)
+	elif current_speed_m_s > top:
+		current_speed_m_s = maxf(top, current_speed_m_s - decel * delta)
+	var speed_px := current_speed_m_s * Constants.get_float("px_per_meter")
 	var move_px := speed_px * delta
 	if to_target.length() <= move_px:
 		position = march_target
+		current_speed_m_s = maxf(0.0, current_speed_m_s - decel * delta)
+		charge_committed = false
+		_charge_commit_target_id = ""
 		if enemies.is_empty():
 			_set_state(Unit.State.HOLD)
 		return
@@ -315,6 +401,95 @@ func update_marching(delta: float, enemies: Array = []) -> void:
 		if move_px <= 0.0:
 			return
 	position += to_target.normalized() * move_px
+
+
+func _update_charge_commit(enemies: Array) -> void:
+	## R17: commit to charge gait when marching toward a front-arc enemy in range.
+	if current_order != Unit.Order.MARCH_TO:
+		charge_committed = false
+		_charge_commit_target_id = ""
+		return
+	var target = _ChargeCombat.find_charge_commit_target(self, enemies)
+	if target == null:
+		charge_committed = false
+		_charge_commit_target_id = ""
+		return
+	charge_committed = true
+	_charge_commit_target_id = str(target.unit_id)
+
+
+func start_from_rest() -> void:
+	current_speed_m_s = 0.0
+
+
+func is_braced() -> bool:
+	return _braced
+
+
+func begin_charge_amp() -> void:
+	charge_amp_factor = Constants.get_float("charge_amp_peak")
+	_charge_amp_time_left = Constants.get_float("charge_amp_decay_s")
+
+
+func tick_charge_amp(delta: float) -> void:
+	if _charge_amp_time_left <= 0.0:
+		charge_amp_factor = 1.0
+		return
+	_charge_amp_time_left = maxf(_charge_amp_time_left - delta, 0.0)
+	var decay_s := Constants.get_float("charge_amp_decay_s")
+	if decay_s <= 0.0:
+		charge_amp_factor = 1.0
+		return
+	var peak := Constants.get_float("charge_amp_peak")
+	var t := _charge_amp_time_left / decay_s
+	charge_amp_factor = 1.0 + (peak - 1.0) * t
+
+
+func update_brace(delta: float, enemies: Array = []) -> void:
+	if _state == Unit.State.REMOVED or _state == Unit.State.ROUTING or _state == Unit.State.RALLYING:
+		_braced = false
+		_brace_hold_sec = 0.0
+		_threat_front_sec = 0.0
+		return
+
+	# R16 Tier 1 threat clock — cheap front-axis only (perf-safe).
+	var gallop_threat := false
+	for enemy in enemies:
+		if enemy == null or enemy.get_state() == Unit.State.REMOVED:
+			continue
+		if enemy.team_id == team_id:
+			continue
+		if _ChargeCombat.is_charging_threat(enemy, self):
+			gallop_threat = true
+			break
+	if gallop_threat and _ChargeCombat.own_speed_allows_instinctive(self):
+		_threat_front_sec += delta
+	else:
+		_threat_front_sec = 0.0
+
+	var stationary := current_speed_m_s <= Constants.get_float("brace_stationary_speed")
+	var holding := _state == Unit.State.HOLD or (_state == Unit.State.MARCHING and stationary)
+	if not holding or not _ChargeCombat.is_pierce(self) or not stationary:
+		_brace_hold_sec = 0.0
+		_braced = false
+		return
+	var sees_charger := false
+	for enemy in enemies:
+		if enemy == null or enemy.get_state() == Unit.State.REMOVED:
+			continue
+		if enemy.team_id == team_id:
+			continue
+		if not _ChargeCombat.faces_threat(self, enemy):
+			continue
+		if _ChargeCombat.closing_speed_into_defender(enemy, self) > 0.05 or enemy.get_state() == Unit.State.MARCHING:
+			sees_charger = true
+			break
+	if sees_charger:
+		_brace_hold_sec += delta
+	elif not _braced:
+		# Keep an already-braced line; don't wipe on one tick of query miss.
+		_brace_hold_sec = 0.0
+	_braced = _brace_hold_sec >= Constants.get_float("brace_time_s") or _braced
 
 
 func has_trait(trait_name: String) -> bool:

@@ -1,0 +1,10 @@
+[WO-014] S12 PASS volleys=18 approach_lost=8.04% total_lost=9.33 panic=true
+[WO-018] S17 RETIRED PASS superseded by S23 (braced hold); see S17b for shaken rout
+[WO-017] S23 PASS tier=1 shock=46.01 land=53.99 combat=52.7s winner=blue_inf cav_str=66.1 inf_str=93.5
+[WO-017] S25 PASS tier=3 shock=72.62 land=27.38
+[WO-017] S26 PASS tier=3 shock=76.68 land=23.32
+[WO-018] S27 PASS closing=5.200 unit_speed=5.200 samples=450 commit=true accel=true
+[WO-018] S28 PASS impact=7.788 shock=16.59 land=83.41 closing=3.000 tier=1
+[WO-018] S29 PASS 20m:v=1.27/i=0.00 60m:v=3.41/i=14.18 120m:v=5.16/i=21.44 200m:v=5.20/i=21.60
+[WO-011] Perf40 sim_thread avg_tick_ms=1.352 p95_tick_ms=1.574 max_tick_ms=35.574 ticks=723967
+[WO-015] Meta PASS=61 FAIL=0 expected_green_pass=61 exit=0

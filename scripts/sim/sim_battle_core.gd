@@ -5,6 +5,12 @@ const _TickProfiler := preload("res://scripts/tick_profiler.gd")
 const SimUnitProxy := preload("res://scripts/sim/sim_unit_proxy.gd")
 const SimRngBridge := preload("res://scripts/sim/sim_rng_bridge.gd")
 const SimRng := preload("res://scripts/sim/sim_rng.gd")
+const _Charge := preload("res://scripts/charge_combat.gd")
+
+## Last charge-impact telemetry for scenario probes.
+var last_charge_events: Array = []
+## Pair keys "attacker>defender" already evaluated for charge (first contact only).
+var _charge_pair_done: Dictionary = {}
 
 enum BattlePhase { ACTIVE, VICTORY_PENDING, VICTORY_EPILOGUE, FINISHED }
 
@@ -219,7 +225,7 @@ func max_closing_speed_m() -> float:
 	for unit in units:
 		if unit == null or unit.get_state() == Unit.State.REMOVED:
 			continue
-		max_speed = maxf(max_speed, unit.speed_m_per_sec())
+		max_speed = maxf(max_speed, _Charge.gait_top_speed_m_s(unit))
 	return max_speed * 2.0
 
 
@@ -234,12 +240,18 @@ func max_unit_dimension_m() -> float:
 
 
 func march_enemy_query_radius_px() -> float:
+	## Contact-scale radius for collision clamping, plus charge_commit_range so
+	## R17 gait commitment can see targets before the final 50m (WO-019/R18).
 	var px_per_meter := Constants.get_float("px_per_meter")
-	var radius_m := (
+	var contact_radius_m := (
 		max_closing_speed_m() * current_tick_interval
 		+ max_unit_dimension_m()
 	)
-	return radius_m * px_per_meter
+	var commit_radius_m := (
+		Constants.get_float("charge_commit_range_m")
+		+ max_unit_dimension_m()
+	)
+	return maxf(contact_radius_m, commit_radius_m) * px_per_meter
 
 
 func grid_units_within_radius_sorted(unit: SimUnitProxy, radius_px: float) -> Array:
@@ -297,6 +309,17 @@ func update_movement(delta: float) -> void:
 	for unit in units:
 		if unit.get_state() == Unit.State.REMOVED:
 			continue
+		unit.tick_charge_amp(delta)
+		unit.update_brace(delta, enemies_for(unit))
+		# Decelerate only when deliberately holding / bracing — never while ENGAGED.
+		# Mid-fight partner flicker returns units to MARCHING briefly; decelerating in
+		# combat made those gaps crawl and drifted S1/S2/S8 grind timing.
+		if (
+			unit.get_state() == Unit.State.HOLD
+			and unit.current_order == Unit.Order.HOLD
+		):
+			var decel: float = _Charge.decel_m_s2(unit)
+			unit.current_speed_m_s = maxf(0.0, unit.current_speed_m_s - decel * delta)
 		if unit.get_state() == Unit.State.MARCHING:
 			unit.update_marching(delta, enemies_for(unit))
 			try_begin_engagement(unit)
@@ -329,6 +352,9 @@ func try_begin_engagement(unit: SimUnitProxy) -> void:
 		if not CombatResolver.units_have_any_contact(unit, other):
 			continue
 
+		var already: bool = unit.has_contact_with(other)
+		if not already:
+			apply_charge_impacts(unit, other)
 		unit.add_contact_partner(other)
 		other.add_contact_partner(unit)
 		if (
@@ -352,6 +378,10 @@ func try_passive_engagement() -> void:
 				continue
 			if not CombatResolver.units_have_any_contact(unit, other):
 				continue
+			var already: bool = unit.has_contact_with(other)
+			if not already:
+				apply_charge_impacts(other, unit)
+				apply_charge_impacts(unit, other)
 			unit.add_contact_partner(other)
 			other.add_contact_partner(unit)
 			if (
@@ -360,6 +390,100 @@ func try_passive_engagement() -> void:
 			):
 				CombatResolver.snap_pair_to_contact(unit, other)
 			on_first_contact()
+
+
+func apply_charge_impacts(attacker: SimUnitProxy, defender: SimUnitProxy) -> void:
+	var pair_key := "%s>%s" % [attacker.unit_id, defender.unit_id]
+	if _charge_pair_done.has(pair_key):
+		return
+	_charge_pair_done[pair_key] = true
+	# One classify for contact-normal closing + edge morale weight.
+	var contact: Dictionary = EdgeContact.classify_contact(attacker, defender)
+	var edges: Dictionary = contact.get("edge_lengths_m", {})
+	var closing := _Charge.closing_speed_along_contact(attacker, defender, edges)
+	# R18: relative charge threshold (own Speed × charge_min_speed_pct), sim m/s.
+	var min_speed := _Charge.charge_min_closing_m_s(attacker)
+	if closing < min_speed:
+		last_charge_events.append({
+			"attacker": attacker.unit_id,
+			"defender": defender.unit_id,
+			"closing_speed": closing,
+			"impact": 0.0,
+			"charged": false,
+			"braced": defender.is_braced(),
+		})
+		return
+	var impact := _Charge.calc_impact(attacker, defender, closing)
+	var edge_info: Dictionary = _Charge.charge_edge_morale_mult(attacker, defender, edges)
+	var edge_mult: float = float(edge_info.get("mult", 1.0))
+	var edge_name: String = str(edge_info.get("edge", "front"))
+	var brace: Dictionary = _Charge.resolve_brace_tier(attacker, defender, edge_name)
+	var brace_tier: int = int(brace.get("tier", 3))
+	var brace_mult: float = float(brace.get("mult", 1.0))
+	var brace_name: String = str(brace.get("name", "unaware"))
+	defender.brace_tier_last = brace_tier
+	var base_shock := _Charge.base_charge_shock(impact)
+	var shock := base_shock * edge_mult * brace_mult
+	var reflected := 0.0
+	var braced_set := brace_tier == 2
+	# Contact ends the charge gait commitment.
+	attacker.charge_committed = false
+	attacker._charge_commit_target_id = ""
+	if braced_set:
+		reflected = impact * Constants.get_float("brace_reflect_pct")
+		# Impact is already in strength/cohesion-adjacent units; reflect without k_melee.
+		CombatResolver.apply_strength_loss(attacker, reflected)
+		var reflected_shock := reflected * Constants.get_float("charge_cohesion_coeff") * 0.5
+		attacker.apply_cohesion_drain(reflected_shock)
+		spawn_shock_floater(attacker, reflected_shock)
+		log_trace_event(
+			"brace_reflect",
+			"attacker=%s,defender=%s,impact=%.3f,closing=%.3f,reflected=%.3f,edge=%s,brace_tier=%d"
+			% [attacker.unit_id, defender.unit_id, impact, closing, reflected, edge_name, brace_tier]
+		)
+	else:
+		defender.apply_cohesion_drain(shock)
+		spawn_shock_floater(defender, shock)
+		attacker.begin_charge_amp()
+		log_trace_event(
+			"charge_impact",
+			"attacker=%s,defender=%s,impact=%.3f,closing=%.3f,base_shock=%.3f,edge=%s,edge_mult=%.3f,brace_tier=%d,brace=%s,brace_mult=%.3f,shock=%.3f,mass=%.3f,cohesion_after=%.2f,speed=%.3f"
+			% [
+				attacker.unit_id,
+				defender.unit_id,
+				impact,
+				closing,
+				base_shock,
+				edge_name,
+				edge_mult,
+				brace_tier,
+				brace_name,
+				brace_mult,
+				shock,
+				_Charge.mass_of(attacker),
+				defender.cohesion,
+				float(attacker.current_speed_m_s),
+			]
+		)
+	last_charge_events.append({
+		"attacker": attacker.unit_id,
+		"defender": defender.unit_id,
+		"closing_speed": closing,
+		"impact_closing_speed": closing,
+		"unit_speed": float(attacker.current_speed_m_s),
+		"impact": impact,
+		"base_shock": base_shock,
+		"edge": edge_name,
+		"edge_mult": edge_mult,
+		"brace_tier": brace_tier,
+		"brace": brace_name,
+		"brace_mult": brace_mult,
+		"shock": 0.0 if braced_set else shock,
+		"defender_cohesion_after": defender.cohesion,
+		"charged": true,
+		"braced": braced_set,
+		"reflected": reflected,
+	})
 
 
 func process_rout_events() -> void:

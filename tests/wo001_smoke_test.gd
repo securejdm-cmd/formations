@@ -57,6 +57,22 @@ func _test_constants_loaded(constants: Node) -> bool:
 		"shock_floater_rise_px",
 		"stat_card_edge_margin_px",
 		"spatial_grid_cell_m",
+		"mass_low",
+		"mass_medium",
+		"mass_high",
+		"mass_massive",
+		"base_accel",
+		"base_decel",
+		"charge_min_speed_pct",
+		"charge_impact_scale",
+		"charge_amp_peak",
+		"charge_amp_decay_s",
+		"charge_commit_range_m",
+		"brace_time_s",
+		"brace_reaction_s",
+		"brace_max_own_speed_pct",
+		"instinctive_brace_mult",
+		"brace_reflect_pct",
 	]
 
 	for key in required_keys:

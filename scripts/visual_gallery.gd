@@ -49,6 +49,7 @@ func _build_exhibits() -> void:
 	_spawn_engaged_pair(profile, origin + Vector2(0.0, ROW_SPACING_PX), px)
 	_spawn_state_row(profile, origin + Vector2(0.0, ROW_SPACING_PX * 2.0), px)
 	_spawn_volley_arc_exhibit(origin + Vector2(0.0, ROW_SPACING_PX * 3.0), px)
+	_spawn_brace_charge_exhibit(origin + Vector2(0.0, ROW_SPACING_PX * 4.0), px)
 
 
 func _spawn_crack_progression_row(profile: Dictionary, origin: Vector2, px: float) -> void:
@@ -142,6 +143,57 @@ func _spawn_volley_arc_exhibit(origin: Vector2, px: float) -> void:
 	add_child(arc)
 	arc.setup(shooter.position, target.position)
 	_add_caption_below_unit(shooter, "Volley arc")
+
+
+func _spawn_brace_charge_exhibit(origin: Vector2, px: float) -> void:
+	var spear_profile := UnitProfileLoader.load_profile("test_spears").duplicate(true)
+	var inf_profile := UnitProfileLoader.load_profile("test_infantry").duplicate(true)
+	var cav_profile := UnitProfileLoader.load_profile("test_cavalry").duplicate(true)
+	spear_profile["formation_frontage_m"] = GALLERY_FRONTAGE_M * 0.7
+	inf_profile["formation_frontage_m"] = GALLERY_FRONTAGE_M * 0.7
+	cav_profile["formation_frontage_m"] = GALLERY_FRONTAGE_M * 0.55
+
+	var spears: Unit = UNIT_SCENE.instantiate()
+	add_child(spears)
+	spears.configure("brace_spears", "blue", spear_profile, origin + Vector2(50.0, 0.0), Vector2.LEFT)
+	spears.set_render_camera(_camera)
+	spears.current_order = Unit.Order.HOLD
+	spears._set_state(Unit.State.HOLD)
+	spears.current_speed_m_s = 0.0
+	spears._brace_hold_sec = Constants.get_float("brace_time_s")
+	spears._braced = true
+	spears._update_dimensions()
+	spears._update_brace_visual()
+	_add_caption_below_unit(spears, "Tier 2 set (Pierce)")
+
+	var instinct: Unit = UNIT_SCENE.instantiate()
+	add_child(instinct)
+	instinct.configure("brace_inf", "blue", inf_profile, origin + Vector2(50.0, 70.0), Vector2.LEFT)
+	instinct.set_render_camera(_camera)
+	instinct.current_order = Unit.Order.HOLD
+	instinct._set_state(Unit.State.HOLD)
+	instinct.current_speed_m_s = 0.0
+	instinct._threat_front_sec = Constants.get_float("brace_reaction_s")
+	instinct._update_dimensions()
+	instinct._update_brace_visual()
+	_add_caption_below_unit(instinct, "Tier 1 instinctive")
+
+	var cav: Unit = UNIT_SCENE.instantiate()
+	add_child(cav)
+	cav.configure("charge_cav", "red", cav_profile, origin + Vector2(-50.0, 35.0), Vector2.RIGHT)
+	cav.set_render_camera(_camera)
+	cav._set_state(Unit.State.MARCHING)
+	cav.current_speed_m_s = cav.speed_m_per_sec()
+	cav._update_dimensions()
+	_add_caption_below_unit(cav, "Charge impact")
+
+	# One-shot impact flash between the pair.
+	var flash := ColorRect.new()
+	add_child(flash)
+	flash.color = Color(1.0, 0.85, 0.2, 0.55)
+	flash.size = Vector2(28.0, 28.0)
+	flash.position = origin - Vector2(14.0, 0.0)
+	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 
 func _fire_demo_floater() -> void:

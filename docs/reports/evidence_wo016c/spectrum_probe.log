@@ -1,0 +1,11 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+SPECTRUM approach=0 edge=left mult=1.5 base=76.68 shock=115.02 land=-15.02
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+SPECTRUM approach=1 edge=rear mult=2.0 base=76.68 shock=153.36 land=-53.36
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+SPECTRUM front edge=front mult=1.0 shock=76.68 land=23.32

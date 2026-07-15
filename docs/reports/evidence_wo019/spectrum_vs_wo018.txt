@@ -1,0 +1,9 @@
+WO-017/018 → WO-019 (base_accel=0.96, charge_impact_scale=1.006, coeff=3.55)
+T1 front c100: land 53.99 → 53.99 (S23)
+T3 unaware c100: land 23.32 → 23.32 (S26)
+T3 march c100: land 27.38 → 28.80 (S25, still [15,30])
+Flank c100: rout → rout (S21 shock 103.37)
+Rear / T1@40: rout → rout (S17b)
+charge_min_speed: DELETED → charge_min_speed_pct=1.25
+charge_speed_si_scale: still DELETED
+contact: closing==unit_speed=13.420 (S27)

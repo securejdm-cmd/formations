@@ -3,6 +3,7 @@ extends RefCounted
 
 const _TickProfiler := preload("res://scripts/tick_profiler.gd")
 const _ArmorMatrix := preload("res://scripts/armor_matrix.gd")
+const _Charge := preload("res://scripts/charge_combat.gd")
 
 
 static func contact_epsilon_m() -> float:
@@ -50,6 +51,7 @@ static func calc_push_score(unit: Variant, contact_frontage_pct: float = 1.0, co
 		* effectiveness
 		* contact_frontage_pct
 		* context_mod
+		* _Charge.charge_amp_of(unit)
 	)
 	return base * SimRngBridge.randf_wobble(Constants.get_float("wobble_pct"))
 
@@ -410,6 +412,7 @@ static func calc_melee_strength_loss(
 		* strength_pct
 		* contact_frontage_pct
 		* Constants.get_float("k_melee_scale")
+		* _Charge.charge_amp_of(attacker)
 	)
 	var armor_class: String = str(defender.profile.get("armor_class", "None"))
 	var armor_stat: float = float(defender.profile.get("armor", 0.0))
