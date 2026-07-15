@@ -1,0 +1,5 @@
+[WO-010] Fast-mode certification PASS (seed 12345 trace byte-identical)
+[WO-011] Threaded certification PASS (seed 12345 trace byte-identical)
+[WO-014] S12 PASS volleys=18 approach_lost=8.04% total_lost=9.33 panic=true
+[WO-011] Perf40 sim_thread avg_tick_ms=1.089 p95_tick_ms=1.217 max_tick_ms=57.928 ticks=386388
+[WO-015] Meta PASS=61 FAIL=0 expected_green_pass=61 exit=0
