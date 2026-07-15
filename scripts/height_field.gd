@@ -178,6 +178,7 @@ func range_mult_toward(shooter_px: Vector2, target_px: Vector2) -> float:
 
 
 func geometry_report() -> Dictionary:
+	var mid_g: Vector2 = sample_gradient_m(Vector2(0.0, 0.0))
 	return {
 		"label": label,
 		"cell_m": cell_m,
@@ -186,6 +187,7 @@ func geometry_report() -> Dictionary:
 		"origin_m": {"x": origin_m.x, "y": origin_m.y},
 		"peak_height_m": peak_height_m(),
 		"peak_grade": peak_grade(),
+		"mid_ramp_grade": mid_g.length(),
 		"design_grade": TEST_HILL_GRADE,
 		"ramp_x0_m": TEST_HILL_X0_M,
 		"ramp_x1_m": TEST_HILL_X1_M,
