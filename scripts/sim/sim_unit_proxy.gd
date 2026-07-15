@@ -479,8 +479,14 @@ func begin_disengage() -> void:
 func complete_disengage() -> void:
 	disengaging = false
 	_disengage_time_left = 0.0
+	var old_partners: Array = _contact_partners.duplicate()
 	_contact_partners.clear()
 	_partner_ids.clear()
+	for partner in old_partners:
+		if partner != null:
+			partner.remove_contact_partner(self)
+			if partner.has_method("clear_bump_state"):
+				partner.clear_bump_state()
 	clear_bump_state()
 	auto_engage_locked = true
 	if current_order == Unit.Order.MARCH_TO:

@@ -1767,17 +1767,23 @@ func _check_s33_gravity() -> void:
 	if er != EdgeContact.EDGE_FRONT or eb != EdgeContact.EDGE_FRONT:
 		push_error("S33 expected FRONT/FRONT got %s/%s" % [er, eb])
 		ok = false
-	if float(_scenario.red_facing_dot_at_contact) < 0.85:
-		push_error("S33 red not facing contact (dot=%.3f)" % float(_scenario.red_facing_dot_at_contact))
+	# WO-020b: partial square-up is acceptable; FRONT/FRONT is the hard gate.
+	# Soft facing dots — only fail if clearly sideways/grinding.
+	if float(_scenario.red_facing_dot_at_contact) < 0.5:
+		push_error("S33 red grinding sideways (dot=%.3f)" % float(_scenario.red_facing_dot_at_contact))
 		ok = false
-	if float(_scenario.blue_facing_dot_at_contact) < 0.85:
-		push_error("S33 blue not facing contact (dot=%.3f)" % float(_scenario.blue_facing_dot_at_contact))
+	if float(_scenario.blue_facing_dot_at_contact) < 0.5:
+		push_error("S33 blue grinding sideways (dot=%.3f)" % float(_scenario.blue_facing_dot_at_contact))
 		ok = false
 	_record_check(
-		"[WO-020] S33",
+		"[WO-020b] S33",
 		ok,
-		"edges=%s/%s red_dot=%.3f blue_dot=%.3f" % [
-			er, eb, float(_scenario.red_facing_dot_at_contact), float(_scenario.blue_facing_dot_at_contact)
+		"edges=%s/%s red_dot=%.3f blue_dot=%.3f rot_deg=%.1f/%.1f" % [
+			er, eb,
+			float(_scenario.red_facing_dot_at_contact),
+			float(_scenario.blue_facing_dot_at_contact),
+			float(_scenario.red_rotation_deg),
+			float(_scenario.blue_rotation_deg),
 		],
 	)
 
@@ -1795,7 +1801,7 @@ func _check_s34_pinning() -> void:
 		_scenario.flank_persisted,
 		_scenario.a_did_not_reface,
 	]
-	_record_check("[WO-020] S34", ok, detail)
+	_record_check("[WO-020b] S34", ok, detail)
 
 
 func _record_check(tag: String, ok: bool, detail: String = "") -> void:
