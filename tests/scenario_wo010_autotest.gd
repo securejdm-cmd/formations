@@ -414,9 +414,9 @@ func _run_when_ready() -> void:
 				print("[WO-011] Perf40 step=%d battle_over=%s" % [_i, _scenario.is_battle_over()])
 			if _scenario.is_battle_over():
 				break
+		_perf_stats = _scenario.get_perf_stats()
 		if _scenario.has_method("stop_sim_thread_for_harness"):
 			_scenario.call("stop_sim_thread_for_harness")
-		_perf_stats = _scenario.get_perf_stats()
 		print("[WO-011] Perf40 sample done")
 	elif _mode == "perf_scale":
 		for _i in 800:
