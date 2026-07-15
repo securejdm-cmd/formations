@@ -449,9 +449,10 @@ func _run_when_ready() -> void:
 		"s37_slope_charge",
 		"s38_missile_high",
 		"s39_high_ground",
-		"s40_mixed",
 	]:
 		_sim_harness.run_ticks(_scenario, 4500)
+	elif _mode == "s40_mixed":
+		_sim_harness.run_ticks(_scenario, 8000)
 	else:
 		_sim_harness.run_to_completion(_scenario, _sim_harness.RunMode.FAST, _extra_ticks_for_mode)
 	_finish()
