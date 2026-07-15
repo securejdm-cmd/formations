@@ -1,9 +1,9 @@
-# COMPLETION REPORT — WO-020b — Date 2026-07-15 — Commit dc54df7e60e64ed86ff82f4b098e39ff9869a0cc
+# COMPLETION REPORT — WO-020b — Date 2026-07-15 — Commit f3466dc77278f014b9adb3e1b3d1f6056a9150a1
 
 **Work order:** WO-020b Giving Magnetism Teeth  
 **Branch:** `cursor/wo-020b-magnetism-teeth-fd84`  
 **Date:** 2026-07-15  
-**Commit:** `dc54df7e60e64ed86ff82f4b098e39ff9869a0cc`  
+**Commit:** `f3466dc77278f014b9adb3e1b3d1f6056a9150a1`  
 **Base:** `cursor/wo-020-full-magnetism-fd84`  
 **Evidence:** `docs/reports/evidence_wo020b/`  
 **Escalation:** `docs/reports/WO-020b_escalation.md` (Task 1 ratio)
@@ -94,7 +94,7 @@ Task 1 strength-loss ratio cannot reach [1.6, 1.8] with a shared mult while armo
 ## Attestation
 
 - Branch: `cursor/wo-020b-magnetism-teeth-fd84`
-- Full SHA: `dc54df7e60e64ed86ff82f4b098e39ff9869a0cc`
+- Full SHA: `f3466dc77278f014b9adb3e1b3d1f6056a9150a1`
 - Report: https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-020b-magnetism-teeth-fd84/docs/reports/WO-020b_completion.md
 - Suite: https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-020b-magnetism-teeth-fd84/docs/reports/evidence_wo020b/suite_stdout.log
 
