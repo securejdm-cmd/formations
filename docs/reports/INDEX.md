@@ -2,6 +2,8 @@
 
 Canonical index of FORMATIONS work-order reports (newest first). Raw `main` branch links.
 
+- [WO-020_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/WO-020_completion.md) — WO-020 full magnetism (R19 gravity / pin / Agility / disengage)
+- [WO-019_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/WO-019_completion.md) — WO-019 reachable gallop (R18)
 - [WO-018_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/WO-018_completion.md) — WO-018 charge gait (R17); delete SI scale
 - [WO-017_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/WO-017_completion.md) — WO-017 three-tier brace (R16) + spectrum / S23–S26
 - [WO-016b_speed_scale_root_cause.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/WO-016b_speed_scale_root_cause.md) — WO-016b SI charge scale root cause (TD record)
