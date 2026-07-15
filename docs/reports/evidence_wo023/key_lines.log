@@ -1,0 +1,114 @@
+[WO-010] Fast-mode certification PASS (seed 12345 trace byte-identical)
+[WO-011] Threaded certification PASS (seed 12345 trace byte-identical)
+[WO-014] S12 PASS volleys=18 approach_lost=8.04% total_lost=9.33 panic=true
+[WO-022] S35 PASS a30_t=2.40s lost=6.02 a80_t=1.40s lost=3.41 str_ratio=1.77 dur_ratio=1.71 (ref~1.71)
+[WO-022] S40 harness ticks=1200 showcase=true
+[WO-022] S40 PASS winner=none combat=46.7s volley=true melee=true flank=true shock=false brace=true
+[WO-023] Perf40 MAIN_TICK begin (canonical)
+[WO-023] Perf40 MAIN_TICK sample done
+[WO-023] Perf40 MAIN_TICK avg_tick_ms=35.493 p95_tick_ms=44.577 max_tick_ms=46.866 ticks=800
+[WO-023] Perf40 MAIN_TICK note: like-for-like WO-021 tip p95
+[WO-015] Meta PASS=72 FAIL=0 expected_green_pass=72 exit=0
+---
+# Matchup matrix
+
+## Configuration: `FRONTAL_VS_STANDING`
+
+What this measures:
+- Attacker marches into a **standing** defender (flat, 200 m approach, 11 seeds).
+- Archer rows are **inverted** (shooter HOLDs; defender marches through fire — S12).
+- Pierce defenders are **pre-braced**.
+- Mirror cells at ~100% (cavalry / infantry_charge / archer) are **setup artifacts** (first-mover / doctrine), not profile divinity.
+
+What this does **not** measure: flank, rear, unaware defender, already-engaged.
+Cavalry's win condition is outside `FRONTAL_VS_STANDING`.
+
+| Attacker \ Defender | infantry | infantry_charge | spears | archer | cavalry | skirmisher |
+|---|---|---|---|---|---|---|
+| **infantry** | 64% | 64% | 100% | 100% | 100% | 100% |
+| **infantry_charge** | 100% | 100% | 100% | 100% | 100% | 100% |
+| **spears** | 0% | 0% | 55% | 100% | 0% | 100% |
+| **archer** | 0% | 0% | 0% | 100% | 0% | 0% |
+| **cavalry** | 0% | 0% | 0% | 100% | 100% | 100% |
+---
+FRONTAL_VS_STANDING,test_infantry,test_infantry_charge,63.6,11,79.95,69.42,58.39
+FRONTAL_VS_STANDING,test_infantry_charge,test_infantry,100.0,11,52.85,80.36,44.59
+FRONTAL_VS_STANDING,test_infantry_charge,test_infantry_charge,100.0,11,52.85,80.36,44.59
+FRONTAL_VS_STANDING,test_infantry_charge,test_spears,100.0,11,56.76,95.25,30.12
+FRONTAL_VS_STANDING,test_infantry_charge,test_archer,100.0,11,28.00,95.09,48.48
+FRONTAL_VS_STANDING,test_infantry_charge,test_cavalry,100.0,11,39.82,96.52,65.13
+FRONTAL_VS_STANDING,test_infantry_charge,test_skirmisher,100.0,11,30.60,97.83,50.34
+FRONTAL_VS_STANDING,test_spears,test_infantry_charge,0.0,11,54.04,96.99,66.29
+FRONTAL_VS_STANDING,test_archer,test_infantry_charge,0.0,11,28.00,95.08,48.48
+FRONTAL_VS_STANDING,test_cavalry,test_infantry_charge,0.0,11,52.43,93.53,66.08
+FRONTAL_VS_STANDING,test_skirmisher,test_infantry_charge,0.0,11,36.20,97.44,67.73
+---TERM---
+TERM_SUMMARY test_spears>test_cavalry timeouts=0/11
+TERM_SUMMARY test_spears>test_skirmisher timeouts=0/11
+---INF---
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=52.8s | flee=98.8s | winner_strength=80.38 | winner_cohesion=50.94
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=52.8s | flee=98.8s | winner_strength=80.38 | winner_cohesion=50.94
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=53.0s | flee=98.8s | winner_strength=80.32 | winner_cohesion=50.81
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=52.8s | flee=98.8s | winner_strength=80.38 | winner_cohesion=50.94
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=52.8s | flee=98.9s | winner_strength=80.38 | winner_cohesion=50.94
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=52.8s | flee=98.8s | winner_strength=80.38 | winner_cohesion=50.94
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=52.8s | flee=98.8s | winner_strength=80.38 | winner_cohesion=50.94
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=53.0s | flee=98.9s | winner_strength=80.32 | winner_cohesion=50.81
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=52.8s | flee=98.8s | winner_strength=80.38 | winner_cohesion=50.94
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=52.8s | flee=98.8s | winner_strength=80.38 | winner_cohesion=50.94
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=53.0s | flee=98.8s | winner_strength=80.32 | winner_cohesion=50.81
+INFCHARGE_SUMMARY FULL win_rate=100.0% mean_combat=52.9
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=61.8s | flee=99.6s | winner_strength=76.53 | winner_cohesion=41.32
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=61.8s | flee=99.6s | winner_strength=76.51 | winner_cohesion=41.27
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=62.6s | flee=99.7s | winner_strength=76.11 | winner_cohesion=40.25
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=61.8s | flee=99.6s | winner_strength=76.49 | winner_cohesion=41.23
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=62.2s | flee=99.7s | winner_strength=76.30 | winner_cohesion=40.74
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=62.2s | flee=99.6s | winner_strength=76.29 | winner_cohesion=40.72
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=61.8s | flee=99.6s | winner_strength=76.57 | winner_cohesion=41.42
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=61.8s | flee=99.6s | winner_strength=76.56 | winner_cohesion=41.41
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=61.4s | flee=99.6s | winner_strength=76.75 | winner_cohesion=41.87
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=61.8s | flee=99.6s | winner_strength=76.49 | winner_cohesion=41.22
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=62.0s | flee=99.6s | winner_strength=76.46 | winner_cohesion=41.15
+INFCHARGE_SUMMARY NO_AMP win_rate=100.0% mean_combat=61.9
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=58.8s | flee=98.8s | winner_strength=78.92 | winner_cohesion=47.31
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=58.8s | flee=98.8s | winner_strength=78.92 | winner_cohesion=47.31
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=58.8s | flee=98.8s | winner_strength=78.92 | winner_cohesion=47.31
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=58.6s | flee=98.8s | winner_strength=78.97 | winner_cohesion=47.42
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=59.0s | flee=98.8s | winner_strength=78.76 | winner_cohesion=46.90
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=58.6s | flee=98.7s | winner_strength=78.97 | winner_cohesion=47.42
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=58.8s | flee=98.8s | winner_strength=78.92 | winner_cohesion=47.31
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=58.8s | flee=98.8s | winner_strength=78.88 | winner_cohesion=47.21
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=58.8s | flee=98.7s | winner_strength=78.92 | winner_cohesion=47.31
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=58.8s | flee=98.7s | winner_strength=78.92 | winner_cohesion=47.31
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=58.8s | flee=98.8s | winner_strength=78.92 | winner_cohesion=47.31
+INFCHARGE_SUMMARY NO_SHOCK win_rate=100.0% mean_combat=58.8
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=75.8s | flee=100.5s | winner_strength=71.28 | winner_cohesion=28.08
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=80.6s | flee=101.1s | winner_strength=69.15 | winner_cohesion=22.64
+[Scenario 01] SUMMARY | winner=defender | march=79.5s | combat=76.0s | flee=200.0s | winner_strength=71.20 | winner_cohesion=27.86
+[Scenario 01] SUMMARY | winner=defender | march=79.5s | combat=83.9s | flee=200.3s | winner_strength=67.71 | winner_cohesion=18.95
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=83.4s | flee=101.6s | winner_strength=67.77 | winner_cohesion=19.10
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=73.2s | flee=100.1s | winner_strength=72.49 | winner_cohesion=31.14
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=77.0s | flee=100.6s | winner_strength=70.76 | winner_cohesion=26.75
+[Scenario 01] SUMMARY | winner=defender | march=79.5s | combat=82.4s | flee=200.2s | winner_strength=68.36 | winner_cohesion=20.65
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=81.0s | flee=101.2s | winner_strength=69.01 | winner_cohesion=22.31
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=84.6s | flee=101.7s | winner_strength=67.21 | winner_cohesion=17.72
+[Scenario 01] SUMMARY | winner=defender | march=79.5s | combat=81.6s | flee=200.2s | winner_strength=68.68 | winner_cohesion=21.47
+INFCHARGE_SUMMARY NO_BOTH win_rate=63.6% mean_combat=80.0
+---PERF---
+PERF40_PROBE_START mode=ALL sha_hint=env
+PERF40_PROBE mode=MAIN_TICK n=800 avg=45.590 p95=57.487 max=59.653
+PERF40_PROBE mode=SIM_NO_DELAY n=21 avg=50.922 p95=57.377 max=58.934
+PERF40_PROBE mode=SIM_DELAY_1MS n=72 avg=33.883 p95=38.860 max=41.315
+PERF40_PROBE mode=MAIN_TICK_R1 n=800 avg=45.626 p95=57.556 max=60.276
+PERF40_PROBE mode=MAIN_TICK_R2 n=800 avg=45.691 p95=57.632 max=60.115
+PERF40_PROBE mode=MAIN_TICK_R3 n=800 avg=45.720 p95=57.563 max=60.092
+PERF40_PROBE mode=MAIN_TICK_R4 n=800 avg=45.694 p95=57.585 max=60.099
+PERF40_PROBE mode=MAIN_TICK_R5 n=800 avg=45.745 p95=57.682 max=61.132
+PERF40_PROBE_DONE
+PERF40_PROBE_START mode=REPEAT_MAIN sha_hint=env
+PERF40_PROBE mode=MAIN_TICK_R1 n=800 avg=45.389 p95=57.218 max=59.540
+PERF40_PROBE mode=MAIN_TICK_R2 n=800 avg=45.588 p95=57.553 max=62.319
+PERF40_PROBE mode=MAIN_TICK_R3 n=800 avg=45.515 p95=57.527 max=59.583
+PERF40_PROBE mode=MAIN_TICK_R4 n=800 avg=45.591 p95=57.460 max=59.725
+PERF40_PROBE mode=MAIN_TICK_R5 n=800 avg=45.570 p95=57.464 max=60.591
+PERF40_PROBE_DONE

@@ -1,0 +1,233 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+INFCHARGE_DIAG_START
+INFCHARGE_BASELINE amp_peak=2.500 impact_scale=1.006
+INFCHARGE_COND FULL amp_peak=2.500 impact_scale=1.006
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=52.8s | flee=98.8s | winner_strength=80.38 | winner_cohesion=50.94
+INFCHARGE_ROW FULL seed=1000 winner=attacker combat=52.8
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1001.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=52.8s | flee=98.8s | winner_strength=80.38 | winner_cohesion=50.94
+INFCHARGE_ROW FULL seed=1001 winner=attacker combat=52.8
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1002.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=53.0s | flee=98.8s | winner_strength=80.32 | winner_cohesion=50.81
+INFCHARGE_ROW FULL seed=1002 winner=attacker combat=53.0
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1003.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=52.8s | flee=98.8s | winner_strength=80.38 | winner_cohesion=50.94
+INFCHARGE_ROW FULL seed=1003 winner=attacker combat=52.8
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1004.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=52.8s | flee=98.9s | winner_strength=80.38 | winner_cohesion=50.94
+INFCHARGE_ROW FULL seed=1004 winner=attacker combat=52.8
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1005.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=52.8s | flee=98.8s | winner_strength=80.38 | winner_cohesion=50.94
+INFCHARGE_ROW FULL seed=1005 winner=attacker combat=52.8
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1006.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=52.8s | flee=98.8s | winner_strength=80.38 | winner_cohesion=50.94
+INFCHARGE_ROW FULL seed=1006 winner=attacker combat=52.8
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1007.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=53.0s | flee=98.9s | winner_strength=80.32 | winner_cohesion=50.81
+INFCHARGE_ROW FULL seed=1007 winner=attacker combat=53.0
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1008.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=52.8s | flee=98.8s | winner_strength=80.38 | winner_cohesion=50.94
+INFCHARGE_ROW FULL seed=1008 winner=attacker combat=52.8
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1009.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=52.8s | flee=98.8s | winner_strength=80.38 | winner_cohesion=50.94
+INFCHARGE_ROW FULL seed=1009 winner=attacker combat=52.8
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=53.0s | flee=98.8s | winner_strength=80.32 | winner_cohesion=50.81
+INFCHARGE_ROW FULL seed=12345 winner=attacker combat=53.0
+INFCHARGE_SUMMARY FULL win_rate=100.0% mean_combat=52.9
+INFCHARGE_COND NO_AMP amp_peak=1.000 impact_scale=1.006
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=61.8s | flee=99.6s | winner_strength=76.53 | winner_cohesion=41.32
+INFCHARGE_ROW NO_AMP seed=1000 winner=attacker combat=61.8
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1001.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=61.8s | flee=99.6s | winner_strength=76.51 | winner_cohesion=41.27
+INFCHARGE_ROW NO_AMP seed=1001 winner=attacker combat=61.8
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1002.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=62.6s | flee=99.7s | winner_strength=76.11 | winner_cohesion=40.25
+INFCHARGE_ROW NO_AMP seed=1002 winner=attacker combat=62.6
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1003.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=61.8s | flee=99.6s | winner_strength=76.49 | winner_cohesion=41.23
+INFCHARGE_ROW NO_AMP seed=1003 winner=attacker combat=61.8
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1004.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=62.2s | flee=99.7s | winner_strength=76.30 | winner_cohesion=40.74
+INFCHARGE_ROW NO_AMP seed=1004 winner=attacker combat=62.2
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1005.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=62.2s | flee=99.6s | winner_strength=76.29 | winner_cohesion=40.72
+INFCHARGE_ROW NO_AMP seed=1005 winner=attacker combat=62.2
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1006.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=61.8s | flee=99.6s | winner_strength=76.57 | winner_cohesion=41.42
+INFCHARGE_ROW NO_AMP seed=1006 winner=attacker combat=61.8
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1007.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=61.8s | flee=99.6s | winner_strength=76.56 | winner_cohesion=41.41
+INFCHARGE_ROW NO_AMP seed=1007 winner=attacker combat=61.8
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1008.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=61.4s | flee=99.6s | winner_strength=76.75 | winner_cohesion=41.87
+INFCHARGE_ROW NO_AMP seed=1008 winner=attacker combat=61.4
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1009.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=61.8s | flee=99.6s | winner_strength=76.49 | winner_cohesion=41.22
+INFCHARGE_ROW NO_AMP seed=1009 winner=attacker combat=61.8
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=62.0s | flee=99.6s | winner_strength=76.46 | winner_cohesion=41.15
+INFCHARGE_ROW NO_AMP seed=12345 winner=attacker combat=62.0
+INFCHARGE_SUMMARY NO_AMP win_rate=100.0% mean_combat=61.9
+INFCHARGE_COND NO_SHOCK amp_peak=2.500 impact_scale=0.000
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=58.8s | flee=98.8s | winner_strength=78.92 | winner_cohesion=47.31
+INFCHARGE_ROW NO_SHOCK seed=1000 winner=attacker combat=58.8
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1001.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=58.8s | flee=98.8s | winner_strength=78.92 | winner_cohesion=47.31
+INFCHARGE_ROW NO_SHOCK seed=1001 winner=attacker combat=58.8
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1002.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=58.8s | flee=98.8s | winner_strength=78.92 | winner_cohesion=47.31
+INFCHARGE_ROW NO_SHOCK seed=1002 winner=attacker combat=58.8
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1003.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=58.6s | flee=98.8s | winner_strength=78.97 | winner_cohesion=47.42
+INFCHARGE_ROW NO_SHOCK seed=1003 winner=attacker combat=58.6
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1004.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=59.0s | flee=98.8s | winner_strength=78.76 | winner_cohesion=46.90
+INFCHARGE_ROW NO_SHOCK seed=1004 winner=attacker combat=59.0
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1005.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=58.6s | flee=98.7s | winner_strength=78.97 | winner_cohesion=47.42
+INFCHARGE_ROW NO_SHOCK seed=1005 winner=attacker combat=58.6
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1006.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=58.8s | flee=98.8s | winner_strength=78.92 | winner_cohesion=47.31
+INFCHARGE_ROW NO_SHOCK seed=1006 winner=attacker combat=58.8
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1007.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=58.8s | flee=98.8s | winner_strength=78.88 | winner_cohesion=47.21
+INFCHARGE_ROW NO_SHOCK seed=1007 winner=attacker combat=58.8
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1008.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=58.8s | flee=98.7s | winner_strength=78.92 | winner_cohesion=47.31
+INFCHARGE_ROW NO_SHOCK seed=1008 winner=attacker combat=58.8
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1009.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=58.8s | flee=98.7s | winner_strength=78.92 | winner_cohesion=47.31
+INFCHARGE_ROW NO_SHOCK seed=1009 winner=attacker combat=58.8
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=58.8s | flee=98.8s | winner_strength=78.92 | winner_cohesion=47.31
+INFCHARGE_ROW NO_SHOCK seed=12345 winner=attacker combat=58.8
+INFCHARGE_SUMMARY NO_SHOCK win_rate=100.0% mean_combat=58.8
+INFCHARGE_COND NO_BOTH amp_peak=1.000 impact_scale=0.000
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=75.8s | flee=100.5s | winner_strength=71.28 | winner_cohesion=28.08
+INFCHARGE_ROW NO_BOTH seed=1000 winner=attacker combat=75.8
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1001.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=80.6s | flee=101.1s | winner_strength=69.15 | winner_cohesion=22.64
+INFCHARGE_ROW NO_BOTH seed=1001 winner=attacker combat=80.6
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1002.csv
+[Scenario 01] SUMMARY | winner=defender | march=79.5s | combat=76.0s | flee=200.0s | winner_strength=71.20 | winner_cohesion=27.86
+INFCHARGE_ROW NO_BOTH seed=1002 winner=defender combat=76.0
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1003.csv
+[Scenario 01] SUMMARY | winner=defender | march=79.5s | combat=83.9s | flee=200.3s | winner_strength=67.71 | winner_cohesion=18.95
+INFCHARGE_ROW NO_BOTH seed=1003 winner=defender combat=83.9
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1004.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=83.4s | flee=101.6s | winner_strength=67.77 | winner_cohesion=19.10
+INFCHARGE_ROW NO_BOTH seed=1004 winner=attacker combat=83.4
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1005.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=73.2s | flee=100.1s | winner_strength=72.49 | winner_cohesion=31.14
+INFCHARGE_ROW NO_BOTH seed=1005 winner=attacker combat=73.2
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1006.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=77.0s | flee=100.6s | winner_strength=70.76 | winner_cohesion=26.75
+INFCHARGE_ROW NO_BOTH seed=1006 winner=attacker combat=77.0
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1007.csv
+[Scenario 01] SUMMARY | winner=defender | march=79.5s | combat=82.4s | flee=200.2s | winner_strength=68.36 | winner_cohesion=20.65
+INFCHARGE_ROW NO_BOTH seed=1007 winner=defender combat=82.4
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1008.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=81.0s | flee=101.2s | winner_strength=69.01 | winner_cohesion=22.31
+INFCHARGE_ROW NO_BOTH seed=1008 winner=attacker combat=81.0
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1009.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=84.6s | flee=101.7s | winner_strength=67.21 | winner_cohesion=17.72
+INFCHARGE_ROW NO_BOTH seed=1009 winner=attacker combat=84.6
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=defender | march=79.5s | combat=81.6s | flee=200.2s | winner_strength=68.68 | winner_cohesion=21.47
+INFCHARGE_ROW NO_BOTH seed=12345 winner=defender combat=81.6
+INFCHARGE_SUMMARY NO_BOTH win_rate=63.6% mean_combat=80.0
+INFCHARGE_DIAG_DONE restored

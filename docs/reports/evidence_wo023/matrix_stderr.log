@@ -1,0 +1,7 @@
+[WO-023] matrix_stderr truncated to last 100KB
+SCRIPT ERROR: Compile Error: Identifier not found: Constants
+          at: GDScript::reload (res://scripts/unit.gd:104)
+SCRIPT ERROR: Compile Error: Failed to compile depended scripts.
+          at: GDScript::reload (res://tests/matchup_matrix.gd:0)
+ERROR: Failed to load script "res://tests/matchup_matrix.gd" with error "Compilation failed".
+   at: load (modules/gdscript/gdscript.cpp:3022)
