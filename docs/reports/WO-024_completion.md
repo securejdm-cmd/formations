@@ -1,9 +1,9 @@
-# COMPLETION REPORT — WO-024 — 2026-07-15 — Commit a1a2d241114ee7dcfe57d513b42db809dde96200
+# COMPLETION REPORT — WO-024 — 2026-07-15 — Commit bef274db8e4de7c1721e8c408f2e1b7cb3344e03
 
 **Work order:** WO-024 Honest Numbers: Perf, Gravity & Sensitivity  
-**Branch:**   
-**Tip SHA:**   
-**Code SHA:** `cursor/wo-024-honest-numbers-fd84`  
+**Branch:** `cursor/wo-024-honest-numbers-fd84`  
+**Tip SHA:** `bef274db8e4de7c1721e8c408f2e1b7cb3344e03`  
+**Code SHA:** `bef274db8e4de7c1721e8c408f2e1b7cb3344e03`  
 **Date:** 2026-07-15  
 **Base:** WO-023 tip `99a43d8` (`cursor/wo-023-gate2-blockers-fd84`)  
 **Evidence:** `docs/reports/evidence_wo024/`  
@@ -191,7 +191,7 @@ Note: S32 soft numbers drifted slightly under working gravity (`str_rech` 79.02�
 ## Attestation
 
 - Branch: `cursor/wo-024-honest-numbers-fd84`
-- Full SHA: `bef274db8e4de7c1721e8c408f2e1b7cb3344e03`
+- Full SHA: `PLACEHOLDER`
 - Report: https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-024-honest-numbers-fd84/docs/reports/WO-024_completion.md
 - Suite: https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-024-honest-numbers-fd84/docs/reports/evidence_wo024/suite_stdout.log
 
