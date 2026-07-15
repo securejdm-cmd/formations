@@ -1,8 +1,8 @@
-# COMPLETION REPORT — WO-024 — 2026-07-15 — Commit 208ad5dded88c6be0a69f70a0691f18e8f35384c
+# COMPLETION REPORT — WO-024 — 2026-07-15 — Commit bef274db8e4de7c1721e8c408f2e1b7cb3344e03
 
 **Work order:** WO-024 Honest Numbers: Perf, Gravity & Sensitivity  
 **Branch:** `cursor/wo-024-honest-numbers-fd84`  
-**Tip SHA:** `208ad5dded88c6be0a69f70a0691f18e8f35384c`  
+**Tip SHA:** `bef274db8e4de7c1721e8c408f2e1b7cb3344e03`  
 **Code SHA:** `bef274db8e4de7c1721e8c408f2e1b7cb3344e03`  
 **Date:** 2026-07-15  
 **Base:** WO-023 tip `99a43d8` (`cursor/wo-023-gate2-blockers-fd84`)  
