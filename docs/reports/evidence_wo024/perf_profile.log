@@ -1,0 +1,13 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+WO024_PERF_START mode=PROFILE
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+WO024_PROFILE units=40 tick_samples=800 wall_avg=34.962 wall_p95=43.253
+WO024_SUBSYSTEM ms/tick total=34.969 grid=0.048 slope=0.010 movement=24.816 allied=8.964 adhesion=0.229 adhesion_post=0.172 classify=4.370 combat=0.699 overlap=0.001 trace=0.000 victory=0.031
+WO024_PROFILE_COUNTS classifier/tick=941.1 adhesion_classifier/tick=9.1 binary_search/tick=0.0 adhesion_pairs/tick=4.6
+WO024_PERF_DONE
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+     at: cleanup (core/object/object.cpp:2378)
+ERROR: 1 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:614)

@@ -70,6 +70,7 @@ Include outcome tables, duration splits, and assertion results as specified in t
 - One work order = one git commit, message referencing the work order ID.
 - No new dependencies/addons without an escalation.
 - Write the automated test scenarios specified in work orders as runnable scenes/scripts, not manual instructions.
+- Perf gates are measured in GAMEPLAY configuration. Test-mode instrumentation is never part of a perf gate.
 
 ## Forbidden Without Explicit Green Light
 - Adding features, units, stats, UI elements, or "nice to haves" not in the work order

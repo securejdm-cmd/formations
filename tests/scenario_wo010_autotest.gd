@@ -67,6 +67,7 @@ var _s11_control_breach: float = -1.0
 var _s9_heavy_wins: int = 0
 var _s9_casualty_ratio: float = 0.0
 var _perf_stats: Dictionary = {}
+var _perf_main_tick_stats: Dictionary = {}
 var _perf_scale_results: Array[Dictionary] = []
 var _perf_scale_idx := 0
 var _perf_scale_pairs := [2, 10, 20]
@@ -142,7 +143,11 @@ func _kickoff() -> void:
 
 
 func _run_fast_certification() -> void:
+	# GAMEPLAY_TICK turns default trace emission OFF when fast_sim=false.
+	# Certification still needs byte traces on the gameplay/threaded path —
+	# force_trace_logging enables the buffer without overlap-assert QA.
 	var realtime: Scenario01 = _sim_runner.instantiate_scenario("res://tests/scenario_01.tscn", CERT_SEED, false)
+	realtime.force_trace_logging = true
 	_sim_runner.attach_and_wait_ready(self, realtime)
 	_sim_harness.run_to_completion(realtime, _sim_harness.RunMode.REALTIME)
 	_cert_realtime_trace = realtime.get_trace_text()
@@ -167,6 +172,7 @@ func _run_fast_certification() -> void:
 	var threaded: Scenario01 = _sim_runner.instantiate_scenario(
 		"res://tests/scenario_01.tscn", CERT_SEED, false, true
 	)
+	threaded.force_trace_logging = true
 	_sim_runner.attach_and_wait_ready(self, threaded)
 	_sim_harness.run_threaded_to_completion(threaded)
 	var threaded_trace: String = threaded.get_trace_text()
@@ -428,18 +434,38 @@ func _run_when_ready() -> void:
 	if _mode == "s4_drain":
 		_sim_harness.run_ticks(_scenario, 50)
 	elif _mode == "perf_40":
-		# WO-023 canonical definition: MAIN_TICK — 800 main-thread advances,
-		# fast_sim, no sim_thread. Historical "Perf40 sim_thread" p95 figures
-		# (WO-011..WO-022) are NON-COMPARABLE (measurement definition changed).
-		print("[WO-023] Perf40 MAIN_TICK begin (canonical)")
+		# WO-024: GAMEPLAY_TICK is the gate metric (QA instrumentation OFF).
+		# MAIN_TICK (fast_sim=true) retained for QA-cost comparison only.
+		print("[WO-024] Perf40 GAMEPLAY_TICK begin (canonical gate)")
 		_scenario.use_sim_thread = false
-		_scenario.fast_sim_mode = true
+		_scenario.fast_sim_mode = false
 		if _scenario.has_method("stop_sim_thread_for_harness"):
 			_scenario.call("stop_sim_thread_for_harness")
 		for _i in 800:
 			_scenario.advance_one_tick()
 		_perf_stats = _scenario.get_perf_stats()
-		print("[WO-023] Perf40 MAIN_TICK sample done")
+		_perf_stats["metric"] = "GAMEPLAY_TICK"
+		print("[WO-024] Perf40 GAMEPLAY_TICK sample done")
+		# Second sample: MAIN_TICK (test config) for QA instrumentation delta.
+		_scenario.free()
+		_scenario = _sim_runner.instantiate_scenario(
+			"res://tests/scenario_40_perf.tscn", 1000, true, false
+		)
+		root.add_child(_scenario)
+		var spins := 0
+		while not _scenario.is_node_ready() and spins < 512:
+			OS.delay_usec(1000)
+			spins += 1
+		_scenario.use_sim_thread = false
+		_scenario.fast_sim_mode = true
+		if _scenario.has_method("stop_sim_thread_for_harness"):
+			_scenario.call("stop_sim_thread_for_harness")
+		print("[WO-024] Perf40 MAIN_TICK begin (comparison / QA cost)")
+		for _i in 800:
+			_scenario.advance_one_tick()
+		_perf_main_tick_stats = _scenario.get_perf_stats()
+		_perf_main_tick_stats["metric"] = "MAIN_TICK"
+		print("[WO-024] Perf40 MAIN_TICK sample done")
 	elif _mode == "perf_scale":
 		for _i in 800:
 			_scenario.advance_one_tick()
@@ -1297,28 +1323,49 @@ func _check_scenario_08(single_damage: float) -> void:
 
 
 func _check_perf_40() -> void:
-	# Canonical MAIN_TICK metrics live on Scenario40Perf tick timers.
-	var avg_ms := float(_perf_stats.get("avg_tick_ms", 0.0))
-	var p95_ms := float(_perf_stats.get("p95_tick_ms", 0.0))
-	var max_ms := float(_perf_stats.get("max_tick_ms", 0.0))
-	var n := int(_perf_stats.get("tick_count", 0))
+	# WO-024: GAMEPLAY_TICK is the 50ms gate; MAIN_TICK is QA-cost comparison only.
+	var g_avg := float(_perf_stats.get("avg_tick_ms", 0.0))
+	var g_p95 := float(_perf_stats.get("p95_tick_ms", 0.0))
+	var g_max := float(_perf_stats.get("max_tick_ms", 0.0))
+	var g_n := int(_perf_stats.get("tick_count", 0))
+	var m_avg := float(_perf_main_tick_stats.get("avg_tick_ms", 0.0))
+	var m_p95 := float(_perf_main_tick_stats.get("p95_tick_ms", 0.0))
+	var m_max := float(_perf_main_tick_stats.get("max_tick_ms", 0.0))
+	var m_n := int(_perf_main_tick_stats.get("tick_count", 0))
 	print(
-		"[WO-023] Perf40 MAIN_TICK avg_tick_ms=%.3f p95_tick_ms=%.3f max_tick_ms=%.3f ticks=%d"
-		% [avg_ms, p95_ms, max_ms, n]
+		"[WO-024] Perf40 GAMEPLAY_TICK avg_tick_ms=%.3f p95_tick_ms=%.3f max_tick_ms=%.3f ticks=%d"
+		% [g_avg, g_p95, g_max, g_n]
 	)
-	# Cloud observational band: WO-021 tip re-measured identically at ~57.5 p95.
-	# Soft gate — fail only on pathological blowout (not the old 50ms threaded gate).
+	print(
+		"[WO-024] Perf40 MAIN_TICK avg_tick_ms=%.3f p95_tick_ms=%.3f max_tick_ms=%.3f ticks=%d"
+		% [m_avg, m_p95, m_max, m_n]
+	)
+	var d_avg := m_avg - g_avg
+	var d_p95 := m_p95 - g_p95
+	var pct_avg := (d_avg / g_avg) * 100.0 if g_avg > 0.0 else 0.0
+	var pct_p95 := (d_p95 / g_p95) * 100.0 if g_p95 > 0.0 else 0.0
+	print(
+		"[WO-024] Perf40 QA_INSTRUMENTATION_COST avg_ms=%.3f (%.1f%%) p95_ms=%.3f (%.1f%%) — MAIN−GAMEPLAY"
+		% [d_avg, pct_avg, d_p95, pct_p95]
+	)
+	var gate_pass := g_p95 <= 50.0 and g_n >= 100
+	print(
+		"[WO-024] Perf40 GATE_50MS GAMEPLAY_TICK_p95=%.3f verdict=%s (no optimization this WO)"
+		% [g_p95, "PASS" if gate_pass else "FAIL"]
+	)
+	print(
+		"[WO-024] Perf40 note: supersedes WO-023 MAIN_TICK-as-gate; "
+		+ "WO-011..WO-022 sim_thread lines remain non-comparable; "
+		+ "WO-023 MAIN_TICK remains the test-config reference."
+	)
+	# Soft hard-fail only on pathological blowout — TD rules on GATE_50MS FAIL.
 	var ok := true
-	if p95_ms > 120.0 or n < 100:
+	if g_p95 > 120.0 or g_n < 100 or m_n < 100:
 		push_error(
-			"WO-023 perf MAIN_TICK gate FAIL: p95=%.3f n=%d (expected ~55–65ms / 800)"
-			% [p95_ms, n]
+			"WO-024 perf pathological FAIL: GAMEPLAY p95=%.3f n=%d MAIN n=%d"
+			% [g_p95, g_n, m_n]
 		)
 		ok = false
-	print(
-		"[WO-023] Perf40 MAIN_TICK note: like-for-like WO-021 tip p95≈57.5ms; "
-		+ "historical sim_thread lines in WO-011..WO-022 reports are non-comparable"
-	)
 	if not ok:
 		_exit_code = 1
 
@@ -1854,7 +1901,7 @@ func _check_s33_gravity() -> void:
 	if er != EdgeContact.EDGE_FRONT or eb != EdgeContact.EDGE_FRONT:
 		push_error("S33 expected FRONT/FRONT got %s/%s" % [er, eb])
 		ok = false
-	# WO-020b: partial square-up is acceptable; FRONT/FRONT is the hard gate.
+	# WO-024: surface-gap gravity should produce a REAL square-up (>>1.1°).
 	# Soft facing dots — only fail if clearly sideways/grinding.
 	if float(_scenario.red_facing_dot_at_contact) < 0.5:
 		push_error("S33 red grinding sideways (dot=%.3f)" % float(_scenario.red_facing_dot_at_contact))
@@ -1862,15 +1909,24 @@ func _check_s33_gravity() -> void:
 	if float(_scenario.blue_facing_dot_at_contact) < 0.5:
 		push_error("S33 blue grinding sideways (dot=%.3f)" % float(_scenario.blue_facing_dot_at_contact))
 		ok = false
+	var rot_r := float(_scenario.red_rotation_deg)
+	var rot_b := float(_scenario.blue_rotation_deg)
+	# Require meaningful rotation vs WO-020b's bogus 1.1° "partial square-up".
+	if rot_r < 5.0 and rot_b < 5.0:
+		push_error(
+			"S33 expected real square-up rot≥5° (got %.1f/%.1f; WO-020b was 1.1°)"
+			% [rot_r, rot_b]
+		)
+		ok = false
 	_record_check(
-		"[WO-020b] S33",
+		"[WO-024] S33",
 		ok,
-		"edges=%s/%s red_dot=%.3f blue_dot=%.3f rot_deg=%.1f/%.1f" % [
+		"edges=%s/%s red_dot=%.3f blue_dot=%.3f rot_deg=%.1f/%.1f (pre-fix≈1.1°)" % [
 			er, eb,
 			float(_scenario.red_facing_dot_at_contact),
 			float(_scenario.blue_facing_dot_at_contact),
-			float(_scenario.red_rotation_deg),
-			float(_scenario.blue_rotation_deg),
+			rot_r,
+			rot_b,
 		],
 	)
 

@@ -29,6 +29,23 @@ static func get_corners(unit: Variant) -> PackedVector2Array:
 	])
 
 
+## Minimum surface gap (m) from `unit`'s front face to `other`'s OBB along
+## `unit`'s facing (arc-of-travel). Positive = separation ahead; ≤0 = overlap
+## along the approach axis (contact / penetration). Used by engagement gravity
+## (WO-024 — Sec 5 is block surface gap, not center distance).
+static func surface_gap_along_facing_m(unit: Variant, other: Variant) -> float:
+	var px_per_meter: float = Constants.get_float("px_per_meter")
+	var forward: Vector2 = unit.facing.normalized()
+	if forward.length_squared() <= 0.0001:
+		return INF
+	var half_depth_m: float = unit.effective_depth_m() * 0.5
+	var unit_front_m: float = (unit.position / px_per_meter).dot(forward) + half_depth_m
+	var other_near_m: float = INF
+	for corner in get_corners(other):
+		other_near_m = minf(other_near_m, (corner / px_per_meter).dot(forward))
+	return other_near_m - unit_front_m
+
+
 static func contains_world_point(unit: Variant, world_point: Vector2) -> bool:
 	var px_per_meter: float = Constants.get_float("px_per_meter")
 	var half_depth_px: float = unit.effective_depth_m() * 0.5 * px_per_meter

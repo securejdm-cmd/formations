@@ -1,0 +1,17 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+WO024_PERF_START mode=REPEAT_BOTH
+WO024_PERF mode=GAMEPLAY_TICK_R1 n=800 avg=36.672 p95=46.131 max=48.103 fast_sim=false
+WO024_PERF mode=GAMEPLAY_TICK_R2 n=800 avg=36.760 p95=46.201 max=48.259 fast_sim=false
+WO024_PERF mode=GAMEPLAY_TICK_R3 n=800 avg=36.838 p95=46.336 max=48.361 fast_sim=false
+WO024_PERF mode=GAMEPLAY_TICK_R4 n=800 avg=36.830 p95=46.401 max=48.422 fast_sim=false
+WO024_PERF mode=GAMEPLAY_TICK_R5 n=800 avg=36.858 p95=46.358 max=48.352 fast_sim=false
+WO024_PERF mode=MAIN_TICK_R1 n=800 avg=46.901 p95=59.867 max=62.248 fast_sim=true
+WO024_PERF mode=MAIN_TICK_R2 n=800 avg=46.973 p95=59.991 max=62.305 fast_sim=true
+WO024_PERF mode=MAIN_TICK_R3 n=800 avg=46.999 p95=60.026 max=62.067 fast_sim=true
+WO024_PERF mode=MAIN_TICK_R4 n=800 avg=46.981 p95=60.056 max=62.354 fast_sim=true
+WO024_PERF mode=MAIN_TICK_R5 n=800 avg=46.951 p95=60.012 max=61.969 fast_sim=true
+WO024_VARIANCE label=GAMEPLAY_TICK n=5 avg_mean=36.792 avg_min=36.672 avg_max=36.858 avg_span=0.185 p95_mean=46.285 p95_min=46.131 p95_max=46.401 p95_span=0.270
+WO024_VARIANCE label=MAIN_TICK n=5 avg_mean=46.961 avg_min=46.901 avg_max=46.999 avg_span=0.098 p95_mean=59.990 p95_min=59.867 p95_max=60.056 p95_span=0.189
+WO024_QA_DELTA avg_ms=10.169 (27.6% of GAMEPLAY) p95_ms=13.705 (29.6% of GAMEPLAY) — MAIN−GAMEPLAY
+WO024_GATE_50MS GAMEPLAY_TICK_p95_mean=46.285 verdict=PASS
+WO024_PERF_DONE

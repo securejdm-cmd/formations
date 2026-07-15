@@ -33,6 +33,8 @@ var current_tick_interval: float = 0.1
 var tick_start_positions: Dictionary = {}
 var headless_mode: bool = true
 var fast_sim_mode: bool = false
+## Cert-only: emit in-memory traces on gameplay/threaded path without QA asserts.
+var force_trace_logging: bool = false
 var battle_seed: int = 0
 var _rng: SimRng = SimRng.new()
 var shock_floater_callback: Callable = Callable()
@@ -62,7 +64,16 @@ func begin_sim_tick(tick_interval: float) -> void:
 
 func overlap_assert_enabled() -> bool:
 	# Verification equipment: autotest and fast-mode only — not realtime gameplay.
+	# WO-024: GAMEPLAY_TICK uses fast_sim_mode=false so this stays OFF.
 	return headless_mode and fast_sim_mode
+
+
+func trace_logging_enabled() -> bool:
+	## CSV / EVENT trace rows are QA equipment (WO-010c / WO-024).
+	## Default: only in fast_sim (test) mode — never part of GAMEPLAY_TICK.
+	## Certification may set force_trace_logging to compare byte traces on the
+	## gameplay/threaded path without enabling overlap asserts.
+	return fast_sim_mode or force_trace_logging
 
 
 func capture_tick_start_positions() -> void:
@@ -96,7 +107,7 @@ func advance_one_tick_fast(tick_interval: float) -> void:
 	track_rout_state()
 	update_victory_state(tick_interval)
 	var ticks_per_sec := int(Constants.get_float("tick_rate_per_sec"))
-	if sim_tick_count % ticks_per_sec == 0:
+	if trace_logging_enabled() and sim_tick_count % ticks_per_sec == 0:
 		log_trace_row()
 	check_epilogue_end()
 
@@ -123,8 +134,11 @@ func slope_range_mult(shooter: SimUnitProxy, target: SimUnitProxy) -> float:
 func advance_one_tick_profiled(tick_interval: float) -> void:
 	var t0 := _TickProfiler.begin_section("grid_overhead")
 	rebuild_spatial_grid()
-	refresh_slope_mods()
 	_TickProfiler.end_section("grid_overhead", t0)
+
+	t0 = _TickProfiler.begin_section("slope_sampling")
+	refresh_slope_mods()
+	_TickProfiler.end_section("slope_sampling", t0)
 
 	t0 = _TickProfiler.begin_section("movement")
 	update_movement(tick_interval)
@@ -158,7 +172,7 @@ func advance_one_tick_profiled(tick_interval: float) -> void:
 	track_rout_state()
 	update_victory_state(tick_interval)
 	var ticks_per_sec := int(Constants.get_float("tick_rate_per_sec"))
-	if sim_tick_count % ticks_per_sec == 0:
+	if trace_logging_enabled() and sim_tick_count % ticks_per_sec == 0:
 		var t_log := _TickProfiler.begin_section("trace_logging")
 		log_trace_row()
 		_TickProfiler.end_section("trace_logging", t_log)
@@ -1135,6 +1149,8 @@ func finish_battle() -> void:
 	log_trace_row()
 
 func log_trace_row() -> void:
+	if not trace_logging_enabled():
+		return
 	var time_sec := sim_tick_count * (1.0 / Constants.get_float("tick_rate_per_sec"))
 	for unit in units:
 		var ammo_field := ""
@@ -1157,10 +1173,14 @@ func log_trace_row() -> void:
 		)
 
 func log_trace_event(event_type: String, detail: String) -> void:
+	if not trace_logging_enabled():
+		return
 	var time_sec := sim_tick_count * (1.0 / Constants.get_float("tick_rate_per_sec"))
 	trace_lines.append("%.1f,EVENT,%s,%s" % [time_sec, event_type, detail])
 
 func write_trace_header() -> void:
+	if not trace_logging_enabled():
+		return
 	trace_lines.append("time_sec,unit_id,strength,cohesion,kills,pos_x,pos_y,state,contact_edges")
 
 

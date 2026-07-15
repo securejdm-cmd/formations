@@ -1,0 +1,37 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=blue_1 | march=61.7s | combat=81.6s | flee=152.8s | winner_strength=68.68 | winner_cohesion=21.47
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=blue_1 | march=61.7s | combat=81.6s | flee=152.8s | winner_strength=68.68 | winner_cohesion=21.47
+WO024_GRAV_AB S1 r4 combat=81.6 winner=blue_1 ticks=2961
+WO024_GRAV_AB S1 r0 combat=81.6 winner=blue_1 ticks=2961 identical=true
+[RNG] Battle seed set: 12345
+[Scenario 02] Battle seed: 12345
+[Scenario 02] Trace written: res://tests/traces/scenario_02_12345.csv
+[Scenario 02] SUMMARY | winner=red_1 | march=61.7s | combat=61.2s | flee=142.9s | routed=blue_1 | strength_at_rout=68.12 | ground_displacement_m=16.13
+[RNG] Battle seed set: 12345
+[Scenario 02] Battle seed: 12345
+[Scenario 02] Trace written: res://tests/traces/scenario_02_12345.csv
+[Scenario 02] SUMMARY | winner=red_1 | march=61.7s | combat=61.2s | flee=142.9s | routed=blue_1 | strength_at_rout=68.12 | ground_displacement_m=16.13
+WO024_GRAV_AB S2 r4 combat=61.2 winner=red_1 ticks=2658
+WO024_GRAV_AB S2 r0 combat=61.2 winner=red_1 ticks=2658 identical=true
+[RNG] Battle seed set: 12345
+[Scenario 03] Battle seed: 12345
+[Scenario 03] Trace written: res://tests/traces/scenario_03_12345.csv
+[Scenario 03] SUMMARY | winner=red_b | combat=21.5s | blue_a_strength_at_rout=76.23 | edge_drains front=0.00 left=59.20 right=0.00 rear=0.38
+[RNG] Battle seed set: 12345
+[Scenario 03] Battle seed: 12345
+[Scenario 03] Trace written: res://tests/traces/scenario_03_12345.csv
+[Scenario 03] SUMMARY | winner=red_b | combat=21.5s | blue_a_strength_at_rout=76.28 | edge_drains front=0.00 left=59.63 right=0.00 rear=0.40
+WO024_GRAV_AB S3 r4 combat=21.5 winner=red_b ticks=2303
+WO024_GRAV_AB S3 r0 combat=21.5 winner=red_b ticks=2303 identical=false
+WO024_GRAV_AB S3 lens=739/739
+WO024_GRAV_AB S3 first_diff line=218
+WO024_GRAV_AB S3 r4=72.0,red_a,94.1525,85.3227,58,-12.86,-0.01,marching,
+WO024_GRAV_AB S3 r0=72.0,red_a,94.1525,85.3227,58,-12.86,0.00,marching,
+WO024_GRAV_AB_ALL identical=false
