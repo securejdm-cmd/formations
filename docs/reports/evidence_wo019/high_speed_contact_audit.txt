@@ -1,0 +1,13 @@
+Per-tick displacement at tick_dt=0.1s:
+  trot 4.0 m/s → 0.40m  (< engage_snap_max_m=1.0)
+  WO-018 contact ~5.2 → 0.52m
+  gait 13.5 m/s → 1.35m  (> engage_snap_max_m=1.0)  RISK
+contact_epsilon_m=0.01
+Head-on clamp_march_distance still caps to contact gap, but non-head-on and
+adhesion windows can be skipped when displace > snap.
+
+Remedy (implemented): march_substep_count — when peak_speed*dt >= snap,
+N = floor(disp/snap)+1 substeps (deterministic Unit + SimUnitProxy).
+At 13.5: N=2, sub_disp=0.675m < 1.0.
+
+Certs after: Fast-mode + Threaded byte-identical PASS (seed 12345).
