@@ -74,15 +74,22 @@ func apply_snapshot_to_units(unit_nodes: Array) -> void:
 func _worker_loop() -> void:
 	while not _stop:
 		var tick_start := Time.get_ticks_usec()
-		_mutex.lock()
-		if _core != null and not _core.battle_over:
-			_core.advance_one_tick()
-			_snapshot_back = _core.build_render_snapshot()
+		# Advance outside the mutex so overlap push_error / logging cannot
+		# stall the main thread (which only needs the snapshot briefly).
+		var core = _core
+		var done := false
+		if core != null and not core.battle_over:
+			core.advance_one_tick()
+			var snap: Array = core.build_render_snapshot()
+			_mutex.lock()
+			_snapshot_back = snap
 			var tmp := _snapshot_front
 			_snapshot_front = _snapshot_back
 			_snapshot_back = tmp
-		var done: bool = _core != null and _core.battle_over
-		_mutex.unlock()
+			done = core.battle_over
+			_mutex.unlock()
+		else:
+			done = core != null and core.battle_over
 		_last_tick_usec = Time.get_ticks_usec() - tick_start
 		# Cap samples — unpaced headless workers can otherwise grow this array
 		# unboundedly and stall later stats sorts (S40→perf_40 cloud hang).

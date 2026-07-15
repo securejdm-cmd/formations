@@ -90,10 +90,15 @@ func _ready() -> void:
 
 
 func _exit_tree() -> void:
+	stop_sim_thread_for_harness()
+	_sim_core = null
+
+
+func stop_sim_thread_for_harness() -> void:
+	## Safe from autotest after a realtime sample — prevents unbounded worker races.
 	if _sim_thread != null:
 		_sim_thread.stop()
 		_sim_thread = null
-		_sim_core = null
 
 
 func _sim_thread_enabled() -> bool:

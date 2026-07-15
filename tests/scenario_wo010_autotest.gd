@@ -406,12 +406,16 @@ func _run_when_ready() -> void:
 		_sim_harness.run_ticks(_scenario, 50)
 	elif _mode == "perf_40":
 		print("[WO-011] Perf40 begin (threaded realtime sample)")
+		# Yield between samples so SceneTree can pump and the worker can run.
 		for _i in 1200:
 			_scenario.simulate_realtime_step()
+			OS.delay_usec(1000)
 			if _i > 0 and _i % 200 == 0:
 				print("[WO-011] Perf40 step=%d battle_over=%s" % [_i, _scenario.is_battle_over()])
 			if _scenario.is_battle_over():
 				break
+		if _scenario.has_method("stop_sim_thread_for_harness"):
+			_scenario.call("stop_sim_thread_for_harness")
 		_perf_stats = _scenario.get_perf_stats()
 		print("[WO-011] Perf40 sample done")
 	elif _mode == "perf_scale":
