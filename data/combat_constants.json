@@ -66,7 +66,7 @@
   "base_accel": 0.96,
   "base_decel": 0.4,
   "base_turn_rate_rad": 2.5,
-  "charge_impact_scale": 1.0,
+  "charge_impact_scale": 1.006,
   "charge_cohesion_coeff": 3.55,
   "charge_amp_peak": 2.5,
   "charge_amp_decay_s": 3.0,

@@ -240,12 +240,18 @@ func max_unit_dimension_m() -> float:
 
 
 func march_enemy_query_radius_px() -> float:
+	## Contact-scale radius for collision clamping, plus charge_commit_range so
+	## R17 gait commitment can see targets before the final 50m (WO-019/R18).
 	var px_per_meter := Constants.get_float("px_per_meter")
-	var radius_m := (
+	var contact_radius_m := (
 		max_closing_speed_m() * current_tick_interval
 		+ max_unit_dimension_m()
 	)
-	return radius_m * px_per_meter
+	var commit_radius_m := (
+		Constants.get_float("charge_commit_range_m")
+		+ max_unit_dimension_m()
+	)
+	return maxf(contact_radius_m, commit_radius_m) * px_per_meter
 
 
 func grid_units_within_radius_sorted(unit: SimUnitProxy, radius_px: float) -> Array:
