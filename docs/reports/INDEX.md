@@ -2,6 +2,7 @@
 
 Canonical index of FORMATIONS work-order reports (newest first). Raw `main` branch links.
 
+- [MAIN_MERGE_wo020_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/MAIN_MERGE_wo020_completion.md) — WO-020+020b merge; Magnetism complete; suite exit 0
 - [WO-020b_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/WO-020b_completion.md) — WO-020b magnetism teeth (withdrawal mult + turn rate)
 - [WO-020b_escalation.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/WO-020b_escalation.md) — WO-020b Task1 ratio (armor skew)
 - [WO-020_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/WO-020_completion.md) — WO-020 full magnetism (R19 gravity / pin / Agility / disengage)
