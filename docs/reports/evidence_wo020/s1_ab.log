@@ -1,0 +1,12 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=blue_1 | march=61.7s | combat=81.6s | flee=152.8s | winner_strength=68.68 | winner_cohesion=21.47
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=blue_1 | march=61.7s | combat=81.6s | flee=152.8s | winner_strength=68.68 | winner_cohesion=21.47
+S1_AB radius4 combat=81.6 winner=blue_1 ticks=2961
+S1_AB radius0 combat=81.6 winner=blue_1 ticks=2961 identical=true

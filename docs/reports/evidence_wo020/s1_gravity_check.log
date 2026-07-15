@@ -1,0 +1,8 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+flank_cross_s=0.299 inf_90_s=0.628
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=red_1 | march=61.7s | combat=75.8s | flee=147.9s | winner_strength=71.28 | winner_cohesion=28.08
+S1 winner=red_1 combat=75.8 identical=false ticks=2854

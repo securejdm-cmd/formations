@@ -1,0 +1,22 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+S30 over=true ticks=489
+  sk=1.40 sp=2.40 sk_lost=0.12 sp_lost=0.10
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+S31 over=true ticks=236
+  spears_t=1.10 drain=0.480 inf_t=0.70 drain=0.133
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+S33 over=true ticks=290
+  edges=front/front dots=0.98/0.98
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+S34 over=true ticks=413
+  flank=true no_reface=true samples=20
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+S32 over=true ticks=523
+  str=89.2/89.2/79.5 impact2=19.317

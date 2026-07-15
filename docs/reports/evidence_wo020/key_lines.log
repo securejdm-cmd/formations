@@ -1,0 +1,13 @@
+/workspace/docs/reports/evidence_wo020/s1_ab.log:11:S1_AB radius4 combat=81.6 winner=blue_1 ticks=2961
+/workspace/docs/reports/evidence_wo020/s1_ab.log:12:S1_AB radius0 combat=81.6 winner=blue_1 ticks=2961 identical=true
+/workspace/docs/reports/evidence_wo020/suite_stdout.log:12:[WO-010] Fast-mode certification PASS (seed 12345 trace byte-identical)
+/workspace/docs/reports/evidence_wo020/suite_stdout.log:17:[WO-011] Threaded certification PASS (seed 12345 trace byte-identical)
+/workspace/docs/reports/evidence_wo020/suite_stdout.log:235:[WO-014] S12 PASS volleys=18 approach_lost=8.04% total_lost=9.33 panic=true
+/workspace/docs/reports/evidence_wo020/suite_stdout.log:360:[WO-020] S30 PASS sk_t=1.40s lost_str=2.43/coh=7.81 sp_t=2.40s lost_str=2.57/coh=8.99
+/workspace/docs/reports/evidence_wo020/suite_stdout.log:363:[WO-020] S31 PASS spears_t=1.10s drain=1.760 inf_t=0.70s drain=0.933
+/workspace/docs/reports/evidence_wo020/suite_stdout.log:366:[WO-020] S32 PASS str_fail=89.18 str_dis=88.84 str_rech=79.19 impact2=19.243
+/workspace/docs/reports/evidence_wo020/suite_stdout.log:369:[WO-020] S33 PASS edges=front/front red_dot=0.980 blue_dot=0.980
+/workspace/docs/reports/evidence_wo020/suite_stdout.log:372:[WO-020] S34 PASS samples=20 flank_persist=true no_reface=true
+/workspace/docs/reports/evidence_wo020/suite_stdout.log:375:[WO-011] Perf40 sim_thread avg_tick_ms=1.561 p95_tick_ms=1.775 max_tick_ms=45.673 ticks=695124
+/workspace/docs/reports/evidence_wo020/suite_stdout.log:376:[WO-011] Perf40 environmental actuals (cloud, not designer-desktop gate): min_fps=0.1 avg_fps=20.5 avg_tick_ms=0.000 p95_tick_ms=0.000 ticks=0
+/workspace/docs/reports/evidence_wo020/suite_stdout.log:387:[WO-015] Meta PASS=66 FAIL=0 expected_green_pass=66 exit=0

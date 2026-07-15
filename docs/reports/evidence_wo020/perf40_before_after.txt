@@ -1,0 +1,3 @@
+perf40 before (main post WO-016..019): avg_tick_ms=1.089 p95=1.217
+perf40 after  (WO-020 suite):           avg_tick_ms=1.561 p95=1.775 max=45.673
+budget: 50ms — PASS
