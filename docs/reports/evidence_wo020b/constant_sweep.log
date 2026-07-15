@@ -1,0 +1,55 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+=== TASK1 disengage_damage_mult sweep (base_turn kept current) ===
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+mult=1.0 sk_t=1.40 sk_lost=2.43 sp_t=2.40 sp_lost=3.12 ratio=1.284 ok_sp=false ok_sk=true ok_ratio=false ALL=false
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+mult=1.5 sk_t=1.40 sk_lost=3.59 sp_t=2.40 sp_lost=4.66 ratio=1.299 ok_sp=false ok_sk=true ok_ratio=false ALL=false
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+mult=2.0 sk_t=1.40 sk_lost=4.74 sp_t=2.40 sp_lost=6.17 ratio=1.301 ok_sp=true ok_sk=true ok_ratio=false ALL=false
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+mult=2.5 sk_t=1.40 sk_lost=5.89 sp_t=2.40 sp_lost=7.68 ratio=1.303 ok_sp=true ok_sk=true ok_ratio=false ALL=false
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+mult=3.0 sk_t=1.40 sk_lost=7.05 sp_t=2.40 sp_lost=9.19 ratio=1.303 ok_sp=true ok_sk=false ok_ratio=false ALL=false
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+mult=3.5 sk_t=1.40 sk_lost=8.20 sp_t=2.40 sp_lost=10.69 ratio=1.304 ok_sp=true ok_sk=false ok_ratio=false ALL=false
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+mult=4.0 sk_t=1.40 sk_lost=9.35 sp_t=2.40 sp_lost=12.20 ratio=1.305 ok_sp=true ok_sk=false ok_ratio=false ALL=false
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+mult=5.0 sk_t=1.40 sk_lost=11.66 sp_t=2.40 sp_lost=15.22 ratio=1.305 ok_sp=true ok_sk=false ok_ratio=false ALL=false
+=== TASK2 base_turn_rate_rad analytic table ===
+base=0.12 spears_t=21.8s drain=34.91 inf_t=13.1s drain=17.45 cav_t=15.0s sk_t=4.9s ratio=2.00 ALL=false
+base=0.15 spears_t=17.5s drain=27.93 inf_t=10.5s drain=13.96 cav_t=12.0s sk_t=3.9s ratio=2.00 ALL=true
+base=0.18 spears_t=14.5s drain=23.27 inf_t=8.7s drain=11.64 cav_t=10.0s sk_t=3.3s ratio=2.00 ALL=true
+base=0.20 spears_t=13.1s drain=20.94 inf_t=7.9s drain=10.47 cav_t=9.0s sk_t=2.9s ratio=2.00 ALL=true
+base=0.22 spears_t=11.9s drain=19.04 inf_t=7.1s drain=9.52 cav_t=8.2s sk_t=2.7s ratio=2.00 ALL=true
+base=0.25 spears_t=10.5s drain=16.76 inf_t=6.3s drain=8.38 cav_t=7.2s sk_t=2.4s ratio=2.00 ALL=true
+base=0.28 spears_t=9.3s drain=14.96 inf_t=5.6s drain=7.48 cav_t=6.4s sk_t=2.1s ratio=2.00 ALL=false
+base=0.35 spears_t=7.5s drain=11.97 inf_t=4.5s drain=5.98 cav_t=5.1s sk_t=1.7s ratio=2.00 ALL=false
+base=0.50 spears_t=5.2s drain=8.38 inf_t=3.1s drain=4.19 cav_t=3.6s sk_t=1.2s ratio=2.00 ALL=false
+base=1.00 spears_t=2.6s drain=4.19 inf_t=1.6s drain=2.09 cav_t=1.8s sk_t=0.6s ratio=2.00 ALL=false
+base=2.50 spears_t=1.0s drain=1.68 inf_t=0.6s drain=0.84 cav_t=0.7s sk_t=0.2s ratio=2.00 ALL=false
+=== TASK2 empirical S31 around preferred band ===
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+base=0.16 sp_t=16.20 sp_d=25.92 inf_t=9.70 inf_d=12.93 ratio=2.00 OK=true
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+base=0.18 sp_t=14.40 sp_d=23.04 inf_t=8.70 inf_d=11.60 ratio=1.99 OK=true
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+base=0.20 sp_t=13.00 sp_d=20.80 inf_t=7.80 inf_d=10.40 ratio=2.00 OK=true
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+base=0.22 sp_t=11.80 sp_d=18.88 inf_t=7.10 inf_d=9.47 ratio=1.99 OK=true
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+base=0.25 sp_t=10.40 sp_d=16.64 inf_t=6.30 inf_d=8.40 ratio=1.98 OK=true

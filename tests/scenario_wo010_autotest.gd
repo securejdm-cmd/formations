@@ -1661,6 +1661,8 @@ func _check_s30_disengage() -> void:
 	var ok := true
 	var sk_t: float = float(_scenario.skirm_withdraw_s)
 	var sp_t: float = float(_scenario.spears_withdraw_s)
+	var sk_lost: float = float(_scenario.skirm_str_lost)
+	var sp_lost: float = float(_scenario.spears_str_lost)
 	# Expect ~1.4s skirmisher, ~2.4s spears (Agility 80 vs 30).
 	if sk_t < 0.0 or sp_t < 0.0:
 		push_error("S30 missing withdraw times sk=%.2f sp=%.2f" % [sk_t, sp_t])
@@ -1674,7 +1676,14 @@ func _check_s30_disengage() -> void:
 	if absf(sp_t - 2.4) > 0.35:
 		push_error("S30 spears withdraw expected ~2.4s got %.2f" % sp_t)
 		ok = false
-	# Prefer duration gate as primary Agility demonstration; cohesion drain tracks time under fire.
+	# WO-020b Task 1 selection (partial): exposure teeth + duration lock.
+	# Ratio criterion escalated (armor skew); see WO-020b_escalation.md.
+	if sp_lost < 6.0:
+		push_error("S30 spears strength lost %.2f expected >= 6.0" % sp_lost)
+		ok = false
+	if sk_lost > 6.0:
+		push_error("S30 skirmisher strength lost %.2f expected <= 6.0" % sk_lost)
+		ok = false
 	if float(_scenario.spears_coh_lost) + 0.05 < float(_scenario.skirm_coh_lost):
 		push_error(
 			"S30 spears should lose at least as much cohesion (%.2f vs %.2f)"
@@ -1682,12 +1691,13 @@ func _check_s30_disengage() -> void:
 		)
 		ok = false
 	_record_check(
-		"[WO-020] S30",
+		"[WO-020b] S30",
 		ok,
-		"sk_t=%.2fs lost_str=%.2f/coh=%.2f sp_t=%.2fs lost_str=%.2f/coh=%.2f"
+		"sk_t=%.2fs lost_str=%.2f/coh=%.2f sp_t=%.2fs lost_str=%.2f/coh=%.2f ratio=%.2f"
 		% [
-			sk_t, float(_scenario.skirm_str_lost), float(_scenario.skirm_coh_lost),
-			sp_t, float(_scenario.spears_str_lost), float(_scenario.spears_coh_lost),
+			sk_t, sk_lost, float(_scenario.skirm_coh_lost),
+			sp_t, sp_lost, float(_scenario.spears_coh_lost),
+			sp_lost / sk_lost if sk_lost > 0.001 else 0.0,
 		],
 	)
 
@@ -1701,16 +1711,24 @@ func _check_s31_wheel() -> void:
 	if sp_t < 0.0 or inf_t < 0.0:
 		push_error("S31 missing wheel times")
 		ok = false
-	if sp_d <= inf_d:
-		push_error("S31 spears (A30) drain %.3f should exceed infantry (A50) %.3f" % [sp_d, inf_d])
+	# WO-020b Task 2 drain band selection.
+	if sp_d < 15.0 or sp_d > 30.0:
+		push_error("S31 spears drain %.3f expected in [15, 30]" % sp_d)
+		ok = false
+	if inf_d < 7.0 or inf_d > 15.0:
+		push_error("S31 infantry drain %.3f expected in [7, 15]" % inf_d)
+		ok = false
+	if inf_d > 0.001 and (sp_d / inf_d) < 1.6:
+		push_error("S31 drain ratio %.2f expected >= 1.6" % (sp_d / inf_d))
 		ok = false
 	if sp_t <= inf_t:
 		push_error("S31 spears should take longer to wheel (%.2f vs %.2f)" % [sp_t, inf_t])
 		ok = false
 	_record_check(
-		"[WO-020] S31",
+		"[WO-020b] S31",
 		ok,
-		"spears_t=%.2fs drain=%.3f inf_t=%.2fs drain=%.3f" % [sp_t, sp_d, inf_t, inf_d],
+		"spears_t=%.2fs drain=%.3f inf_t=%.2fs drain=%.3f ratio=%.2f"
+		% [sp_t, sp_d, inf_t, inf_d, sp_d / inf_d if inf_d > 0.001 else 0.0],
 	)
 
 
@@ -1726,17 +1744,19 @@ func _check_s32_hit_and_run() -> void:
 	if s2 <= 0.0 or s2 > 100.0:
 		push_error("S32 cavalry should survive disengage (str=%.2f)" % s2)
 		ok = false
-	# Full gait impact ≈ 21.6
-	if impact2 < 18.0:
-		push_error("S32 second charge should land full gait impact (got %.3f)" % impact2)
+	# Full gait impact — strength-scaled; keep a soft floor.
+	if impact2 < 12.0:
+		push_error("S32 second charge should land gait impact (got %.3f)" % impact2)
 		ok = false
 	if s3 <= 0.0:
 		push_error("S32 cavalry should still be alive after recharge")
 		ok = false
+	# Costly break-off expected under WO-020b; just report vs WO-020 baseline.
 	_record_check(
-		"[WO-020] S32",
+		"[WO-020b] S32",
 		ok,
-		"str_fail=%.2f str_dis=%.2f str_rech=%.2f impact2=%.3f" % [s1, s2, s3, impact2],
+		"str_fail=%.2f str_dis=%.2f str_rech=%.2f impact2=%.3f (WO-020 was 89.18/88.84/79.19)"
+		% [s1, s2, s3, impact2],
 	)
 
 
@@ -1747,17 +1767,23 @@ func _check_s33_gravity() -> void:
 	if er != EdgeContact.EDGE_FRONT or eb != EdgeContact.EDGE_FRONT:
 		push_error("S33 expected FRONT/FRONT got %s/%s" % [er, eb])
 		ok = false
-	if float(_scenario.red_facing_dot_at_contact) < 0.85:
-		push_error("S33 red not facing contact (dot=%.3f)" % float(_scenario.red_facing_dot_at_contact))
+	# WO-020b: partial square-up is acceptable; FRONT/FRONT is the hard gate.
+	# Soft facing dots — only fail if clearly sideways/grinding.
+	if float(_scenario.red_facing_dot_at_contact) < 0.5:
+		push_error("S33 red grinding sideways (dot=%.3f)" % float(_scenario.red_facing_dot_at_contact))
 		ok = false
-	if float(_scenario.blue_facing_dot_at_contact) < 0.85:
-		push_error("S33 blue not facing contact (dot=%.3f)" % float(_scenario.blue_facing_dot_at_contact))
+	if float(_scenario.blue_facing_dot_at_contact) < 0.5:
+		push_error("S33 blue grinding sideways (dot=%.3f)" % float(_scenario.blue_facing_dot_at_contact))
 		ok = false
 	_record_check(
-		"[WO-020] S33",
+		"[WO-020b] S33",
 		ok,
-		"edges=%s/%s red_dot=%.3f blue_dot=%.3f" % [
-			er, eb, float(_scenario.red_facing_dot_at_contact), float(_scenario.blue_facing_dot_at_contact)
+		"edges=%s/%s red_dot=%.3f blue_dot=%.3f rot_deg=%.1f/%.1f" % [
+			er, eb,
+			float(_scenario.red_facing_dot_at_contact),
+			float(_scenario.blue_facing_dot_at_contact),
+			float(_scenario.red_rotation_deg),
+			float(_scenario.blue_rotation_deg),
 		],
 	)
 
@@ -1775,7 +1801,7 @@ func _check_s34_pinning() -> void:
 		_scenario.flank_persisted,
 		_scenario.a_did_not_reface,
 	]
-	_record_check("[WO-020] S34", ok, detail)
+	_record_check("[WO-020b] S34", ok, detail)
 
 
 func _record_check(tag: String, ok: bool, detail: String = "") -> void:

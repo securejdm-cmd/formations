@@ -1,0 +1,2 @@
+before (WO-020): avg=1.561 p95=1.775
+375:[WO-011] Perf40 sim_thread avg_tick_ms=1.563 p95_tick_ms=1.786 max_tick_ms=46.166 ticks=792916

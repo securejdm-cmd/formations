@@ -902,15 +902,20 @@ func combat_tick() -> void:
 
 
 func _apply_disengage_free_hits() -> void:
-	## Fighting withdrawal: enemies still in contact deal full melee + cohesion;
-	## the withdrawing unit cannot strike back (D&C §5).
+	## Fighting withdrawal (WO-020b): remain in contact for the full timer; no
+	## translation, no counter-attack. Free hits use melee against a turning-
+	## back target (push-loser factor) × disengage_damage_mult, plus ordered
+	## retreat cohesion drain every tick per partner.
 	var processed: Array[String] = []
 	var dt: float = current_tick_interval
+	var dmg_mult: float = Constants.get_float("disengage_damage_mult")
 	for unit in units:
 		if not unit.disengaging:
 			continue
 		if unit.get_state() == Unit.State.REMOVED or unit.get_state() == Unit.State.ROUTING:
 			continue
+		# Stay put while the timer runs — no marching / gravity translation.
+		unit.current_speed_m_s = 0.0
 		for partner in unit.get_contact_partners():
 			if partner == null or partner.get_state() == Unit.State.REMOVED:
 				continue
@@ -922,9 +927,12 @@ func _apply_disengage_free_hits() -> void:
 			processed.append(pk)
 			if CombatResolver.is_head_on_pair(unit, partner):
 				CombatResolver.snap_pair_to_contact(unit, partner)
-			# partner strikes, unit receives (free hits).
-			var result := CombatResolver.resolve_engagement(partner, unit)
-			var incoming: float = float(result.damage_b)
+			# Turning your back: always resolve as push-loser for free-hit lethality.
+			# Do NOT use bidirectional resolve_engagement (push-winner asymmetry
+			# made Agility-blind exposure under WO-020).
+			var incoming: float = (
+				CombatResolver.calc_melee_strength_loss(partner, unit, 1.0, true) * dmg_mult
+			)
 			var applied := CombatResolver.apply_strength_loss(unit, incoming)
 			partner.record_damage_dealt(applied)
 			var coh_drain: float = Constants.get_float("ordered_retreat_drain_per_sec") * dt

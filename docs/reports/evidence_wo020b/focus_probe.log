@@ -1,0 +1,34 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+flank_cross_s=0.299 inf_90_s=7.854 (base_turn=0.200)
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+S30 over=true ticks=489
+  sk=1.40/4.74 sp=2.40/6.17 ratio=1.30
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+S31 over=true ticks=355
+  spears_t=13.00 drain=20.80 inf_t=7.80 drain=10.40
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+S33 over=true ticks=290
+  edges=front/front dots=0.95/0.95 rot=1.1/1.1
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+S34 over=true ticks=413
+  flank=true no_reface=true
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+S32 over=false ticks=40000
+  str=89.2/88.5/-1.0 impact2=-1.000
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=blue_1 | march=61.7s | combat=81.6s | flee=152.8s | winner_strength=68.68 | winner_cohesion=21.47
+S1_AB r=4.0 combat=81.6 winner=blue_1
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=blue_1 | march=61.7s | combat=81.6s | flee=152.8s | winner_strength=68.68 | winner_cohesion=21.47
+S1_AB r=0.0 combat=81.6 winner=blue_1
+S1_AB identical=true

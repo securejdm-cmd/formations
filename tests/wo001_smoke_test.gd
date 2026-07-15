@@ -64,6 +64,7 @@ func _test_constants_loaded(constants: Node) -> bool:
 		"engage_snap_max_m",
 		"engage_radius_m",
 		"disengage_base_s",
+		"disengage_damage_mult",
 		"rotate_under_contact_drain",
 		"base_accel",
 		"base_decel",

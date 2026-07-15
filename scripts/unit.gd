@@ -145,12 +145,22 @@ func begin_disengage() -> void:
 	disengaging = true
 	_disengage_time_left = _Magnetism.disengage_duration_s(self)
 	wheeling = false
+	wheel_under_contact = false
+	current_speed_m_s = 0.0
+	charge_committed = false
+	_charge_commit_target_id = ""
 
 
 func complete_disengage() -> void:
 	disengaging = false
 	_disengage_time_left = 0.0
+	# Mutual break: notify partners so they do not keep grinding a "free" withdrawer.
+	var old_partners: Array[Unit] = _contact_partners.duplicate()
 	_clear_contact_partners()
+	for partner in old_partners:
+		if partner != null:
+			partner.remove_contact_partner(self)
+			partner.clear_bump_state()
 	clear_bump_state()
 	# Break-off: do not instantly re-stick while still geometrically overlapping.
 	auto_engage_locked = true
