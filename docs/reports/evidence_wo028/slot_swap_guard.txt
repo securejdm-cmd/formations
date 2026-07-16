@@ -1,0 +1,2 @@
+WO027_SLOT_SWAP seed=1000 normal_winner=attacker swapped_winner=defender winner_swaps=true combat=75.8/75.8 w_str=71.28/71.28 w_coh=28.08/28.08 mirror_ok=true ok=true
+WO027_SLOT_SWAP_DONE

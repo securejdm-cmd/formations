@@ -1888,7 +1888,7 @@ func _check_s30_disengage() -> void:
 	var sp_t: float = float(_scenario.spears_withdraw_s)
 	var sk_lost: float = float(_scenario.skirm_str_lost)
 	var sp_lost: float = float(_scenario.spears_str_lost)
-	# Expect ~1.4s skirmisher, ~2.4s spears (Agility 80 vs 30).
+	# Direction (R21): skirmisher finishes before spears; spears lose ≥ cohesion.
 	if sk_t < 0.0 or sp_t < 0.0:
 		push_error("S30 missing withdraw times sk=%.2f sp=%.2f" % [sk_t, sp_t])
 		ok = false
@@ -1901,13 +1901,24 @@ func _check_s30_disengage() -> void:
 	if absf(sp_t - 2.4) > 0.35:
 		push_error("S30 spears withdraw expected ~2.4s got %.2f" % sp_t)
 		ok = false
-	# WO-020b Task 1 selection (partial): exposure teeth + duration lock.
-	# Ratio criterion escalated (armor skew); see WO-020b_escalation.md.
-	if sp_lost < 6.0:
-		push_error("S30 spears strength lost %.2f expected >= 6.0" % sp_lost)
+	# WO-028: magnitude bands re-derived under QoD-on σ=0.045, n=500 seeds 1000–1499.
+	# sk_lost mean=4.608 sd=0.251 → [3.856, 5.360]; sp_lost mean=6.029 sd=0.462 → [4.642, 7.416]
+	# Provenance: evidence_wo028/s30_rederive.log
+	const S30_SK_LOST_MIN := 3.86
+	const S30_SK_LOST_MAX := 5.36
+	const S30_SP_LOST_MIN := 4.64
+	const S30_SP_LOST_MAX := 7.42
+	if sk_lost + 0.01 < S30_SK_LOST_MIN or sk_lost - 0.01 > S30_SK_LOST_MAX:
+		push_error(
+			"S30 skirmisher str lost %.2f outside QoD-on band [%.2f, %.2f]"
+			% [sk_lost, S30_SK_LOST_MIN, S30_SK_LOST_MAX]
+		)
 		ok = false
-	if sk_lost > 6.0:
-		push_error("S30 skirmisher strength lost %.2f expected <= 6.0" % sk_lost)
+	if sp_lost + 0.01 < S30_SP_LOST_MIN or sp_lost - 0.01 > S30_SP_LOST_MAX:
+		push_error(
+			"S30 spears str lost %.2f outside QoD-on band [%.2f, %.2f]"
+			% [sp_lost, S30_SP_LOST_MIN, S30_SP_LOST_MAX]
+		)
 		ok = false
 	if float(_scenario.spears_coh_lost) + 0.05 < float(_scenario.skirm_coh_lost):
 		push_error(
@@ -1916,7 +1927,7 @@ func _check_s30_disengage() -> void:
 		)
 		ok = false
 	_record_check(
-		"[WO-020b] S30",
+		"[WO-028] S30",
 		ok,
 		"sk_t=%.2fs lost_str=%.2f/coh=%.2f sp_t=%.2fs lost_str=%.2f/coh=%.2f ratio=%.2f"
 		% [
