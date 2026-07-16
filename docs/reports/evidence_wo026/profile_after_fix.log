@@ -1,0 +1,16 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+WO026_PERF_START mode=PROFILE
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+WO026_PROFILE tag=BASELINE disable_commit=false units=40 tick_samples=800 wall_avg=19.718 wall_p95=26.270
+WO026_SUBSYSTEM ms/tick total=19.534 grid=0.049 slope=0.010 movement=9.303 allied=9.028 adhesion=0.231 adhesion_post=0.173 classify=4.086 combat=0.708
+WO026_MOVE_MICRO enemy_query calls/tick=32.8 ms/tick=0.654 mean_usec=19.9 cells/tick=295.4 cells/call=9.0 candidates/tick=323.2 frac_of_movement=0.070
+WO026_MOVE_MICRO radius_calc calls/tick=32.8 ms/tick=0.142 max_scan calls/tick=2.0 ms/tick=0.077
+WO026_MOVE_MICRO substep iterations/tick=32.8 unit_ticks/tick=32.8
+WO026_MOVE_MICRO charge_commit calls/tick=32.8 ms/tick=0.039 mean_usec=1.2
+WO026_MOVE_MICRO gravity calls/tick=32.8 ms/tick=0.169 mean_usec=5.1 auto_rot calls/tick=0.7 ms/tick=0.001
+WO026_MOVE_MICRO position calls/tick=32.8 ms/tick=0.016 contact_from_movement calls/tick=18.9 ms/tick=0.259 mean_usec=13.7
+WO026_MOVE_MICRO alloc arrays/tick=76.5 dicts/tick=32.8 classifier/tick=846.4
+WO026_OUTCOME alive_blue=20 alive_red=20 strength_sum=3483.104
+WO026_PERF_DONE

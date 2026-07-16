@@ -1,0 +1,30 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+WO026_PERF_START mode=COMPARE_DISABLE
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+WO026_PROFILE tag=BASELINE disable_commit=false units=40 tick_samples=800 wall_avg=35.812 wall_p95=44.153
+WO026_SUBSYSTEM ms/tick total=35.820 grid=0.048 slope=0.009 movement=25.667 allied=8.951 adhesion=0.231 adhesion_post=0.174 classify=4.400 combat=0.709
+WO026_MOVE_MICRO enemy_query calls/tick=65.6 ms/tick=4.524 mean_usec=68.9 cells/tick=3216.2 cells/call=49.0 candidates/tick=2028.3 frac_of_movement=0.176
+WO026_MOVE_MICRO radius_calc calls/tick=65.6 ms/tick=7.733 max_scan calls/tick=196.9 ms/tick=7.562
+WO026_MOVE_MICRO substep iterations/tick=32.8 unit_ticks/tick=32.8
+WO026_MOVE_MICRO charge_commit calls/tick=32.8 ms/tick=0.042 mean_usec=1.3
+WO026_MOVE_MICRO gravity calls/tick=32.8 ms/tick=1.915 mean_usec=58.4 auto_rot calls/tick=0.7 ms/tick=0.001
+WO026_MOVE_MICRO position calls/tick=32.8 ms/tick=0.017 contact_from_movement calls/tick=42.5 ms/tick=0.511 mean_usec=12.0
+WO026_MOVE_MICRO alloc arrays/tick=145.8 dicts/tick=65.6 classifier/tick=941.1
+WO026_OUTCOME alive_blue=20 alive_red=20 strength_sum=3483.104
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+WO026_PROFILE tag=DISABLE_COMMIT disable_commit=true units=40 tick_samples=800 wall_avg=25.775 wall_p95=31.987
+WO026_SUBSYSTEM ms/tick total=25.477 grid=0.048 slope=0.009 movement=15.297 allied=8.976 adhesion=0.230 adhesion_post=0.174 classify=4.150 combat=0.709
+WO026_MOVE_MICRO enemy_query calls/tick=65.6 ms/tick=1.273 mean_usec=19.4 cells/tick=590.7 cells/call=9.0 candidates/tick=646.4 frac_of_movement=0.083
+WO026_MOVE_MICRO radius_calc calls/tick=65.6 ms/tick=4.989 max_scan calls/tick=131.3 ms/tick=4.869
+WO026_MOVE_MICRO substep iterations/tick=32.8 unit_ticks/tick=32.8
+WO026_MOVE_MICRO charge_commit calls/tick=32.8 ms/tick=0.039 mean_usec=1.2
+WO026_MOVE_MICRO gravity calls/tick=32.8 ms/tick=0.172 mean_usec=5.3 auto_rot calls/tick=0.7 ms/tick=0.001
+WO026_MOVE_MICRO position calls/tick=32.8 ms/tick=0.016 contact_from_movement calls/tick=18.9 ms/tick=0.266 mean_usec=14.1
+WO026_MOVE_MICRO alloc arrays/tick=145.8 dicts/tick=65.6 classifier/tick=846.4
+WO026_OUTCOME alive_blue=20 alive_red=20 strength_sum=3483.104
+WO026_DISABLE_DELTA wall_avg=35.812→25.775 (Δ-10.037) wall_p95=44.153→31.987 (Δ-12.166) movement=25.667→15.297 (Δ-10.370) enemy_query_ms=4.524→1.273 (Δ-3.250) contact_ms=0.511→0.266 (Δ-0.245) cells/call=49.0→9.0
+WO026_DISABLE_OUTCOME_UNCHANGED=true
+WO026_PERF_DONE

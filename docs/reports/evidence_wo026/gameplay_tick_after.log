@@ -1,0 +1,20 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+WO026_PERF_START mode=REPEAT_GAMEPLAY
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+WO026_PERF mode=GAMEPLAY_TICK_R1 n=800 avg=20.246 p95=28.924 max=30.713 fast_sim=false
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+WO026_PERF mode=GAMEPLAY_TICK_R2 n=800 avg=20.445 p95=29.253 max=31.057 fast_sim=false
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+WO026_PERF mode=GAMEPLAY_TICK_R3 n=800 avg=20.335 p95=28.999 max=31.029 fast_sim=false
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+WO026_PERF mode=GAMEPLAY_TICK_R4 n=800 avg=20.356 p95=29.055 max=30.946 fast_sim=false
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+WO026_PERF mode=GAMEPLAY_TICK_R5 n=800 avg=20.370 p95=29.121 max=31.956 fast_sim=false
+WO026_VARIANCE label=GAMEPLAY_TICK n=5 avg_mean=20.351 avg_min=20.246 avg_max=20.445 avg_span=0.198 p95_mean=29.070 p95_min=28.924 p95_max=29.253 p95_span=0.329
+WO026_PERF_DONE
