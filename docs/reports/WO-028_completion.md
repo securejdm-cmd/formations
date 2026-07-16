@@ -1,8 +1,8 @@
-# COMPLETION REPORT — WO-028 — 2026-07-16 — Commit TIP_SHA_PLACEHOLDER
+# COMPLETION REPORT — WO-028 — 2026-07-16 — Commit 308868b47ff08cee46202d208bfdd1e88cd32e15
 
 **Work order:** WO-028 Boundary vs Band: Closing Phase 2's Simulation  
 **Branch:** `cursor/wo-028-boundary-vs-band-fd84`  
-**Tip SHA:** `TIP_SHA_PLACEHOLDER`  
+**Tip SHA:** `308868b47ff08cee46202d208bfdd1e88cd32e15`  
 **Base:** WO-027 tip `9e31142` (`cursor/wo-027-qod-measurable-fd84`)  
 **Evidence:** `docs/reports/evidence_wo028/`  
 **Design authority:** DESIGN_RULINGS R21
