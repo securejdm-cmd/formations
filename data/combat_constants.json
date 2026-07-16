@@ -88,5 +88,5 @@
   "slope_range_bonus": 0.15,
   "slope_speed_bonus": 0.35,
   "quality_of_day_enabled": false,
-  "quality_of_day_sigma": 0.05
+  "quality_of_day_sigma": 0.045
 }

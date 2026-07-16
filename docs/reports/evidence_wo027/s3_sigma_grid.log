@@ -1,0 +1,77 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+[RNG] Battle seed set: 1000
+[Scenario 03] Battle seed: 1000
+[Scenario 03] Trace written: res://tests/traces/scenario_03_1000.csv
+[Scenario 03] SUMMARY | winner=red_b | combat=20.0s | blue_a_strength_at_rout=75.53 | edge_drains front=0.00 left=55.14 right=0.00 rear=0.44
+S3 sigma=0.040 seed=1000 ratio=0.264 winner=red_b band=false
+[RNG] Battle seed set: 1001
+[Scenario 03] Battle seed: 1001
+[Scenario 03] Trace written: res://tests/traces/scenario_03_1001.csv
+[Scenario 03] SUMMARY | winner=red_b | combat=20.4s | blue_a_strength_at_rout=75.80 | edge_drains front=0.00 left=56.40 right=0.00 rear=0.43
+S3 sigma=0.040 seed=1001 ratio=0.269 winner=red_b band=false
+[RNG] Battle seed set: 1002
+[Scenario 03] Battle seed: 1002
+[Scenario 03] Trace written: res://tests/traces/scenario_03_1002.csv
+[Scenario 03] SUMMARY | winner=red_b | combat=21.6s | blue_a_strength_at_rout=76.36 | edge_drains front=0.00 left=59.76 right=0.00 rear=0.37
+S3 sigma=0.040 seed=1002 ratio=0.285 winner=red_b band=true
+[RNG] Battle seed set: 1003
+[Scenario 03] Battle seed: 1003
+[Scenario 03] Trace written: res://tests/traces/scenario_03_1003.csv
+[Scenario 03] SUMMARY | winner=red_b | combat=22.5s | blue_a_strength_at_rout=76.76 | edge_drains front=0.00 left=60.80 right=0.00 rear=0.35
+S3 sigma=0.040 seed=1003 ratio=0.297 winner=red_b band=true
+[RNG] Battle seed set: 1004
+[Scenario 03] Battle seed: 1004
+[Scenario 03] Trace written: res://tests/traces/scenario_03_1004.csv
+[Scenario 03] SUMMARY | winner=red_b | combat=21.0s | blue_a_strength_at_rout=75.88 | edge_drains front=0.00 left=57.68 right=0.00 rear=0.41
+S3 sigma=0.040 seed=1004 ratio=0.277 winner=red_b band=false
+[RNG] Battle seed set: 1000
+[Scenario 03] Battle seed: 1000
+[Scenario 03] Trace written: res://tests/traces/scenario_03_1000.csv
+[Scenario 03] SUMMARY | winner=red_b | combat=19.9s | blue_a_strength_at_rout=75.48 | edge_drains front=0.00 left=55.02 right=0.00 rear=0.44
+S3 sigma=0.045 seed=1000 ratio=0.263 winner=red_b band=false
+[RNG] Battle seed set: 1001
+[Scenario 03] Battle seed: 1001
+[Scenario 03] Trace written: res://tests/traces/scenario_03_1001.csv
+[Scenario 03] SUMMARY | winner=red_b | combat=20.3s | blue_a_strength_at_rout=75.80 | edge_drains front=0.00 left=55.74 right=0.00 rear=0.43
+S3 sigma=0.045 seed=1001 ratio=0.268 winner=red_b band=false
+[RNG] Battle seed set: 1002
+[Scenario 03] Battle seed: 1002
+[Scenario 03] Trace written: res://tests/traces/scenario_03_1002.csv
+[Scenario 03] SUMMARY | winner=red_b | combat=21.6s | blue_a_strength_at_rout=76.32 | edge_drains front=0.00 left=60.28 right=0.00 rear=0.37
+S3 sigma=0.045 seed=1002 ratio=0.285 winner=red_b band=true
+[RNG] Battle seed set: 1003
+[Scenario 03] Battle seed: 1003
+[Scenario 03] Trace written: res://tests/traces/scenario_03_1003.csv
+[Scenario 03] SUMMARY | winner=red_b | combat=22.6s | blue_a_strength_at_rout=76.85 | edge_drains front=0.00 left=60.82 right=0.00 rear=0.34
+S3 sigma=0.045 seed=1003 ratio=0.298 winner=red_b band=true
+[RNG] Battle seed set: 1004
+[Scenario 03] Battle seed: 1004
+[Scenario 03] Trace written: res://tests/traces/scenario_03_1004.csv
+[Scenario 03] SUMMARY | winner=red_b | combat=20.9s | blue_a_strength_at_rout=75.97 | edge_drains front=0.00 left=57.90 right=0.00 rear=0.41
+S3 sigma=0.045 seed=1004 ratio=0.276 winner=red_b band=false
+[RNG] Battle seed set: 1000
+[Scenario 03] Battle seed: 1000
+[Scenario 03] Trace written: res://tests/traces/scenario_03_1000.csv
+[Scenario 03] SUMMARY | winner=red_b | combat=19.8s | blue_a_strength_at_rout=75.40 | edge_drains front=0.00 left=54.44 right=0.00 rear=0.45
+S3 sigma=0.050 seed=1000 ratio=0.261 winner=red_b band=false
+[RNG] Battle seed set: 1001
+[Scenario 03] Battle seed: 1001
+[Scenario 03] Trace written: res://tests/traces/scenario_03_1001.csv
+[Scenario 03] SUMMARY | winner=red_b | combat=20.2s | blue_a_strength_at_rout=75.74 | edge_drains front=0.00 left=56.01 right=0.00 rear=0.44
+S3 sigma=0.050 seed=1001 ratio=0.266 winner=red_b band=false
+[RNG] Battle seed set: 1002
+[Scenario 03] Battle seed: 1002
+[Scenario 03] Trace written: res://tests/traces/scenario_03_1002.csv
+[Scenario 03] SUMMARY | winner=red_b | combat=21.6s | blue_a_strength_at_rout=76.31 | edge_drains front=0.00 left=60.34 right=0.00 rear=0.37
+S3 sigma=0.050 seed=1002 ratio=0.285 winner=red_b band=true
+[RNG] Battle seed set: 1003
+[Scenario 03] Battle seed: 1003
+[Scenario 03] Trace written: res://tests/traces/scenario_03_1003.csv
+[Scenario 03] SUMMARY | winner=red_b | combat=22.7s | blue_a_strength_at_rout=76.86 | edge_drains front=0.00 left=60.84 right=0.00 rear=0.34
+S3 sigma=0.050 seed=1003 ratio=0.299 winner=red_b band=true
+[RNG] Battle seed set: 1004
+[Scenario 03] Battle seed: 1004
+[Scenario 03] Trace written: res://tests/traces/scenario_03_1004.csv
+[Scenario 03] SUMMARY | winner=red_b | combat=20.9s | blue_a_strength_at_rout=75.85 | edge_drains front=0.00 left=57.56 right=0.00 rear=0.42
+S3 sigma=0.050 seed=1004 ratio=0.276 winner=red_b band=false

@@ -962,20 +962,17 @@ func _run_slot_swap_guard() -> void:
 	var detail := ""
 	var ok_line := false
 	for line in out:
-		var s := str(line)
-		if "WO027_SLOT_SWAP seed=" in s:
-			detail = s.strip_edges()
-			print(detail)
+		var s := str(line).strip_edges()
+		if s.begins_with("WO027_SLOT_SWAP seed="):
+			detail = s
 			if "ok=true" in s:
 				ok_line = true
-	var ok: bool = ok_line or exit_code == 0 and "ok=true" in detail
+			print(s)
 	if not ok_line:
-		ok = false
-	if not ok:
 		push_error("WO-027 SLOT-SWAP guard failed (exit %d)" % exit_code)
 		_record_check("[WO-027] SLOT-SWAP", false, detail)
 	else:
-		_record_check("[WO-027] SLOT-SWAP", true, detail if not detail.is_empty() else "seed=1000")
+		_record_check("[WO-027] SLOT-SWAP", true, detail)
 
 
 func _check_scenario_05() -> void:

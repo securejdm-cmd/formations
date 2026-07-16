@@ -1,0 +1,82 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+[RNG] Battle seed set: 1000
+[Scenario 03] Battle seed: 1000
+[Scenario 03] Trace written: res://tests/traces/scenario_03_1000.csv
+[Scenario 03] SUMMARY | winner=red_b | combat=21.4s | blue_a_strength_at_rout=76.13 | edge_drains front=0.00 left=58.68 right=0.00 rear=0.39
+S3 seed=1000 qod=false ratio=0.282 rout=76.13 left=58.68 ok=true
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+S34 seed=1000 qod=false flank=true noreface=true ok=true
+[RNG] Battle seed set: 1000
+[Scenario 03] Battle seed: 1000
+[Scenario 03] Trace written: res://tests/traces/scenario_03_1000.csv
+[Scenario 03] SUMMARY | winner=red_b | combat=19.9s | blue_a_strength_at_rout=75.48 | edge_drains front=0.00 left=55.02 right=0.00 rear=0.44
+S3 seed=1000 qod=true ratio=0.263 rout=75.48 left=55.02 ok=false
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+S34 seed=1000 qod=true flank=false noreface=true ok=false
+[RNG] Battle seed set: 1001
+[Scenario 03] Battle seed: 1001
+[Scenario 03] Trace written: res://tests/traces/scenario_03_1001.csv
+[Scenario 03] SUMMARY | winner=red_b | combat=21.4s | blue_a_strength_at_rout=76.22 | edge_drains front=0.00 left=58.70 right=0.00 rear=0.38
+S3 seed=1001 qod=false ratio=0.282 rout=76.22 left=58.70 ok=true
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+S34 seed=1001 qod=false flank=true noreface=true ok=true
+[RNG] Battle seed set: 1001
+[Scenario 03] Battle seed: 1001
+[Scenario 03] Trace written: res://tests/traces/scenario_03_1001.csv
+[Scenario 03] SUMMARY | winner=red_b | combat=20.3s | blue_a_strength_at_rout=75.80 | edge_drains front=0.00 left=55.74 right=0.00 rear=0.43
+S3 seed=1001 qod=true ratio=0.268 rout=75.80 left=55.74 ok=false
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+S34 seed=1001 qod=true flank=true noreface=true ok=true
+[RNG] Battle seed set: 1002
+[Scenario 03] Battle seed: 1002
+[Scenario 03] Trace written: res://tests/traces/scenario_03_1002.csv
+[Scenario 03] SUMMARY | winner=red_b | combat=21.5s | blue_a_strength_at_rout=76.31 | edge_drains front=0.00 left=59.23 right=0.00 rear=0.38
+S3 seed=1002 qod=false ratio=0.284 rout=76.31 left=59.23 ok=true
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+S34 seed=1002 qod=false flank=true noreface=true ok=true
+[RNG] Battle seed set: 1002
+[Scenario 03] Battle seed: 1002
+[Scenario 03] Trace written: res://tests/traces/scenario_03_1002.csv
+[Scenario 03] SUMMARY | winner=red_b | combat=21.6s | blue_a_strength_at_rout=76.32 | edge_drains front=0.00 left=60.28 right=0.00 rear=0.37
+S3 seed=1002 qod=true ratio=0.285 rout=76.32 left=60.28 ok=true
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+S34 seed=1002 qod=true flank=true noreface=true ok=true
+[RNG] Battle seed set: 1003
+[Scenario 03] Battle seed: 1003
+[Scenario 03] Trace written: res://tests/traces/scenario_03_1003.csv
+[Scenario 03] SUMMARY | winner=red_b | combat=21.5s | blue_a_strength_at_rout=76.30 | edge_drains front=0.00 left=59.26 right=0.00 rear=0.38
+S3 seed=1003 qod=false ratio=0.284 rout=76.30 left=59.26 ok=true
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+S34 seed=1003 qod=false flank=true noreface=true ok=true
+[RNG] Battle seed set: 1003
+[Scenario 03] Battle seed: 1003
+[Scenario 03] Trace written: res://tests/traces/scenario_03_1003.csv
+[Scenario 03] SUMMARY | winner=red_b | combat=22.6s | blue_a_strength_at_rout=76.85 | edge_drains front=0.00 left=60.82 right=0.00 rear=0.34
+S3 seed=1003 qod=true ratio=0.298 rout=76.85 left=60.82 ok=true
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+S34 seed=1003 qod=true flank=true noreface=true ok=true
+[RNG] Battle seed set: 1004
+[Scenario 03] Battle seed: 1004
+[Scenario 03] Trace written: res://tests/traces/scenario_03_1004.csv
+[Scenario 03] SUMMARY | winner=red_b | combat=21.5s | blue_a_strength_at_rout=76.23 | edge_drains front=0.00 left=59.21 right=0.00 rear=0.38
+S3 seed=1004 qod=false ratio=0.284 rout=76.23 left=59.21 ok=true
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+S34 seed=1004 qod=false flank=true noreface=true ok=true
+[RNG] Battle seed set: 1004
+[Scenario 03] Battle seed: 1004
+[Scenario 03] Trace written: res://tests/traces/scenario_03_1004.csv
+[Scenario 03] SUMMARY | winner=red_b | combat=20.9s | blue_a_strength_at_rout=75.97 | edge_drains front=0.00 left=57.90 right=0.00 rear=0.41
+S3 seed=1004 qod=true ratio=0.276 rout=75.97 left=57.90 ok=false
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+S34 seed=1004 qod=true flank=true noreface=true ok=true

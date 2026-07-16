@@ -1,0 +1,6 @@
+13:[WO-010] Fast-mode certification PASS (seed 12345 trace byte-identical)
+18:[WO-011] Threaded certification PASS (seed 12345 trace byte-identical)
+73:[WO-010] S1 seed 12345 PASS winner=blue_1 combat=81.6s
+167:[WO-027] SLOT-SWAP PASS Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+441:[WO-024] Perf40 GATE_50MS GAMEPLAY_TICK_p95=29.184 verdict=PASS (no optimization this WO)
+453:[WO-015] Meta PASS=73 FAIL=0 expected_green_pass=73 exit=0

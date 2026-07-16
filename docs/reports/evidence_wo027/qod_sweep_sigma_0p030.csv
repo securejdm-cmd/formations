@@ -1,0 +1,9 @@
+sigma,enabled,edge,atk_push,n,atk_win_rate_pct,se_pct,rule_ok,mono_ok
+0.030,true,0%,50.0,500,50.40,2.24,true,
+0.030,true,2%,51.0,500,63.60,2.15,true,
+0.030,true,3%,51.5,500,70.60,2.04,false,
+0.030,true,5%,52.5,500,80.00,1.79,false,
+0.030,true,10%,55.0,500,95.00,0.97,false,
+0.030,true,20%,60.0,500,100.00,0.00,false,
+0.030,true,50%,75.0,500,100.00,0.00,true,
+0.030,true,SUMMARY,0.0,500,0.0,0.0,false,true
