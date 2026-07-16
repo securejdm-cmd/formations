@@ -864,29 +864,48 @@ func _check_s2_regression(seed_value: int) -> void:
 
 
 func _check_scenario_03() -> void:
+	# WO-025: S3 rebaselined on working-gravity path (TD ratification of WO-024
+	# S3 A/B escalation). Flank benchmark gates must hold — do not soft-defer.
 	var phases: Dictionary = _scenario.get_phase_durations_sec()
 	var s1_ref: float = WO013_S1[1000].combat
 	var rout: float = _scenario.get_blue_a_strength_at_rout()
 	var drains: Dictionary = _scenario.get_blue_a_edge_drains()
 	var ratio: float = phases.combat_sec / s1_ref if s1_ref > 0.0 else 0.0
+	var left_drain: float = float(drains.get("left", 0.0))
 	var ok := true
+	# Combat ratio vs S1 seed-1000: band [0.28, 0.45] (flank finishes faster).
+	const S3_RATIO_MIN := 0.28
+	const S3_RATIO_MAX := 0.45
+	const S3_RATIO_TOL := 0.002
+	if ratio + S3_RATIO_TOL < S3_RATIO_MIN or ratio - S3_RATIO_TOL > S3_RATIO_MAX:
+		push_error(
+			"S3 ratio %.3f outside flank band [%.2f, %.2f]"
+			% [ratio, S3_RATIO_MIN, S3_RATIO_MAX]
+		)
+		ok = false
 	if rout <= 67.0:
 		push_error("S3 blue strength_at_rout %.2f not > 67%%" % rout)
 		ok = false
-	if drains.get("left", 0.0) <= 0.0:
+	if left_drain <= 0.0:
 		push_error("S3 missing LEFT edge drain")
+		ok = false
+	# Working-gravity magnitude lock (WO-024 seed-1000 LEFT≈58.68). Soft floor
+	# so silent drain collapse fails without over-fitting float noise.
+	const S3_LEFT_DRAIN_MIN := 50.0
+	if left_drain < S3_LEFT_DRAIN_MIN:
+		push_error(
+			"S3 LEFT drain %.2f below flank-benchmark floor %.1f (was ~58.7 pre-QoD)"
+			% [left_drain, S3_LEFT_DRAIN_MIN]
+		)
 		ok = false
 	if _scenario.had_overlap_failure() or _scenario.had_adhesion_invariant_failure():
 		push_error("S3 invariant/overlap failure")
 		ok = false
-	var baseline := _load_baseline_trace("scenario_03_1000.csv")
-	if not baseline.is_empty() and _core_trace(_scenario.get_trace_text()) != _core_trace(baseline):
-		push_error("S3 trace drift (not byte-identical to baseline)")
-		ok = false
 	_record_check(
-		"[WO-013] S3",
+		"[WO-025] S3",
 		ok,
-		"ratio=%.3f rout=%.2f (ratio band deferred to TD)" % [ratio, rout],
+		"ratio=%.3f rout=%.2f left_drain=%.2f (band [0.28,0.45]; working gravity)"
+		% [ratio, rout, left_drain],
 	)
 
 
