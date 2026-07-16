@@ -1,0 +1,71 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+SCRIPT ERROR: Compile Error: Identifier not found: Constants
+          at: GDScript::reload (res://scripts/unit.gd:106)
+ERROR: Failed to load script "res://scripts/unit.gd" with error "Compilation failed".
+   at: load (modules/gdscript/gdscript.cpp:3022)
+SCRIPT ERROR: Compile Error: Identifier not found: Constants
+          at: GDScript::reload (res://scripts/scenario_01.gd:64)
+SCRIPT ERROR: Compile Error: Failed to compile depended scripts.
+          at: GDScript::reload (res://tests/wo028_cert_harness.gd:0)
+ERROR: Failed to load script "res://tests/wo028_cert_harness.gd" with error "Compilation failed".
+   at: load (modules/gdscript/gdscript.cpp:3022)
+WO028_CERT_HARNESS qod=true auto_run_default_probe
+HARNESS realtime auto_run=true
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=blue_1 | march=61.7s | combat=67.0s | flee=152.2s | winner_strength=76.99 | winner_cohesion=42.46
+HARNESS realtime winner=blue_1 combat=67.0 len=33309
+HARNESS realtime 0.0,EVENT,QUALITY_OF_DAY,red_1=0.962648
+HARNESS realtime 0.0,EVENT,QUALITY_OF_DAY,blue_1=0.993980
+HARNESS fast auto_run=true
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=blue_1 | march=61.7s | combat=65.2s | flee=152.2s | winner_strength=78.49 | winner_cohesion=46.21
+HARNESS fast winner=blue_1 combat=65.2 len=33198
+HARNESS fast 0.0,EVENT,QUALITY_OF_DAY,red_1=0.945255
+HARNESS fast 0.0,EVENT,QUALITY_OF_DAY,blue_1=0.991854
+HARNESS rt_vs_fast identical=false
+DIFF 1
+  RT 0.0,EVENT,QUALITY_OF_DAY,red_1=0.962648
+  FA 0.0,EVENT,QUALITY_OF_DAY,red_1=0.945255
+DIFF 2
+  RT 0.0,EVENT,QUALITY_OF_DAY,blue_1=0.993980
+  FA 0.0,EVENT,QUALITY_OF_DAY,blue_1=0.991854
+DIFF 127
+  RT 62.0,red_1,99.7403,99.3372,2,-14.88,0.00,marching,
+  FA 62.0,red_1,99.7413,99.3371,2,-14.89,0.00,marching,
+DIFF 128
+  RT 62.0,blue_1,99.8033,99.5082,3,15.10,0.00,marching,
+  FA 62.0,blue_1,99.8094,99.5234,3,15.10,0.00,marching,
+DIFF 129
+  RT 63.0,red_1,99.0949,97.7114,7,-14.70,0.00,marching,
+  FA 63.0,red_1,99.0981,97.7106,7,-14.71,0.00,marching,
+DIFF 130
+  RT 63.0,blue_1,99.3153,98.2884,9,15.10,0.00,marching,
+  FA 63.0,blue_1,99.3365,98.3414,9,15.10,0.00,marching,
+DIFF 131
+  RT 64.0,red_1,98.5316,96.2933,12,-14.52,0.00,marching,
+  FA 64.0,red_1,98.4599,96.1009,11,-14.53,0.00,marching,
+DIFF 132
+  RT 64.0,blue_1,98.7604,96.8989,15,15.11,0.00,marching,
+  FA 64.0,blue_1,98.8690,97.1726,15,15.10,0.00,marching,
+HARNESS total_diff_lines=487 lenRT=614 lenFA=612
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=red_1 | march=61.7s | combat=63.6s | flee=146.2s | winner_strength=78.66 | winner_cohesion=46.64
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=red_1 | march=61.7s | combat=61.4s | flee=146.2s | winner_strength=78.76 | winner_cohesion=46.91
+HARNESS det_ab identical=false
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=blue_1 | march=61.7s | combat=62.4s | flee=152.3s | winner_strength=100.00 | winner_cohesion=100.00
+HARNESS threaded winner=blue_1 combat=62.4 identical_to_fast=false
+HARNESS threaded 0.0,EVENT,QUALITY_OF_DAY,red_1=1.011236
+HARNESS threaded 0.0,EVENT,QUALITY_OF_DAY,blue_1=1.040935

@@ -1,42 +1,60 @@
 extends SceneTree
 
 const ALL_SEEDS := [1000, 1001, 1002, 1003, 1004, 1005, 1006, 1007, 1008, 1009, 12345]
+## WO-028: rebaselined under QoD ENABLED σ=0.045 (evidence_wo028/rebaseline.log).
 const WO013_S1 := {
-	1000: {"winner": "red_1", "combat": 75.8},
-	1001: {"winner": "red_1", "combat": 80.6},
-	1002: {"winner": "blue_1", "combat": 76.0},
-	1003: {"winner": "blue_1", "combat": 83.9},
-	1004: {"winner": "red_1", "combat": 83.4},
-	1005: {"winner": "red_1", "combat": 73.2},
-	1006: {"winner": "red_1", "combat": 77.0},
-	1007: {"winner": "blue_1", "combat": 82.4},
-	1008: {"winner": "red_1", "combat": 81.0},
-	1009: {"winner": "red_1", "combat": 84.6},
-	12345: {"winner": "blue_1", "combat": 81.6},
+	1000: {"winner": "red_1", "combat": 54.8},
+	1001: {"winner": "red_1", "combat": 56.8},
+	1002: {"winner": "blue_1", "combat": 68.8},
+	1003: {"winner": "blue_1", "combat": 66.0},
+	1004: {"winner": "red_1", "combat": 67.8},
+	1005: {"winner": "red_1", "combat": 58.8},
+	1006: {"winner": "red_1", "combat": 62.6},
+	1007: {"winner": "red_1", "combat": 69.4},
+	1008: {"winner": "blue_1", "combat": 68.0},
+	1009: {"winner": "red_1", "combat": 62.6},
+	12345: {"winner": "blue_1", "combat": 67.0},
 }
 const WO013_S2 := {
-	1000: {"winner": "red_1", "combat": 61.2, "rout": 68.12},
-	1001: {"winner": "red_1", "combat": 61.2, "rout": 68.12},
-	1002: {"winner": "red_1", "combat": 61.2, "rout": 68.12},
-	1003: {"winner": "red_1", "combat": 61.2, "rout": 68.12},
-	1004: {"winner": "red_1", "combat": 61.2, "rout": 68.12},
-	1005: {"winner": "red_1", "combat": 61.2, "rout": 68.12},
-	1006: {"winner": "red_1", "combat": 61.2, "rout": 68.12},
-	1007: {"winner": "red_1", "combat": 61.2, "rout": 68.12},
-	1008: {"winner": "red_1", "combat": 61.2, "rout": 68.12},
-	1009: {"winner": "red_1", "combat": 61.2, "rout": 68.12},
-	12345: {"winner": "red_1", "combat": 61.2, "rout": 68.12},
+	1000: {"winner": "red_1", "combat": 51.4, "rout": 67.89},
+	1001: {"winner": "red_1", "combat": 53.2, "rout": 68.22},
+	1002: {"winner": "red_1", "combat": 62.0, "rout": 68.05},
+	1003: {"winner": "red_1", "combat": 65.8, "rout": 68.23},
+	1004: {"winner": "red_1", "combat": 57.4, "rout": 67.90},
+	1005: {"winner": "red_1", "combat": 54.4, "rout": 67.98},
+	1006: {"winner": "red_1", "combat": 57.6, "rout": 68.33},
+	1007: {"winner": "red_1", "combat": 60.6, "rout": 68.19},
+	1008: {"winner": "red_1", "combat": 63.2, "rout": 68.12},
+	1009: {"winner": "red_1", "combat": 55.8, "rout": 67.78},
+	12345: {"winner": "red_1", "combat": 67.0, "rout": 68.28},
 }
 
 const CORE_COLS := 8
 const CERT_SEED := 12345
 const S3_RATIO_TD_BASELINE := 0.32
-const S3_RATIO_MIN := 0.28
-const S3_RATIO_MAX := 0.45
+## WO-028 Task 2 — re-derived under QoD ENABLED σ=0.045, n=500 seeds 1000–1499.
+## Rule: mean ± 3SD (covers full observed support; preferred over 0.5/99.5 pct for
+## permanent instrument width). Provenance: evidence_wo028/s3_rederive_merged_summary.txt
+## ratio mean=0.284124 sd=0.011235 → [0.250418, 0.317830]
+## Denominator is the QoD-OFF frontal S1 seed-1000 combat (75.8) — not the
+## QoD-on S1 baseline — so ratio stays a flank-vs-frontal speed instrument.
+const S3_S1_REF_COMBAT := 75.8
+const S3_RATIO_MIN := 0.250
+const S3_RATIO_MAX := 0.318
 const S3_RATIO_TOL := 0.002
+## rout mean=76.298 sd=0.494 → [74.817, 77.780]
+const S3_ROUT_MIN := 74.82
+const S3_ROUT_MAX := 77.78
+## left drain mean=59.123 sd=3.224 → [49.451, 68.795]
+const S3_LEFT_DRAIN_MIN := 49.45
+const S3_LEFT_DRAIN_MAX := 68.80
 const S4_BLEND_TOLERANCE := 0.5
 const S4_CONTACT_BALANCE_MAX_M := 6.0
-const S8_BLOB_RATIO_MAX := 2.0
+## WO-028: re-derived under QoD-on σ=0.045, seeds 1000–1009 (n=10).
+## mean=1.983705 sd=0.793005 → mean+3SD=4.362719 (one-sided cap).
+## Provenance: evidence_wo028/rebaseline.log. QoD makes single-vs-triple noisy;
+## frontage still caps the mean near ~2.
+const S8_BLOB_RATIO_MAX := 4.36
 const SCENARIO_EXTRA_TICKS := 120
 ## Gated PASS lines emitted when every check is green (WO-015).
 ## Compass, Fast+Threaded cert, S1×11, S2×11, Determinism, S3, Overlap, S4, S5–S8, S9,
@@ -865,47 +883,47 @@ func _check_s2_regression(seed_value: int) -> void:
 
 
 func _check_scenario_03() -> void:
-	# WO-025: S3 rebaselined on working-gravity path (TD ratification of WO-024
-	# S3 A/B escalation). Flank benchmark gates must hold — do not soft-defer.
+	# WO-028: magnitude bands re-derived under FINAL Phase 2 config (QoD on σ=0.045).
+	# DIRECTION (flank wins / ratio << 1) is R21 law — asserted separately in boundary probe.
 	var phases: Dictionary = _scenario.get_phase_durations_sec()
-	var s1_ref: float = WO013_S1[1000].combat
+	var s1_ref: float = S3_S1_REF_COMBAT
 	var rout: float = _scenario.get_blue_a_strength_at_rout()
 	var drains: Dictionary = _scenario.get_blue_a_edge_drains()
 	var ratio: float = phases.combat_sec / s1_ref if s1_ref > 0.0 else 0.0
 	var left_drain: float = float(drains.get("left", 0.0))
 	var ok := true
-	# Combat ratio vs S1 seed-1000: band [0.28, 0.45] (flank finishes faster).
-	const S3_RATIO_MIN := 0.28
-	const S3_RATIO_MAX := 0.45
-	const S3_RATIO_TOL := 0.002
 	if ratio + S3_RATIO_TOL < S3_RATIO_MIN or ratio - S3_RATIO_TOL > S3_RATIO_MAX:
 		push_error(
-			"S3 ratio %.3f outside flank band [%.2f, %.2f]"
+			"S3 ratio %.3f outside QoD-on band [%.3f, %.3f] (WO-028 n=500 mean±3SD)"
 			% [ratio, S3_RATIO_MIN, S3_RATIO_MAX]
 		)
 		ok = false
-	if rout <= 67.0:
-		push_error("S3 blue strength_at_rout %.2f not > 67%%" % rout)
+	if rout + 0.01 < S3_ROUT_MIN or rout - 0.01 > S3_ROUT_MAX:
+		push_error(
+			"S3 strength_at_rout %.2f outside QoD-on band [%.2f, %.2f]"
+			% [rout, S3_ROUT_MIN, S3_ROUT_MAX]
+		)
 		ok = false
 	if left_drain <= 0.0:
 		push_error("S3 missing LEFT edge drain")
 		ok = false
-	# Working-gravity magnitude lock (WO-024 seed-1000 LEFT≈58.68). Soft floor
-	# so silent drain collapse fails without over-fitting float noise.
-	const S3_LEFT_DRAIN_MIN := 50.0
-	if left_drain < S3_LEFT_DRAIN_MIN:
+	if left_drain + 0.01 < S3_LEFT_DRAIN_MIN or left_drain - 0.01 > S3_LEFT_DRAIN_MAX:
 		push_error(
-			"S3 LEFT drain %.2f below flank-benchmark floor %.1f (was ~58.7 pre-QoD)"
-			% [left_drain, S3_LEFT_DRAIN_MIN]
+			"S3 LEFT drain %.2f outside QoD-on band [%.2f, %.2f]"
+			% [left_drain, S3_LEFT_DRAIN_MIN, S3_LEFT_DRAIN_MAX]
 		)
+		ok = false
+	# Direction sanity (not a magnitude band): flank must still win faster than frontal.
+	if ratio >= 0.95:
+		push_error("S3 ratio %.3f not << 1.0 (flank direction broken)" % ratio)
 		ok = false
 	if _scenario.had_overlap_failure() or _scenario.had_adhesion_invariant_failure():
 		push_error("S3 invariant/overlap failure")
 		ok = false
 	_record_check(
-		"[WO-025] S3",
+		"[WO-028] S3",
 		ok,
-		"ratio=%.3f rout=%.2f left_drain=%.2f (band [0.28,0.45]; working gravity)"
+		"ratio=%.3f rout=%.2f left_drain=%.2f (QoD-on σ=0.045 n=500 mean±3SD)"
 		% [ratio, rout, left_drain],
 	)
 
@@ -1100,7 +1118,11 @@ func _check_s10_chip_floor() -> void:
 		_record_check("[WO-013b] S10", false, "missing units")
 		return
 	var strength_max: float = _c_float("strength_max")
-	var raw_at_full: float = float(attacker.profile.get("close_damage", 0.0)) * _c_float("k_melee_scale")
+	# WO-028: melee raw includes quality_of_day (CombatResolver path); band must match.
+	var qod: float = float(attacker.quality_of_day) if "quality_of_day" in attacker else 1.0
+	var raw_at_full: float = (
+		float(attacker.profile.get("close_damage", 0.0)) * _c_float("k_melee_scale") * qod
+	)
 	var plate_eff_armor: float = float(plate.profile.get("armor", 0.0)) * ArmorMatrix.class_vs_type(
 		str(plate.profile.get("armor_class", "None")),
 		str(attacker.profile.get("melee_damage_type", "Slash"))

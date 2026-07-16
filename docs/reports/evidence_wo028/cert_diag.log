@@ -1,0 +1,14 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+WO028_CERT_DIAG qod_enabled=true sigma=0.045
+CERT_DIAG A_fast winner=blue_1 combat=67.0 ticks=2809 qod=[red_1=0.962648, blue_1=0.993980] trace_len=33130
+CERT_DIAG A_fast EVENT 0.1,EVENT,QUALITY_OF_DAY,red_1=0.962648
+CERT_DIAG A_fast EVENT 0.1,EVENT,QUALITY_OF_DAY,blue_1=0.993980
+CERT_DIAG B_fast winner=blue_1 combat=67.0 ticks=2809 qod=[red_1=0.962648, blue_1=0.993980] trace_len=33130
+CERT_DIAG B_fast EVENT 0.1,EVENT,QUALITY_OF_DAY,red_1=0.962648
+CERT_DIAG B_fast EVENT 0.1,EVENT,QUALITY_OF_DAY,blue_1=0.993980
+CERT_DIAG A_vs_B_fast identical=true
+CERT_DIAG C_realtime_adv winner=blue_1 combat=67.0 ticks=2809 qod=[red_1=0.962648, blue_1=0.993980] trace_len=33130
+CERT_DIAG C_realtime_adv EVENT 0.1,EVENT,QUALITY_OF_DAY,red_1=0.962648
+CERT_DIAG C_realtime_adv EVENT 0.1,EVENT,QUALITY_OF_DAY,blue_1=0.993980
+CERT_DIAG fast_vs_realtime_advance identical=true
