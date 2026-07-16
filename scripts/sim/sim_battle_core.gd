@@ -41,11 +41,14 @@ var shock_floater_callback: Callable = Callable()
 var volley_visual_callback: Callable = Callable()
 ## WO-021: optional coarse height grid (null = absent; flat grid = identity modifiers).
 var height_field = null
+var _quality_of_day_assigned: bool = false
 
 
 func configure_rng(seed_value: int) -> void:
 	_rng.set_seed(seed_value)
 	battle_seed = seed_value
+	_quality_of_day_assigned = false
+
 
 func advance_one_tick() -> void:
 	if battle_over:
@@ -55,9 +58,34 @@ func advance_one_tick() -> void:
 	begin_sim_tick(tick_interval)
 	advance_one_tick_fast(tick_interval)
 
+
+func assign_quality_of_day_if_needed() -> void:
+	## WO-025 R21: one persistent roll per unit at battle start (battle RNG stream).
+	if _quality_of_day_assigned:
+		return
+	# Threaded setup may call write_trace_header before capture_from_units —
+	# wait until proxies exist so fast/threaded consume the same roll sequence.
+	if units.is_empty():
+		return
+	_quality_of_day_assigned = true
+	var enabled: bool = bool(Constants.get_constant("quality_of_day_enabled", false))
+	var sigma: float = float(Constants.get_float("quality_of_day_sigma"))
+	for unit in units:
+		if unit == null:
+			continue
+		unit.quality_of_day = SimRngBridge.roll_quality_of_day(sigma, enabled)
+		# Log only when enabled — disabled must be a byte-identical no-op vs WO-024.
+		if enabled:
+			log_trace_event(
+				"QUALITY_OF_DAY",
+				"%s=%.6f" % [unit.unit_id, unit.quality_of_day]
+			)
+
+
 func begin_sim_tick(tick_interval: float) -> void:
 	current_tick_interval = tick_interval
 	SimRngBridge.set_worker_rng(_rng)
+	assign_quality_of_day_if_needed()
 	EdgeContact.begin_tick(sim_tick_count)
 	capture_tick_start_positions()
 
@@ -1182,6 +1210,8 @@ func write_trace_header() -> void:
 	if not trace_logging_enabled():
 		return
 	trace_lines.append("time_sec,unit_id,strength,cohesion,kills,pos_x,pos_y,state,contact_edges")
+	# Roll after header so EVENT lines follow the CSV header (fast+threaded).
+	assign_quality_of_day_if_needed()
 
 
 

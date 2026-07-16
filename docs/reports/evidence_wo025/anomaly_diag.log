@@ -1,0 +1,50 @@
+WO025_ANOMALY_START
+ANOMALY march_vs_hold seed=1000 winner=attacker combat=75.8 contact_t=1241 spd=1.500/0.000 amp=1.000/1.000
+ANOMALY march_vs_hold seed=1001 winner=attacker combat=80.6 contact_t=1241 spd=1.500/0.000 amp=1.000/1.000
+ANOMALY march_vs_hold seed=1002 winner=defender combat=76.0 contact_t=1241 spd=1.500/0.000 amp=1.000/1.000
+ANOMALY march_vs_hold seed=1003 winner=defender combat=83.9 contact_t=1241 spd=1.500/0.000 amp=1.000/1.000
+ANOMALY march_vs_hold seed=1004 winner=attacker combat=83.4 contact_t=1241 spd=1.500/0.000 amp=1.000/1.000
+ANOMALY march_vs_hold seed=1005 winner=attacker combat=73.2 contact_t=1241 spd=1.500/0.000 amp=1.000/1.000
+ANOMALY march_vs_hold seed=1006 winner=attacker combat=77.0 contact_t=1241 spd=1.500/0.000 amp=1.000/1.000
+ANOMALY march_vs_hold seed=1007 winner=defender combat=82.4 contact_t=1241 spd=1.500/0.000 amp=1.000/1.000
+ANOMALY march_vs_hold seed=1008 winner=attacker combat=81.0 contact_t=1241 spd=1.500/0.000 amp=1.000/1.000
+ANOMALY march_vs_hold seed=1009 winner=attacker combat=84.6 contact_t=1241 spd=1.500/0.000 amp=1.000/1.000
+ANOMALY march_vs_hold seed=12345 winner=defender combat=81.6 contact_t=1241 spd=1.500/0.000 amp=1.000/1.000
+ANOMALY_AGG march_vs_hold atk_win%=63.6 n=11
+ANOMALY hold_vs_march seed=1000 winner=attacker combat=75.8 contact_t=1241 spd=0.000/1.500 amp=1.000/1.000
+ANOMALY hold_vs_march seed=1001 winner=attacker combat=80.6 contact_t=1241 spd=0.000/1.500 amp=1.000/1.000
+ANOMALY hold_vs_march seed=1002 winner=defender combat=76.0 contact_t=1241 spd=0.000/1.500 amp=1.000/1.000
+ANOMALY hold_vs_march seed=1003 winner=defender combat=83.9 contact_t=1241 spd=0.000/1.500 amp=1.000/1.000
+ANOMALY hold_vs_march seed=1004 winner=attacker combat=83.4 contact_t=1241 spd=0.000/1.500 amp=1.000/1.000
+ANOMALY hold_vs_march seed=1005 winner=attacker combat=73.2 contact_t=1241 spd=0.000/1.500 amp=1.000/1.000
+ANOMALY hold_vs_march seed=1006 winner=attacker combat=77.0 contact_t=1241 spd=0.000/1.500 amp=1.000/1.000
+ANOMALY hold_vs_march seed=1007 winner=defender combat=82.4 contact_t=1241 spd=0.000/1.500 amp=1.000/1.000
+ANOMALY hold_vs_march seed=1008 winner=attacker combat=81.0 contact_t=1241 spd=0.000/1.500 amp=1.000/1.000
+ANOMALY hold_vs_march seed=1009 winner=attacker combat=84.6 contact_t=1241 spd=0.000/1.500 amp=1.000/1.000
+ANOMALY hold_vs_march seed=12345 winner=defender combat=81.6 contact_t=1241 spd=0.000/1.500 amp=1.000/1.000
+ANOMALY_AGG hold_vs_march atk_win%=63.6 n=11
+ANOMALY march_vs_march seed=1000 winner=attacker combat=75.8 contact_t=624 spd=1.500/1.500 amp=1.000/1.000
+ANOMALY march_vs_march seed=1001 winner=attacker combat=80.6 contact_t=624 spd=1.500/1.500 amp=1.000/1.000
+ANOMALY march_vs_march seed=1002 winner=defender combat=76.0 contact_t=624 spd=1.500/1.500 amp=1.000/1.000
+ANOMALY march_vs_march seed=1003 winner=defender combat=83.9 contact_t=624 spd=1.500/1.500 amp=1.000/1.000
+ANOMALY march_vs_march seed=1004 winner=attacker combat=83.4 contact_t=624 spd=1.500/1.500 amp=1.000/1.000
+ANOMALY march_vs_march seed=1005 winner=attacker combat=73.2 contact_t=624 spd=1.500/1.500 amp=1.000/1.000
+ANOMALY march_vs_march seed=1006 winner=attacker combat=77.0 contact_t=624 spd=1.500/1.500 amp=1.000/1.000
+ANOMALY march_vs_march seed=1007 winner=defender combat=82.4 contact_t=624 spd=1.500/1.500 amp=1.000/1.000
+ANOMALY march_vs_march seed=1008 winner=attacker combat=81.0 contact_t=624 spd=1.500/1.500 amp=1.000/1.000
+ANOMALY march_vs_march seed=1009 winner=attacker combat=84.6 contact_t=624 spd=1.500/1.500 amp=1.000/1.000
+ANOMALY march_vs_march seed=12345 winner=defender combat=81.6 contact_t=624 spd=1.500/1.500 amp=1.000/1.000
+ANOMALY_AGG march_vs_march atk_win%=63.6 n=11
+ANOMALY hold_vs_hold seed=1000 winner=none combat=0.0 contact_t=-1 spd=0.000/0.000 amp=0.000/0.000
+ANOMALY hold_vs_hold seed=1001 winner=none combat=0.0 contact_t=-1 spd=0.000/0.000 amp=0.000/0.000
+ANOMALY hold_vs_hold seed=1002 winner=none combat=0.0 contact_t=-1 spd=0.000/0.000 amp=0.000/0.000
+ANOMALY hold_vs_hold seed=1003 winner=none combat=0.0 contact_t=-1 spd=0.000/0.000 amp=0.000/0.000
+ANOMALY hold_vs_hold seed=1004 winner=none combat=0.0 contact_t=-1 spd=0.000/0.000 amp=0.000/0.000
+ANOMALY hold_vs_hold seed=1005 winner=none combat=0.0 contact_t=-1 spd=0.000/0.000 amp=0.000/0.000
+ANOMALY hold_vs_hold seed=1006 winner=none combat=0.0 contact_t=-1 spd=0.000/0.000 amp=0.000/0.000
+ANOMALY hold_vs_hold seed=1007 winner=none combat=0.0 contact_t=-1 spd=0.000/0.000 amp=0.000/0.000
+ANOMALY hold_vs_hold seed=1008 winner=none combat=0.0 contact_t=-1 spd=0.000/0.000 amp=0.000/0.000
+ANOMALY hold_vs_hold seed=1009 winner=none combat=0.0 contact_t=-1 spd=0.000/0.000 amp=0.000/0.000
+ANOMALY hold_vs_hold seed=12345 winner=none combat=0.0 contact_t=-1 spd=0.000/0.000 amp=0.000/0.000
+ANOMALY_AGG hold_vs_hold atk_win%=0.0 n=11
+WO025_ANOMALY_DONE

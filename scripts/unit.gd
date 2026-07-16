@@ -30,6 +30,8 @@ var _edge_cohesion_drain_totals: Dictionary = {
 }
 
 var pushing_power: float = 0.0
+## WO-025 R21: mirrored from sim proxy after battle-start roll.
+var quality_of_day: float = 1.0
 var speed_stat: float = 0.0
 var damage_dealt: float = 0.0
 var ammo_remaining: int = -1
@@ -104,6 +106,7 @@ func configure(id: String, team: String, profile_data: Dictionary, spawn_positio
 	strength = Constants.get_float("strength_max")
 	cohesion = Constants.get_float("cohesion_max")
 	pushing_power = float(profile.get("pushing_power", 0.0))
+	quality_of_day = 1.0
 	speed_stat = float(profile.get("speed", 0.0))
 	# Default cruise: preserve pre-WO-016 approach timing for regression scenarios.
 	# Charge scenarios call start_from_rest() after configure.

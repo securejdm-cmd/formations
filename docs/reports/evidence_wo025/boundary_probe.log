@@ -1,0 +1,54 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+WO025_BOUNDARY sigma=0.05 enabled=true
+[RNG] Battle seed set: 1000
+[Scenario 03] Battle seed: 1000
+[Scenario 03] Trace written: res://tests/traces/scenario_03_1000.csv
+[Scenario 03] SUMMARY | winner=red_b | combat=21.4s | blue_a_strength_at_rout=76.13 | edge_drains front=0.00 left=58.68 right=0.00 rear=0.39
+BOUNDARY S3 ratio=0.282 rout=76.13 left=58.68 ok=true
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+BOUNDARY S34 flank_persist=false no_reface=true ok=false
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 18] Trace written: res://tests/traces/scenario_18_1000.csv
+[Scenario 01] SUMMARY | winner=blue_spears | march=26.5s | combat=81.6s | flee=72.7s | winner_strength=93.00 | winner_cohesion=82.50
+BOUNDARY S18 winner=blue_spears ok=true
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 19] Trace written: res://tests/traces/scenario_19_1000.csv
+[Scenario 01] SUMMARY | winner=red_cav | march=26.5s | combat=11.6s | flee=113.7s | winner_strength=99.34 | winner_cohesion=98.36
+BOUNDARY S19 winner=red_cav ok=true
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 23] Trace written: res://tests/traces/scenario_23_1000.csv
+[Scenario 01] SUMMARY | winner=blue_inf | march=26.5s | combat=50.3s | flee=73.1s | winner_strength=93.67 | winner_cohesion=37.58
+BOUNDARY S23 winner=blue_inf tier_expect=1 tier_got=-1
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 24] Trace written: res://tests/traces/scenario_24_1000.csv
+[Scenario 01] SUMMARY | winner=red_cav | march=27.7s | combat=0.0s | flee=148.0s | winner_strength=64.06 | winner_cohesion=9.91
+BOUNDARY S24 winner=red_cav tier_expect=3 tier_got=-1
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 25] Trace written: res://tests/traces/scenario_25_1000.csv
+[Scenario 01] SUMMARY | winner=red_cav | march=22.0s | combat=30.6s | flee=122.3s | winner_strength=80.90 | winner_cohesion=52.25
+BOUNDARY S25 winner=red_cav tier_expect=3 tier_got=-1
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 26] Trace written: res://tests/traces/scenario_26_1000.csv
+[Scenario 01] SUMMARY | winner=red_cav | march=26.5s | combat=28.8s | flee=105.9s | winner_strength=83.66 | winner_cohesion=59.16
+BOUNDARY S26 winner=red_cav tier_expect=3 tier_got=-1
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 36] Trace written: res://tests/traces/scenario_36_1000.csv
+[Scenario 36] SUMMARY | winner=red_downhill | combat=49.0s | displace_m=11.58 | routed=blue_uphill | str_at_rout=69.65
+[Scenario 01] SUMMARY | winner=red_downhill | march=21.6s | combat=49.0s | flee=139.4s | winner_strength=80.10 | winner_cohesion=50.26
+BOUNDARY S36 winner=red_downhill ok=true
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 21] Trace written: res://tests/traces/scenario_21_flank_1000.csv
+[Scenario 01] SUMMARY | winner=red_cav | march=20.1s | combat=0.0s | flee=153.9s | winner_strength=100.00 | winner_cohesion=100.00
+BOUNDARY S21_flank winner=red_cav ok=true
+WO025_BOUNDARY_DONE
+NOTE: initial boundary_probe S34 false positive (field timing); wo025_s34_qod.gd confirms flank=true with QoD on/off

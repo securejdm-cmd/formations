@@ -20,3 +20,15 @@ static func randf_wobble(pct: float) -> float:
 	if _worker_rng != null:
 		return _worker_rng.randf_wobble(pct)
 	return RNG.randf_wobble(pct)
+
+
+static func randn() -> float:
+	if _worker_rng != null:
+		return _worker_rng.randn()
+	return RNG.randn()
+
+
+static func roll_quality_of_day(sigma: float, enabled: bool) -> float:
+	if _worker_rng != null:
+		return _worker_rng.roll_quality_of_day(sigma, enabled)
+	return RNG.roll_quality_of_day(sigma, enabled)

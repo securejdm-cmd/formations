@@ -36,3 +36,15 @@ func randf() -> float:
 
 func randi_range(a: int, b: int) -> int:
 	return _rng.randi_range(a, b)
+
+
+func randn() -> float:
+	var u1: float = maxf(_rng.randf(), 1e-12)
+	var u2: float = _rng.randf()
+	return sqrt(-2.0 * log(u1)) * cos(TAU * u2)
+
+
+func roll_quality_of_day(sigma: float, enabled: bool) -> float:
+	if not enabled or sigma <= 0.0:
+		return 1.0
+	return 1.0 + sigma * randn()
