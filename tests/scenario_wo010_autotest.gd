@@ -969,7 +969,7 @@ func _run_slot_swap_guard() -> void:
 			"--headless",
 			"--path",
 			ProjectSettings.globalize_path("res://"),
-			"-s",
+			"--script",
 			"res://tests/wo027_slot_swap.gd",
 			"--",
 			"SEED=1000",
@@ -986,6 +986,22 @@ func _run_slot_swap_guard() -> void:
 			if "ok=true" in s:
 				ok_line = true
 			print(s)
+	# Nested OS.execute stdout is flaky — prefer sidecar written by the child.
+	var side := "res://docs/reports/evidence_wo028/slot_swap_guard.txt"
+	if FileAccess.file_exists(side):
+		var sf := FileAccess.open(side, FileAccess.READ)
+		if sf != null:
+			var side_text := sf.get_as_text()
+			sf.close()
+			for line in side_text.split("\n", false):
+				var s2 := str(line).strip_edges()
+				if s2.begins_with("WO027_SLOT_SWAP seed="):
+					detail = s2
+					if "ok=true" in s2:
+						ok_line = true
+					print(s2)
+	if not ok_line and exit_code == 0 and "ok=true" in "\n".join(out):
+		ok_line = true
 	if not ok_line:
 		push_error("WO-027 SLOT-SWAP guard failed (exit %d)" % exit_code)
 		_record_check("[WO-027] SLOT-SWAP", false, detail)

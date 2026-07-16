@@ -116,7 +116,7 @@ func _run() -> void:
 		and absf(float(normal.w_coh) - float(swapped.w_coh)) <= 0.05
 	)
 	var ok: bool = expected_swap and combat_ok and mirror_ok
-	print(
+	var summary := (
 		"WO027_SLOT_SWAP seed=%d normal_winner=%s swapped_winner=%s winner_swaps=%s combat=%.1f/%.1f w_str=%.2f/%.2f w_coh=%.2f/%.2f mirror_ok=%s ok=%s"
 		% [
 			seed_value,
@@ -133,10 +133,18 @@ func _run() -> void:
 			str(ok),
 		]
 	)
+	print(summary)
 	print(
 		"WO027_SLOT_SWAP slots normal=%s/%s swapped=%s/%s"
 		% [str(normal.slot0), str(normal.slot1), str(swapped.slot0), str(swapped.slot1)]
 	)
+	# File sidecar — nested OS.execute stdout capture is flaky under suite.
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path("res://docs/reports/evidence_wo028"))
+	var sf := FileAccess.open("res://docs/reports/evidence_wo028/slot_swap_guard.txt", FileAccess.WRITE)
+	if sf != null:
+		sf.store_line(summary)
+		sf.store_line("WO027_SLOT_SWAP_DONE")
+		sf.close()
 	_consts().reload_from_file()
 	print("WO027_SLOT_SWAP_DONE")
 	quit(0 if ok else 1)
