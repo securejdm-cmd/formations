@@ -36,6 +36,15 @@ static func tick_interval() -> float:
 	return 1.0 / tick_rate()
 
 
+static func quality_of_day_of(unit: Variant) -> float:
+	## R21 persistent multiplier; 1.0 when disabled / unset.
+	if unit == null:
+		return 1.0
+	if "quality_of_day" in unit:
+		return float(unit.quality_of_day)
+	return 1.0
+
+
 static func calc_push_score(unit: Variant, contact_frontage_pct: float = 1.0, context_mod: float = 1.0) -> float:
 	var strength_max: Variant = Constants.get_float("strength_max")
 	var strength_pct: float = unit.strength / strength_max
@@ -44,6 +53,9 @@ static func calc_push_score(unit: Variant, contact_frontage_pct: float = 1.0, co
 	if unit.cohesion < Constants.get_float("waver_threshold"):
 		effectiveness = Constants.get_float("waver_effect")
 
+	# quality_of_day multiplies here (with charge_amp) so it scales the same
+	# push channel that feeds the push/cohesion death spiral — not charge shock,
+	# not edge multipliers, not brace tiers (R21 maneuver boundary).
 	var base: float = (
 		unit.pushing_power
 		* strength_pct
@@ -52,6 +64,7 @@ static func calc_push_score(unit: Variant, contact_frontage_pct: float = 1.0, co
 		* contact_frontage_pct
 		* context_mod
 		* _Charge.charge_amp_of(unit)
+		* quality_of_day_of(unit)
 	)
 	return base * SimRngBridge.randf_wobble(Constants.get_float("wobble_pct"))
 
@@ -426,6 +439,7 @@ static func calc_melee_strength_loss(
 		* contact_frontage_pct
 		* Constants.get_float("k_melee_scale")
 		* _Charge.charge_amp_of(attacker)
+		* quality_of_day_of(attacker)
 	)
 	var armor_class: String = str(defender.profile.get("armor_class", "None"))
 	var armor_stat: float = float(defender.profile.get("armor", 0.0))

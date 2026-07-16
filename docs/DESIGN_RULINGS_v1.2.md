@@ -103,3 +103,15 @@ A unit's Speed stat governs **tactical** movement (march / trot). A unit may als
 2. **`charge_min_speed_pct`** (propose 1.25): a charge registers only when closing speed exceeds the attacker's **own** tactical `Speed × charge_min_speed_pct`. Absolute `charge_min_speed` is deleted. Units with `charge_gait_mult = 1.0` are structurally incapable of charging.
 
 High-speed movement integration sub-steps so per-substep displacement stays **< `engage_snap_max_m`**. **STATUS: DESIGN LAW — effective WO-019.**
+
+## R21. Quality of the Day — Persistent Like-vs-Like Variance (designer + TD; WO-025)
+
+Like-vs-like fights must be **genuine contests**. Per-tick zero-mean wobble cannot produce that: it averages out over hundreds of ticks while any persistent push/cohesion bias compounds into certainty (WO-024 sensitivity: 2% push edge → 100% win; ±15% wobble Δ = 0.0).
+
+**Mechanism:** at battle start each unit rolls a **persistent** `quality_of_day` multiplier from the battle-seeded RNG (same stream — no new RNG). The multiplier applies for the whole battle to that unit's **effective combat and push output** (melee strength loss and push score). It does **not** dilute maneuver advantages: charge shock, brace tiers, flank/rear edge multipliers, pinning, and slope direction remain decisive. **No good day saves a unit from a rear charge.**
+
+**Boundary (inviolable):** variance may blur paper stats only. Maneuver outcomes (flank, brace timing, charge spectrum, pinning, slope direction, rear charge) must remain decisive under the committed width.
+
+**Supporting levers (logged, not this WO):** slow (low-frequency) wobble; rout-threshold variance. Adding them is a TD decision if the committed width cannot meet the R21 curve alone.
+
+**STATUS: DESIGN LAW — effective WO-025.**

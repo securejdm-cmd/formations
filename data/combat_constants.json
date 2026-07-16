@@ -86,5 +86,7 @@
   "slope_reference_grade": 0.10,
   "slope_push_bonus": 0.10,
   "slope_range_bonus": 0.15,
-  "slope_speed_bonus": 0.35
+  "slope_speed_bonus": 0.35,
+  "quality_of_day_enabled": false,
+  "quality_of_day_sigma": 0.05
 }

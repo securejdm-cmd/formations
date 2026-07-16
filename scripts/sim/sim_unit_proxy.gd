@@ -14,6 +14,8 @@ var cohesion: float = 100.0
 var current_order: Unit.Order = Unit.Order.HOLD
 var march_target: Vector2 = Vector2.ZERO
 var pushing_power: float = 0.0
+## WO-025 R21: persistent battle-start combat/push multiplier (~N(1,σ) when enabled).
+var quality_of_day: float = 1.0
 var speed_stat: float = 0.0
 var damage_dealt: float = 0.0
 var _contact_partners: Array = []
@@ -76,6 +78,7 @@ static func from_unit(unit: Unit) -> SimUnitProxy:
 	p.current_order = unit.current_order
 	p.march_target = unit.march_target
 	p.pushing_power = unit.pushing_power
+	p.quality_of_day = float(unit.quality_of_day) if "quality_of_day" in unit else 1.0
 	p.speed_stat = unit.speed_stat
 	p.damage_dealt = unit.damage_dealt
 	p._state = unit.get_state()
@@ -124,6 +127,7 @@ func refresh_from_unit(unit: Unit) -> void:
 	current_order = unit.current_order
 	march_target = unit.march_target
 	pushing_power = unit.pushing_power
+	# quality_of_day is battle-persistent on the proxy — do not clobber from Unit.
 	speed_stat = unit.speed_stat
 	damage_dealt = unit.damage_dealt
 	_state = unit.get_state()
@@ -174,6 +178,7 @@ func duplicate_render_state() -> SimUnitProxy:
 	p.current_order = current_order
 	p.march_target = march_target
 	p.pushing_power = pushing_power
+	p.quality_of_day = quality_of_day
 	p.speed_stat = speed_stat
 	p.damage_dealt = damage_dealt
 	p._partner_ids = _partner_ids.duplicate()
@@ -230,6 +235,7 @@ func apply_to_unit(unit: Unit, all_units: Array = []) -> void:
 	unit.current_order = current_order
 	unit.march_target = march_target
 	unit.damage_dealt = damage_dealt
+	unit.quality_of_day = quality_of_day
 	unit._bump_gap_ratio = _bump_gap_ratio
 	unit._bump_is_winner = _bump_is_winner
 	unit._rally_elapsed_sec = _rally_elapsed_sec
