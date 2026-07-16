@@ -1,0 +1,15 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+WO027_SWEEP_START mode=SIGMA seeds=1000..1499 n=500
+SWEEP sigma=0.055 edge=0% win%=50.80 se=2.24 rule=PASS
+SWEEP sigma=0.055 edge=2% win%=58.00 se=2.21 rule=PASS
+SWEEP sigma=0.055 edge=3% win%=61.00 se=2.18 rule=PASS
+SWEEP sigma=0.055 edge=5% win%=68.20 se=2.08 rule=PASS
+SWEEP sigma=0.055 edge=10% win%=81.40 se=1.74 rule=PASS
+SWEEP sigma=0.055 edge=20% win%=94.20 se=1.05 rule=PASS
+SWEEP sigma=0.055 edge=50% win%=98.60 se=0.53 rule=PASS
+SWEEP_SIGMA_DONE sigma=0.055 rule_set=PASS mono=PASS elapsed_ms=1880600
+SWEEP_SELECTED sigma=0.055
+WO027_SWEEP_CSV res://docs/reports/evidence_wo027/qod_sweep_sigma_0p055.csv
+WO027_SWEEP_MD res://docs/reports/evidence_wo027/qod_sweep_sigma_0p055.md
+WO027_SWEEP_DONE

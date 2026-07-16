@@ -2,6 +2,8 @@
 
 Canonical index of FORMATIONS work-order reports (newest first). Raw `main` branch links.
 
+- [WO-027_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-027-qod-measurable-fd84/docs/reports/WO-027_completion.md) — WO-027 QoD measurable sweep; σ=0.045; Task 4 S3 escalate
+- [WO-027_escalation.md](https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-027-qod-measurable-fd84/docs/reports/WO-027_escalation.md) — WO-027 R21 boundary S3 band under QoD
 - [WO-026_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-026-movement-diagnostic-fd84/docs/reports/WO-026_completion.md) — WO-026 movement diagnostic; march enemy query fix
 - [WO-025_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-025-quality-of-day-fd84/docs/reports/WO-025_completion.md) — WO-025 quality_of_day (R21); Task 2 width escalated
 - [WO-025_escalation.md](https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-025-quality-of-day-fd84/docs/reports/WO-025_escalation.md) — WO-025 no σ meets R21 bands

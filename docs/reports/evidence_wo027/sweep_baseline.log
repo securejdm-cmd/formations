@@ -1,0 +1,7 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+WO027_SWEEP_START mode=BASELINE seeds=1000..1499 n=500
+WO027_BASELINE enabled=false 0% win%=49.20 se=2.24 n=500 elapsed_ms=301477 fair50pm5=true
+WO027_SWEEP_CSV res://docs/reports/evidence_wo027/qod_sweep_baseline.csv
+WO027_SWEEP_MD res://docs/reports/evidence_wo027/qod_sweep_baseline.md
+WO027_SWEEP_DONE
