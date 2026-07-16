@@ -1,8 +1,8 @@
-# COMPLETION REPORT — WO-028 — 2026-07-16 — Commit 8e80bd4964566c6854aef0522f4041b03de8fce6
+# COMPLETION REPORT — WO-028 — 2026-07-16 — Commit 67f7d428da3b3e35fd3ddbbe1ea46352d5434df1
 
 **Work order:** WO-028 Boundary vs Band: Closing Phase 2's Simulation  
 **Branch:** `cursor/wo-028-boundary-vs-band-fd84`  
-**Tip SHA:** `8e80bd4964566c6854aef0522f4041b03de8fce6`  
+**Tip SHA:** `67f7d428da3b3e35fd3ddbbe1ea46352d5434df1`  
 **Base:** WO-027 tip `9e31142` (`cursor/wo-027-qod-measurable-fd84`)  
 **Evidence:** `docs/reports/evidence_wo028/`  
 **Design authority:** DESIGN_RULINGS R21
