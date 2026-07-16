@@ -1985,19 +1985,32 @@ func _check_s33_gravity() -> void:
 
 
 func _check_s34_pinning() -> void:
+	# WO-028: assert R19 facing pin + engagement morale mult (>1), not soft LEFT-label count.
 	var ok := true
-	if not bool(_scenario.flank_persisted):
-		push_error("S34 flank edge/multiplier did not persist")
-		ok = false
 	if not bool(_scenario.a_did_not_reface):
 		push_error("S34 defender auto-refaced toward flanker (R19 pin violated)")
 		ok = false
-	var detail := "samples=%d flank_persist=%s no_reface=%s" % [
-		_scenario.edge_samples.size(),
-		_scenario.flank_persisted,
-		_scenario.a_did_not_reface,
-	]
-	_record_check("[WO-020b] S34", ok, detail)
+	if not bool(_scenario.flank_persisted):
+		push_error(
+			"S34 flank morale mult did not hold (mean=%.3f frac_gt1=%.2f)"
+			% [float(_scenario.mean_flank_mult), float(_scenario.frac_mult_gt1)]
+		)
+		ok = false
+	if float(_scenario.mean_flank_mult) <= 1.0:
+		push_error("S34 mean flank mult %.3f not > 1.0" % float(_scenario.mean_flank_mult))
+		ok = false
+	var detail := (
+		"samples=%d no_reface=%s mean_mult=%.3f frac_gt1=%.2f max_dot=%.3f turn=%.2f"
+		% [
+			_scenario.edge_samples.size(),
+			_scenario.a_did_not_reface,
+			float(_scenario.mean_flank_mult),
+			float(_scenario.frac_mult_gt1),
+			float(_scenario.max_facing_dot_to_flanker),
+			float(_scenario.max_facing_turn_deg),
+		]
+	)
+	_record_check("[WO-028] S34", ok, detail)
 
 
 func _check_s35_agility() -> void:

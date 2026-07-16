@@ -2,6 +2,7 @@ class_name Scenario34
 extends Scenario01
 
 ## S34 — Pinning (R19): A engaged frontally by B; C hits A's LEFT — A must not reface.
+## WO-028: flank_persisted asserts morale multiplier (not soft LEFT-label count).
 
 const TRACE_PREFIX := "scenario_34"
 
@@ -9,9 +10,14 @@ var _a: Unit = null
 var _b: Unit = null
 var _c: Unit = null
 var _phase: String = "front_engage"
-var edge_samples: Array = []  # {t, edge, mult, a_facing_dot_to_c}
+var edge_samples: Array = []  # {t, edge, mult, a_facing_dot_to_c, a_facing_angle_deg}
 var flank_persisted: bool = false
 var a_did_not_reface: bool = false
+## Hardened metrics (WO-028 Task 1).
+var mean_flank_mult: float = 0.0
+var frac_mult_gt1: float = 0.0
+var max_facing_dot_to_flanker: float = -2.0
+var max_facing_turn_deg: float = 0.0
 
 
 func _spawn_units() -> void:
@@ -64,26 +70,54 @@ func advance_one_tick() -> void:
 			var edge := str(morale.get("edge", ""))
 			var mult := float(morale.get("mult", 0.0))
 			var to_c: Vector2 = (_c.position - _a.position).normalized()
-			var dot := _a.facing.normalized().dot(to_c)
+			var facing_n: Vector2 = _a.facing.normalized()
+			var dot := facing_n.dot(to_c)
+			var angle_deg := rad_to_deg(atan2(facing_n.y, facing_n.x))
 			edge_samples.append({
 				"t": _sim_tick_count * CombatResolver.tick_interval(),
 				"edge": edge,
 				"mult": mult,
 				"a_facing_dot_to_c": dot,
+				"a_facing_angle_deg": angle_deg,
 			})
 			if edge_samples.size() >= 20:
-				var leftish := 0
-				var max_dot := -2.0
-				for row in edge_samples:
-					if str(row.get("edge", "")) == EdgeContact.EDGE_LEFT or float(row.get("mult", 0.0)) >= 1.4:
-						leftish += 1
-					max_dot = maxf(max_dot, float(row.get("a_facing_dot_to_c", -2.0)))
-				flank_persisted = leftish >= 15
-				# If A refaced toward C, facing·to_c would approach +1.
-				a_did_not_reface = max_dot < 0.5
+				_finalize_pin_metrics()
 				_phase = "done"
 				_sim_core.battle_over = true
 				_battle_over = true
+
+
+func _finalize_pin_metrics() -> void:
+	## R19 / WO-028 hardened pin:
+	##  (1) defender facing does not rotate toward the flanker
+	##  (2) flank morale multiplier remains > 1.0 across the engagement
+	## Soft LEFT-label majority (old flank_persisted) is NOT asserted — QoD can
+	## flicker LEFT↔FRONT at the corner without a reface (classification drift).
+	var sum_mult := 0.0
+	var gt1 := 0
+	var max_dot := -2.0
+	var first_angle := float(edge_samples[0].get("a_facing_angle_deg", 0.0))
+	var max_turn := 0.0
+	for row in edge_samples:
+		var m := float(row.get("mult", 0.0))
+		sum_mult += m
+		if m > 1.0 + 0.001:
+			gt1 += 1
+		max_dot = maxf(max_dot, float(row.get("a_facing_dot_to_c", -2.0)))
+		var ang := float(row.get("a_facing_angle_deg", first_angle))
+		var turn := absf(ang - first_angle)
+		if turn > 180.0:
+			turn = 360.0 - turn
+		max_turn = maxf(max_turn, turn)
+	var n := edge_samples.size()
+	mean_flank_mult = sum_mult / float(maxi(n, 1))
+	frac_mult_gt1 = float(gt1) / float(maxi(n, 1))
+	max_facing_dot_to_flanker = max_dot
+	max_facing_turn_deg = max_turn
+	# If A refaced toward C, facing·to_c would approach +1.
+	a_did_not_reface = max_dot < 0.5 and max_turn < 5.0
+	# Engagement-level flank morale: mean > 1 and majority of samples elevated.
+	flank_persisted = mean_flank_mult > 1.0 + 0.001 and frac_mult_gt1 >= 0.5
 
 
 func _write_trace_file() -> void:

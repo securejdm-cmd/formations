@@ -163,3 +163,21 @@ The **45-count PASS/FAIL meta-assertion** in `tests/scenario_wo010_autotest.gd` 
 - On process exit **0**, emitted PASS count must equal `EXPECTED_GREEN_PASS_COUNT` (currently **45**) and FAIL count must be **0**.
 - On process exit **≠ 0**, FAIL count must be **> 0**. Divergence between printed PASS/FAIL and exit code is a shipping defect.
 - When adding or removing gated checks, update `EXPECTED_GREEN_PASS_COUNT` in the same commit and regenerate the completion report evidence accordingly.
+
+## Boundary Checks vs Regression Bands (governance amendment — WO-028)
+
+Two check types must stay permanently separated. The TD previously merged them; that is forbidden going forward.
+
+### (a) R21 BOUNDARY CHECKS — DIRECTION (design law)
+
+Assert **who wins**, **which edge classifies**, **whether a counter still counters**, **whether a pinned unit refaces**. These are design law and **may never be waived**.
+
+Examples: flank attacker wins; braced spears beat cavalry; downhill wins; defender facing does not rotate toward a flanker (R19); flank morale multiplier stays > 1.0.
+
+### (b) REGRESSION BANDS — MAGNITUDE (calibrated instruments)
+
+Assert numeric ranges (combat ratios, drain totals, strength-at-rout floors). Bands **MUST be derived under the configuration they guard** (same QoD enablement, sigma, gravity, etc.). A band derived without variance cannot police a system with variance.
+
+- Never list a **numeric magnitude band** as an R21 boundary check.
+- When configuration changes (e.g. QoD enabled), **re-derive** affected bands from data (n large enough to decide) — do not widen by judgement or waive repeatedly.
+- Provenance (commit, config, n, derivation rule) belongs in-comment next to the committed band.
