@@ -1,4 +1,4 @@
-# COMPLETION REPORT — WO-025 — 2026-07-16 — Commit PLACEHOLDER
+# COMPLETION REPORT — WO-025 — 2026-07-16 — Commit 01f4788b1ea4df4a6a82ec01dafe2716e348f68a
 
 **Work order:** WO-025 Quality of the Day: Persistent Variance  
 **Branch:** `cursor/wo-025-quality-of-day-fd84`  
@@ -94,7 +94,7 @@ Movement optimization logged as Phase 6/7 debt (WO-024 TD) — not acted on.
 ## Attestation
 
 - Branch: `cursor/wo-025-quality-of-day-fd84`
-- Full SHA: `PLACEHOLDER`
+- Full SHA: `01f4788b1ea4df4a6a82ec01dafe2716e348f68a`
 - Report: https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-025-quality-of-day-fd84/docs/reports/WO-025_completion.md
 - Suite: https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-025-quality-of-day-fd84/docs/reports/evidence_wo025/suite_stdout.log
 
