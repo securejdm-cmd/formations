@@ -1,0 +1,8 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+WO027_SLOT_SWAP_START seed=1000
+WO027_SLOT_SWAP seed=1000 normal_winner=attacker swapped_winner=defender winner_swaps=true traces_ok=false combat=75.8/75.8 ok=false
+WO027_SLOT_SWAP slots normal=attacker/defender swapped=defender/attacker
+WO027_SLOT_SWAP_TRACE_ERR winner i=0 state marching vs hold
+WO027_SLOT_SWAP_TRACE_ERR loser i=0 state hold vs marching
+WO027_SLOT_SWAP_DONE

@@ -42,7 +42,7 @@ const SCENARIO_EXTRA_TICKS := 120
 ## Compass, Fast+Threaded cert, S1×11, S2×11, Determinism, S3, Overlap, S4, S5–S8, S9,
 ## S10–S11, S12, S13×3, S14×2, S15, S16×2, S17×2 retired, S17b, S18, S19, S20×2, S21, S22,
 ## S23–S26, S27–S29, S30–S34, S35, S36–S39, S40 = 72
-const EXPECTED_GREEN_PASS_COUNT := 72
+const EXPECTED_GREEN_PASS_COUNT := 73
 
 var _scenario: Scenario01 = null
 var _exit_code := 0
@@ -587,6 +587,7 @@ func _finish() -> void:
 				_spawn_and_run()
 		"reflection":
 			_check_reflection_pair(1000)
+			_run_slot_swap_guard()
 			_mode = "s5_rally"
 			_spawn_and_run()
 		"s5_rally":
@@ -939,6 +940,42 @@ func _check_reflection_pair(seed_value: int) -> void:
 		push_error("Adhesion invariant failed on seed %d" % seed_value)
 		ok = false
 	_record_check("[WO-010] Overlap/adhesion seed %d" % seed_value, ok)
+
+
+func _run_slot_swap_guard() -> void:
+	## WO-027: permanent slot-order guard (units[] reverse, not position mirror).
+	var out: Array = []
+	var exit_code := OS.execute(
+		"/tmp/godot/Godot_v4.4.1-stable_linux.x86_64",
+		[
+			"--headless",
+			"--path",
+			ProjectSettings.globalize_path("res://"),
+			"-s",
+			"res://tests/wo027_slot_swap.gd",
+			"--",
+			"SEED=1000",
+		],
+		out,
+		true
+	)
+	var detail := ""
+	var ok_line := false
+	for line in out:
+		var s := str(line)
+		if "WO027_SLOT_SWAP seed=" in s:
+			detail = s.strip_edges()
+			print(detail)
+			if "ok=true" in s:
+				ok_line = true
+	var ok: bool = ok_line or exit_code == 0 and "ok=true" in detail
+	if not ok_line:
+		ok = false
+	if not ok:
+		push_error("WO-027 SLOT-SWAP guard failed (exit %d)" % exit_code)
+		_record_check("[WO-027] SLOT-SWAP", false, detail)
+	else:
+		_record_check("[WO-027] SLOT-SWAP", true, detail if not detail.is_empty() else "seed=1000")
 
 
 func _check_scenario_05() -> void:

@@ -9,7 +9,12 @@ var _current_seed: int = 0
 func set_seed(value: int) -> void:
 	_current_seed = value
 	_rng.seed = value
-	print("[RNG] Battle seed set: %d" % value)
+	if not bool(get_meta("suppress_seed_print", false)):
+		print("[RNG] Battle seed set: %d" % value)
+
+
+func set_suppress_seed_print(quiet: bool) -> void:
+	set_meta("suppress_seed_print", quiet)
 
 
 func get_seed() -> int:

@@ -16,6 +16,8 @@ enum BattlePhase { ACTIVE, VICTORY_PENDING, VICTORY_EPILOGUE, FINISHED }
 @export var fast_sim_mode: bool = false
 ## See SimBattleCore.force_trace_logging — cert-only; not GAMEPLAY_TICK QA.
 var force_trace_logging: bool = false
+## WO-027: skip disk trace writes + summary prints (sweep / bulk probes).
+var suppress_io: bool = false
 ## WO-011: worker-thread sim at 10 Hz (realtime only; fast-mode path stays on main thread).
 @export var use_sim_thread: bool = false
 
@@ -60,8 +62,11 @@ func set_battle_seed(seed_value: int) -> void:
 func _ready() -> void:
 	_setup_ground()
 	_battle_seed = _seed_override if _seed_override >= 0 else Constants.get_int("scenario_01_battle_seed")
+	if suppress_io and RNG.has_method("set_suppress_seed_print"):
+		RNG.set_suppress_seed_print(true)
 	RNG.set_seed(_battle_seed)
-	print("[Scenario 01] Battle seed: %d" % _battle_seed)
+	if not suppress_io:
+		print("[Scenario 01] Battle seed: %d" % _battle_seed)
 
 	_spawn_units()
 	_shock_floater_layer = get_node_or_null("ShockFloaterLayer") as CanvasLayer
@@ -669,6 +674,8 @@ func get_trace_events() -> PackedStringArray:
 
 
 func _write_trace_file() -> void:
+	if suppress_io:
+		return
 	var dir := DirAccess.open("res://tests")
 	if dir == null:
 		push_error("Scenario 01: cannot access tests directory")
@@ -702,6 +709,8 @@ func _phase_durations_sec() -> Dictionary:
 
 
 func _print_summary() -> void:
+	if suppress_io:
+		return
 	var phases := _phase_durations_sec()
 	if _winner == null:
 		print(
