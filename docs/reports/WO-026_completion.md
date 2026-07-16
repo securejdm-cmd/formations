@@ -1,8 +1,8 @@
-# COMPLETION REPORT — WO-026 — 2026-07-16 — Commit b8fe18672bbfe48115f0b2c78ac280a0cbe580e3
+# COMPLETION REPORT — WO-026 — 2026-07-16 — Commit 817013af1a3c77faba882f795ee2119f441bceb2
 
 **Work order:** WO-026 Movement Diagnostic  
 **Branch:** `cursor/wo-026-movement-diagnostic-fd84`  
-**Tip SHA:** `b8fe18672bbfe48115f0b2c78ac280a0cbe580e3`  
+**Tip SHA:** `817013af1a3c77faba882f795ee2119f441bceb2`  
 **Code SHA:** `abaa87773f7fea6c48f87661739dddb6f4581e37`  
 **Base:** WO-025 tip `4a134e7` (`cursor/wo-025-quality-of-day-fd84`)  
 **Evidence:** `docs/reports/evidence_wo026/`  
