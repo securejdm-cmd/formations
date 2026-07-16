@@ -1,8 +1,8 @@
-# COMPLETION REPORT — WO-027 — 2026-07-16 — Commit 3c380136c92f13feee108b3b42935ba872c65d3a
+# COMPLETION REPORT — WO-027 — 2026-07-16 — Commit dfef9b45b59bdf06ac26659385cbcef67630df3b
 
 **Work order:** WO-027 Quality of the Day: Measurable Sweep  
 **Branch:** `cursor/wo-027-qod-measurable-fd84`  
-**Tip SHA:** `3c380136c92f13feee108b3b42935ba872c65d3a`  
+**Tip SHA:** `dfef9b45b59bdf06ac26659385cbcef67630df3b`  
 **Base:** WO-026 tip `57a54ed` (`cursor/wo-026-movement-diagnostic-fd84`)  
 **Evidence:** `docs/reports/evidence_wo027/`  
 **Escalation:** `docs/reports/WO-027_escalation.md` (Task 4 — S3 band under QoD)
