@@ -1,7 +1,8 @@
-# COMPLETION REPORT — WO-025 — 2026-07-16 — Commit b531ae25c793e0bcceaec39b659dc34b08863e53
+# COMPLETION REPORT — WO-025 — 2026-07-16 — Commit 2bc16ddff761fe77b731adbd2f81705cc42d6caa
 
 **Work order:** WO-025 Quality of the Day: Persistent Variance  
 **Branch:** `cursor/wo-025-quality-of-day-fd84`  
+**Tip SHA:** `2bc16ddff761fe77b731adbd2f81705cc42d6caa`  
 **Base:** WO-024 tip  
 **Evidence:** `docs/reports/evidence_wo025/`  
 **Escalation:** `docs/reports/WO-025_escalation.md` (Task 2 — no σ satisfies R21 bands)
@@ -94,7 +95,7 @@ Movement optimization logged as Phase 6/7 debt (WO-024 TD) — not acted on.
 ## Attestation
 
 - Branch: `cursor/wo-025-quality-of-day-fd84`
-- Full SHA: `b531ae25c793e0bcceaec39b659dc34b08863e53`
+- Full SHA: `2bc16ddff761fe77b731adbd2f81705cc42d6caa`
 - Report: https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-025-quality-of-day-fd84/docs/reports/WO-025_completion.md
 - Suite: https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-025-quality-of-day-fd84/docs/reports/evidence_wo025/suite_stdout.log
 
