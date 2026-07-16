@@ -3,7 +3,8 @@ func _initialize() -> void:
 	call_deferred("_run")
 func _consts():
 	return root.get_node("/root/Constants")
-func _run_s1() -> String:
+func _run_s1(enabled: bool) -> Dictionary:
+	_consts().set_constant("quality_of_day_enabled", enabled)
 	var packed = load("res://tests/scenario_01.tscn")
 	var sc = packed.instantiate()
 	sc.headless_mode = true
@@ -17,19 +18,21 @@ func _run_s1() -> String:
 	while not sc.is_battle_over() and ticks < 30000:
 		sc.advance_one_tick(); ticks += 1
 	var t = sc.get_trace_text()
-	print("QOD_AB combat=%.1f winner=%s q=%s/%s" % [
-		float(sc.get_phase_durations_sec().get("combat_sec",-1)),
-		str(sc.get_winner_id()),
-		str(sc._units[0].quality_of_day) if sc._units.size()>0 else "?",
-		str(sc._units[1].quality_of_day) if sc._units.size()>1 else "?"
-	])
+	var out = {
+		"trace": t,
+		"combat": float(sc.get_phase_durations_sec().get("combat_sec",-1)),
+		"winner": str(sc.get_winner_id()),
+		"has_qod_event": t.find("QUALITY_OF_DAY") >= 0,
+	}
 	sc.free()
-	return t
+	return out
 func _run() -> void:
-	_consts().set_constant("quality_of_day_enabled", false)
-	var a = _run_s1()
-	_consts().set_constant("quality_of_day_enabled", false)
-	var b = _run_s1()
+	var a = _run_s1(false)
+	var b = _run_s1(false)
 	_consts().reload_from_file()
-	print("QOD_AB identical=%s" % str(a==b))
-	quit(0 if a==b else 2)
+	var ok = (str(a.trace)==str(b.trace)) and (not bool(a.has_qod_event)) and float(a.combat)==81.6
+	print("QOD_AB identical=%s has_event=%s combat=%.1f winner=%s" % [
+		str(str(a.trace)==str(b.trace)), str(a.has_qod_event), float(a.combat), str(a.winner)
+	])
+	print("QOD_AB_WO024_MATCH combat81.6=%s" % str(absf(float(a.combat)-81.6)<0.05))
+	quit(0 if ok else 2)

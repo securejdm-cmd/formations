@@ -2,6 +2,8 @@
 
 Canonical index of FORMATIONS work-order reports (newest first). Raw `main` branch links.
 
+- [WO-025_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-025-quality-of-day-fd84/docs/reports/WO-025_completion.md) — WO-025 quality_of_day (R21); Task 2 width escalated
+- [WO-025_escalation.md](https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-025-quality-of-day-fd84/docs/reports/WO-025_escalation.md) — WO-025 no σ meets R21 bands
 - [WO-024_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-024-honest-numbers-fd84/docs/reports/WO-024_completion.md) — WO-024 Honest Numbers (GAMEPLAY_TICK, surface-gap gravity, sensitivity)
 - [WO-024_escalation.md](https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-024-honest-numbers-fd84/docs/reports/WO-024_escalation.md) — WO-024 S3 gravity A/B non-identity
 - [WO-023_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-023-gate2-blockers-fd84/docs/reports/WO-023_completion.md) — WO-023 Gate 2 blockers

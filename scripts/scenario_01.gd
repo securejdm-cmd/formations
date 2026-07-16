@@ -113,10 +113,9 @@ func _sim_thread_active() -> bool:
 
 func _setup_sim_thread() -> void:
 	_ensure_sim_core()
-	if auto_run:
-		_sim_core.write_trace_header()
 	_sim_core.capture_from_units(_units)
 	if auto_run:
+		_sim_core.write_trace_header()
 		_sim_core.log_trace_row()
 	_sim_thread = _SimThreadController.new()
 	_sim_thread.start(_sim_core, not headless_mode)
