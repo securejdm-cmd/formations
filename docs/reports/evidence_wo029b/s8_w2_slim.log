@@ -1,0 +1,9 @@
+WO029B_S8_SWEEP start=1250 count=125 sigma=0.045 worker=w2
+S8_PROG worker=w2 i=1/125 seed=1250 ratio=0.8614 ge3_so_far=0
+S8_PROG worker=w2 i=25/125 seed=1274 ratio=0.8258 ge3_so_far=0
+S8_PROG worker=w2 i=50/125 seed=1299 ratio=2.1588 ge3_so_far=2
+S8_PROG worker=w2 i=75/125 seed=1324 ratio=2.5126 ge3_so_far=4
+S8_PROG worker=w2 i=100/125 seed=1349 ratio=0.9226 ge3_so_far=5
+S8_PROG worker=w2 i=125/125 seed=1374 ratio=1.9882 ge3_so_far=6
+WO029B_S8_STATS worker=w2 n=125 mean=1.751887 sd=0.810954 cv=0.4629 min=0.825824 max=3.856754 ge3=6 ms=145431
+WO029B_S8_SWEEP_DONE worker=w2 csv=res://docs/reports/evidence_wo029b/s8_sweep_w2.csv

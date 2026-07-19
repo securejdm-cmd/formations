@@ -19,7 +19,10 @@ var force_trace_logging: bool = false
 ## WO-027: skip disk trace writes + summary prints (sweep / bulk probes).
 var suppress_io: bool = false
 ## WO-011: worker-thread sim at 10 Hz (realtime only; fast-mode path stays on main thread).
-@export var use_sim_thread: bool = false
+## WO-029b: realtime gameplay defaults onto the WO-011 sim thread so the main/
+## render thread is not blocked by GAMEPLAY_TICK (~27ms). Fast-mode autotests
+## still disable the thread via `_sim_thread_enabled()` (fast_sim_mode=true).
+@export var use_sim_thread: bool = true
 
 var _units: Array[Unit] = []
 var _tick_accumulator: float = 0.0
@@ -139,8 +142,10 @@ func _ensure_sim_core() -> void:
 	_sim_core.headless_mode = headless_mode
 	_sim_core.fast_sim_mode = fast_sim_mode
 	_sim_core.force_trace_logging = force_trace_logging
-	_sim_core.shock_floater_callback = _spawn_shock_floater_from_proxy
-	_sim_core.volley_visual_callback = _spawn_volley_visual_from_proxy
+	# WO-029b: visuals are queued as plain data on the core and drained on the
+	# main thread — never via Node callbacks from the sim worker.
+	_sim_core.shock_floater_callback = Callable()
+	_sim_core.volley_visual_callback = Callable()
 	_sim_core.height_field = _height_field
 
 
@@ -246,6 +251,7 @@ func _process_threaded_frame(delta: float) -> void:
 			_print_summary()
 			if not headless_mode:
 				_show_results_if_needed()
+		_drain_threaded_visuals()
 		return
 
 	if not headless_mode and _battle_phase == BattlePhase.VICTORY_PENDING:
@@ -254,10 +260,45 @@ func _process_threaded_frame(delta: float) -> void:
 			_declare_victory()
 		if _sim_thread != null:
 			_sim_thread.apply_snapshot_to_units(_units)
+		_drain_threaded_visuals()
 		return
 
 	if _sim_thread != null:
 		_sim_thread.apply_snapshot_to_units(_units)
+	_drain_threaded_visuals()
+
+
+func _drain_threaded_visuals() -> void:
+	if _sim_thread == null or not _sim_thread.has_method("take_pending_visuals_for_main"):
+		return
+	_apply_pending_visuals(_sim_thread.take_pending_visuals_for_main())
+
+
+func _drain_core_visuals() -> void:
+	if _sim_core == null or not _sim_core.has_method("take_pending_visuals"):
+		return
+	_apply_pending_visuals(_sim_core.take_pending_visuals())
+
+
+func _apply_pending_visuals(visuals: Dictionary) -> void:
+	if headless_mode or visuals.is_empty():
+		return
+	var by_id: Dictionary = {}
+	for unit in _units:
+		if unit != null:
+			by_id[str(unit.unit_id)] = unit
+	for ev in visuals.get("shock", []):
+		var u = by_id.get(str(ev.get("unit_id", "")), null)
+		if u != null:
+			_spawn_shock_floater(u, float(ev.get("amount", 0.0)))
+	for ev in visuals.get("volley", []):
+		var sh = by_id.get(str(ev.get("shooter_id", "")), null)
+		var tg = by_id.get(str(ev.get("target_id", "")), null)
+		if sh != null and tg != null:
+			var arc := preload("res://scripts/volley_arc.gd").new()
+			add_child(arc)
+			arc.setup(sh.position, tg.position)
+			tg.trigger_volley_impact()
 
 
 func simulate_realtime_step(delta: float = -1.0) -> void:
@@ -309,6 +350,7 @@ func advance_one_tick() -> void:
 	_sync_units_from_core()
 	_dispatch_core_event_hooks()
 	_sync_state_from_core()
+	_drain_core_visuals()
 	_on_core_battle_finished_if_needed()
 
 
@@ -326,6 +368,7 @@ func advance_post_battle_tick() -> void:
 	_sync_units_from_core()
 	_dispatch_core_event_hooks()
 	_sync_state_from_core()
+	_drain_core_visuals()
 	_battle_over = saved_scenario_over
 	_sim_core.battle_over = saved_core_over
 

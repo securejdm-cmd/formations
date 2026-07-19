@@ -50,11 +50,11 @@ const S3_LEFT_DRAIN_MIN := 49.45
 const S3_LEFT_DRAIN_MAX := 68.80
 const S4_BLEND_TOLERANCE := 0.5
 const S4_CONTACT_BALANCE_MAX_M := 6.0
-## WO-028: re-derived under QoD-on σ=0.045, seeds 1000–1009 (n=10).
-## mean=1.983705 sd=0.793005 → mean+3SD=4.362719 (one-sided cap).
-## Provenance: evidence_wo028/rebaseline.log. QoD makes single-vs-triple noisy;
-## frontage still caps the mean near ~2.
-const S8_BLOB_RATIO_MAX := 4.36
+## WO-029b Task 0: S8 is an R21 DIRECTION check (Combat Core §3.7) — stacking must
+## be SUBLINEAR: 3 attackers on one FRONT edge deal < 3.0× a single attacker.
+## Threshold is design-sourced, not data-derived, not waivable. Magnitude is
+## informational only (reported in the PASS detail string).
+const S8_STACK_RATIO_MAX := 3.0
 const SCENARIO_EXTRA_TICKS := 120
 ## Gated PASS lines emitted when every check is green (WO-015).
 ## Compass, Fast+Threaded cert, S1×11, S2×11, Determinism, S3, Overlap, S4, S5–S8, S9,
@@ -1402,14 +1402,18 @@ func _check_scenario_08(single_damage: float) -> void:
 	if single_damage <= 0.0 or triple_damage <= 0.0:
 		push_error("S8 zero damage recorded")
 		ok = false
-	if ratio > S8_BLOB_RATIO_MAX:
-		push_error("S8 blob ratio %.3f exceeds cap %.1f (not frontage-capped)" % [ratio, S8_BLOB_RATIO_MAX])
+	# DIRECTION (R21 / Combat Core §3.7): frontage stacking is sublinear — never ≥ 3.0×.
+	if ratio >= S8_STACK_RATIO_MAX:
+		push_error(
+			"S8 stack ratio %.3f >= %.1f (frontage stacking not sublinear)"
+			% [ratio, S8_STACK_RATIO_MAX]
+		)
 		ok = false
 	_record_check(
-		"[WO-010] S8",
+		"[WO-029b] S8",
 		ok,
-		"single_damage=%.2f triple_damage=%.2f ratio=%.3f"
-		% [single_damage, triple_damage, ratio],
+		"single_damage=%.2f triple_damage=%.2f ratio=%.3f (sublinear <%.1f)"
+		% [single_damage, triple_damage, ratio, S8_STACK_RATIO_MAX],
 	)
 
 

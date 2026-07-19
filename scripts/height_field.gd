@@ -19,7 +19,11 @@ var label: String = "flat"
 
 
 static func _consts():
-	return Engine.get_main_loop().root.get_node("/root/Constants")
+	## WO-029b: never Engine.get_main_loop().root.get_node from a worker thread —
+	## that path is main-thread-only and broke S40-on-sim-thread (test hill).
+	## Autoload identifier `Constants` is safe for read access from the sim worker
+	## (same pattern as SimBattleCore / CombatResolver).
+	return Constants
 
 
 static func px_to_m(pos_px: Vector2) -> Vector2:
