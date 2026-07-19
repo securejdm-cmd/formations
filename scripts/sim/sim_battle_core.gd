@@ -39,6 +39,12 @@ var battle_seed: int = 0
 var _rng: SimRng = SimRng.new()
 var shock_floater_callback: Callable = Callable()
 var volley_visual_callback: Callable = Callable()
+## WO-029b: plain-data visual events for main-thread drain (worker must not touch Nodes).
+var pending_shock_floaters: Array = []
+var pending_volley_visuals: Array = []
+## Optional pre-tick hook (Callable(self)) — runs on the sim thread before tick++.
+## Used for scripted midbattle orders (S40) so realtime-on-thread stays tick-synchronous.
+var pre_tick_callback: Callable = Callable()
 ## WO-021: optional coarse height grid (null = absent; flat grid = identity modifiers).
 var height_field = null
 var _quality_of_day_assigned: bool = false
@@ -58,6 +64,9 @@ func configure_rng(seed_value: int) -> void:
 func advance_one_tick() -> void:
 	if battle_over:
 		return
+	# Match Scenario40's former main-thread midbattle: run against post-previous-tick counts.
+	if pre_tick_callback.is_valid():
+		pre_tick_callback.call(self)
 	var tick_interval := 1.0 / Constants.get_float("tick_rate_per_sec")
 	sim_tick_count += 1
 	begin_sim_tick(tick_interval)
@@ -175,6 +184,11 @@ func slope_range_mult(shooter: SimUnitProxy, target: SimUnitProxy) -> float:
 
 
 func advance_one_tick_profiled(tick_interval: float) -> void:
+	## Profiled path must also honor pre_tick + tick++ (matches advance_one_tick).
+	if pre_tick_callback.is_valid():
+		pre_tick_callback.call(self)
+	sim_tick_count += 1
+	begin_sim_tick(tick_interval)
 	var t0 := _TickProfiler.begin_section("grid_overhead")
 	rebuild_spatial_grid()
 	_TickProfiler.end_section("grid_overhead", t0)
@@ -685,13 +699,29 @@ func apply_neighbor_rout_shock(routing_unit: SimUnitProxy) -> void:
 
 
 func spawn_shock_floater(unit: SimUnitProxy, amount: float) -> void:
-	if shock_floater_callback.is_valid():
-		shock_floater_callback.call(unit, amount)
+	## Always queue plain events. Main thread drains via Scenario01._drain_pending_visuals.
+	## Direct Node callbacks from the worker are forbidden (WO-011 / WO-029b).
+	if unit == null or amount <= 0.0:
+		return
+	pending_shock_floaters.append({"unit_id": str(unit.unit_id), "amount": amount})
 
 
 func spawn_volley_visual(shooter: SimUnitProxy, target: SimUnitProxy) -> void:
-	if volley_visual_callback.is_valid():
-		volley_visual_callback.call(shooter, target)
+	if shooter == null or target == null:
+		return
+	pending_volley_visuals.append(
+		{"shooter_id": str(shooter.unit_id), "target_id": str(target.unit_id)}
+	)
+
+
+func take_pending_visuals() -> Dictionary:
+	var out := {
+		"shock": pending_shock_floaters,
+		"volley": pending_volley_visuals,
+	}
+	pending_shock_floaters = []
+	pending_volley_visuals = []
+	return out
 
 
 func ranged_volley_tick(delta: float) -> void:

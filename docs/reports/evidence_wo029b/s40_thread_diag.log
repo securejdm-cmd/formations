@@ -1,0 +1,11 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+WO029B_S40_THREAD_DIAG_START
+DEFAULT_EXPORT use_sim_thread_default=true (Scenario01 @export WO-029b)
+S40_THREAD_DIAG tag=legacy_main_thread_realtime use_sim_thread=false fast=false _sim_thread_enabled=false active=false thread_null=true
+S40_THREAD_DIAG tag=legacy_main_thread_realtime wall_ms=62.5 core_ticks=50 thread_stats={  }
+S40_THREAD_DIAG tag=designer_default_realtime_on_sim_thread use_sim_thread=true fast=false _sim_thread_enabled=true active=true thread_null=false
+S40_THREAD_DIAG tag=designer_default_realtime_on_sim_thread wall_ms=8.9 core_ticks=4 thread_stats={ "tick_count": 3, "min_tick_ms": 2.164, "avg_tick_ms": 2.25266666666667, "max_tick_ms": 2.327, "p95_tick_ms": 2.267, "last_tick_ms": 2.164 }
+S40_THREAD_DIAG tag=suite_fast use_sim_thread=false fast=true _sim_thread_enabled=false active=false thread_null=true
+S40_THREAD_DIAG tag=suite_fast wall_ms=79.4 core_ticks=50 thread_stats={  }
+WO029B_S40_THREAD_DIAG_DONE

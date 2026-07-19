@@ -5,7 +5,9 @@ extends Scenario01
 ## Scripted orders only. Showcases volleys, grind, flank charge, rout shock, brace.
 
 const TRACE_PREFIX := "scenario_40_mixed"
+const _Midbattle := preload("res://scripts/scenario_40_midbattle.gd")
 
+var _midbattle = _Midbattle.new()
 var _phase: String = "approach"
 var _blue_line: Array[Unit] = []
 var _blue_spears: Unit = null
@@ -24,11 +26,6 @@ var observed_flank_charge: bool = false
 var observed_rout_shock: bool = false
 var observed_brace: bool = false
 var _first_rout_logged: bool = false
-
-
-func _ready() -> void:
-	ensure_test_hill()
-	super._ready()
 
 
 func _spawn_units() -> void:
@@ -117,11 +114,23 @@ func _spawn_units() -> void:
 		unit.set_render_camera(_camera)
 
 
+func _ready() -> void:
+	ensure_test_hill()
+	super._ready()
+
+
+func _ensure_sim_core() -> void:
+	super._ensure_sim_core()
+	## Tick-synchronous midbattle via RefCounted helper (never a Node method on the worker).
+	if _sim_core != null:
+		_sim_core.pre_tick_callback = _midbattle.on_pre_tick
+
+
 func advance_one_tick() -> void:
 	var t0 := Time.get_ticks_usec()
-	_maybe_script_midbattle()
 	super.advance_one_tick()
 	_tick_times_ms.append(float(Time.get_ticks_usec() - t0) / 1000.0)
+	_phase = _midbattle.phase
 	_observe_events()
 
 
@@ -134,16 +143,10 @@ func simulate_realtime_step(delta: float = -1.0) -> void:
 	if _sample_accum >= 1.0:
 		_fps_samples.append(1000.0 / maxf(frame_ms, 0.001))
 		_sample_accum = 0.0
-
-
-func _maybe_script_midbattle() -> void:
-	# Release BLUE reserve once lines are grinding.
-	if _phase == "approach" and _first_contact_tick >= 0:
-		_phase = "commit"
-	if _phase == "commit" and _sim_tick_count > _first_contact_tick + 80:
-		if _blue_cav != null and _blue_cav.get_state() == Unit.State.HOLD:
-			_blue_cav.set_march_to(_red_cav.position if _red_cav != null else Vector2(-100, 0))
-		_phase = "committed"
+	_phase = _midbattle.phase
+	# Threaded path: observe from synced core state each frame.
+	if _sim_thread_active():
+		_observe_events()
 
 
 func _observe_events() -> void:

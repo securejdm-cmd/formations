@@ -1,0 +1,13 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+WO029B_S40_FRAME_PROFILE_START cloud_proxy
+DIAGNOSIS_BASELINE: designer realtime pre-fix ticks on MAIN thread (use_sim_thread defaulted false). GAMEPLAY_TICK p95~27ms ⇒ FPS~20-35.
+S40_PROFILE label=cloud_proxy tag=grind_main mode=MAIN_THREAD_SIM_AT_GRIND sim_ms min=2.472 avg=2.950 p95=3.530 max=4.022 n=200 designer_fps_cap_if_sim_on_main=283.3
+S40_PROFILE label=cloud_proxy tag=grind_thread mode=SIM_THREAD_AT_GRIND main_steps=183 sim_tick_ms min=1.198 avg=2.004 p95=2.680 max=3.622 n=1902
+S40_PROFILE label=cloud_proxy tag=grind_thread MAIN_FRAME_MS min=0.242 avg=0.290 p95=0.326 max=0.879 n=183 proxy_fps_from_main_p95=3067.5
+WO029B_S40_FRAME_PROFILE_DONE
+NOTE: Cloud is headless — RENDER (crack-band shader, grind/fissure, stat cards, arrow arcs, shaded relief) not measured here. With sim off the main thread, render budget is the full frame (~16.7ms at 60 FPS). Designer validates GPU locally via res://tests/scenario_40_mixed.tscn (use_sim_thread=true).
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+     at: cleanup (core/object/object.cpp:2378)
+ERROR: 1 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:614)
