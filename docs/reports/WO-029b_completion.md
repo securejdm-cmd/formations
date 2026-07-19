@@ -48,7 +48,7 @@
 | Realtime on sim thread; certs byte-identical | PASS — S40 900-tick identical; suite certs use harness |
 | Cloud proxy ≥60 FPS path with thread | PASS — Xvfb ~95 FPS p95-implied |
 | Designer desktop ≥60 sustained | **PENDING designer** — open `tests/scenario_40_mixed.tscn` |
-| Full suite | (see suite.log) |
+| Full suite | **PASS** Meta PASS=73 FAIL=0 exit=0 |
 
 ### S8 n=500 numbers
 `ratio n=500 mean=1.702297 sd=0.800819 cv=0.4704 min=0.805779 max=3.856754 ge3=20`
