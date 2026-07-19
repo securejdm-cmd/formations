@@ -1,0 +1,20 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+SCRIPT ERROR: Compile Error: Identifier not found: Constants
+          at: GDScript::reload (res://scripts/edge_contact.gd:17)
+SCRIPT ERROR: Compile Error: Identifier not found: Constants
+          at: GDScript::reload (res://scripts/combat_resolver.gd:14)
+SCRIPT ERROR: Compile Error: Failed to compile depended scripts.
+          at: GDScript::reload (res://tests/wo030_s8_frontage_diag.gd:0)
+ERROR: Failed to load script "res://tests/wo030_s8_frontage_diag.gd" with error "Compilation failed".
+   at: load (modules/gdscript/gdscript.cpp:3022)
+WO030_S8_FRONTAGE_DIAG_START
+SEED=1000
+SUMMARY single=19.4294 triple=54.4917 ratio=2.8046 ge3=false
+SINGLE combat_sec=54.8 headon_ticks={  } dmg_by={ "attacker_1": 19.4294161471118 }
+TRIPLE combat_sec=35.6 max_partners=1 multi_partner_ticks=0 headon_ticks={ "attacker_1": 191, "attacker_2": 88 }
+DAMAGE_BY_ATTACKER_TRIPLE { "attacker_1": 19.4294161471118, "attacker_2": 35.0622866851408, "attacker_3": 0.0 }
+QOD_SINGLE defender=1.075507|attacker_1=0.977135
+QOD_TRIPLE defender=1.075507|attacker_1=0.977135|attacker_2=1.053398|attacker_3=0.981070
+WORST_MULTI none (never 2+ partners on defender)
+WO030_S8_FRONTAGE_DIAG_DONE
