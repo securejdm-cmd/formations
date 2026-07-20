@@ -1,0 +1,21 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+WO028_S30_REDERIVE
+S30_PROG seed=1000 sk_t=1.40 sp_t=2.40 sk_lost=4.48 sp_lost=5.85
+S30_PROG seed=1050 sk_t=1.40 sp_t=2.40 sk_lost=4.59 sp_lost=6.58
+S30_PROG seed=1100 sk_t=1.40 sp_t=2.40 sk_lost=4.65 sp_lost=6.18
+S30_PROG seed=1150 sk_t=1.40 sp_t=2.40 sk_lost=4.68 sp_lost=5.92
+S30_PROG seed=1200 sk_t=1.40 sp_t=2.40 sk_lost=4.71 sp_lost=6.73
+S30_PROG seed=1250 sk_t=1.40 sp_t=2.40 sk_lost=4.76 sp_lost=5.83
+S30_PROG seed=1300 sk_t=1.40 sp_t=2.40 sk_lost=4.32 sp_lost=5.74
+S30_PROG seed=1350 sk_t=1.40 sp_t=2.40 sk_lost=4.51 sp_lost=6.05
+S30_PROG seed=1400 sk_t=1.40 sp_t=2.40 sk_lost=4.87 sp_lost=6.37
+S30_PROG seed=1450 sk_t=1.40 sp_t=2.40 sk_lost=4.55 sp_lost=6.16
+S30_STATS metric=sk_t n=500 mean=1.400000 sd=0.000000 min=1.400000 max=1.400000 m3sd=1.400000 p3sd=1.400000
+S30_STATS metric=sp_t n=500 mean=2.400000 sd=0.000000 min=2.400000 max=2.400000 m3sd=2.400000 p3sd=2.400000
+S30_STATS metric=sk_lost n=500 mean=4.608015 sd=0.250548 min=3.756618 max=5.308835 m3sd=3.856373 p3sd=5.359658
+S30_STATS metric=sp_lost n=500 mean=6.029208 sd=0.462368 min=4.410636 max=7.328631 m3sd=4.642105 p3sd=7.416311
+S30_STATS metric=sk_coh n=500 mean=12.820038 sd=0.626369 min=10.691545 max=14.572087 m3sd=10.940931 p3sd=14.699145
+S30_STATS metric=sp_coh n=500 mean=17.373020 sd=1.155919 min=13.326590 max=20.621577 m3sd=13.905262 p3sd=20.840777
+S30_DIRECTION_FAILS 0/500
+WO028_S30_REDERIVE_DONE

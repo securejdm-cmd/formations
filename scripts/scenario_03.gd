@@ -230,6 +230,8 @@ func _on_first_rout() -> void:
 
 
 func _write_trace_file() -> void:
+	if suppress_io:
+		return
 	var dir := DirAccess.open("res://tests")
 	if dir == null:
 		return
@@ -245,6 +247,8 @@ func _write_trace_file() -> void:
 
 
 func _print_summary() -> void:
+	if suppress_io:
+		return
 	var phases := _phase_durations_sec()
 	var drains: Dictionary = {}
 	if _blue_a != null:

@@ -1,0 +1,57 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+WO028_S34_DIAG_START seed=1000 sigma=0.045
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+S34_DIAG tag=QOD_OFF flank_persist=true no_reface=true q=1.0000/1.0000/1.0000 n_rows=21
+S34_DIAG_SUM tag=QOD_OFF max_abs_turn_deg=0.00 max_dot_to_flanker=0.000 min_mult=1.000 edges left=18 front=3 other=0 mult_gt1=18/21
+S34_DIAG_ROWS tag=QOD_OFF t,edge,mult,dot,angle_deg,turn_deg,left_m,front_m
+S34_ROW QOD_OFF t=39.3 edge=left mult=1.500 dot=-0.001 angle=180.00 turn=0.00 left_m=13.70 front_m=0.00
+S34_ROW QOD_OFF t=39.4 edge=left mult=1.500 dot=-0.001 angle=180.00 turn=0.00 left_m=13.67 front_m=0.00
+S34_ROW QOD_OFF t=39.5 edge=left mult=1.500 dot=-0.001 angle=180.00 turn=0.00 left_m=13.66 front_m=0.00
+S34_ROW QOD_OFF t=39.6 edge=left mult=1.500 dot=-0.001 angle=180.00 turn=0.00 left_m=13.62 front_m=0.00
+S34_ROW QOD_OFF t=39.7 edge=left mult=1.500 dot=-0.001 angle=180.00 turn=0.00 left_m=13.61 front_m=0.00
+S34_ROW QOD_OFF t=39.8 edge=left mult=1.500 dot=-0.001 angle=180.00 turn=0.00 left_m=13.58 front_m=0.00
+S34_ROW QOD_OFF t=39.9 edge=left mult=1.500 dot=-0.001 angle=180.00 turn=0.00 left_m=13.56 front_m=0.00
+S34_ROW QOD_OFF t=40.0 edge=left mult=1.500 dot=-0.001 angle=180.00 turn=0.00 left_m=13.53 front_m=0.00
+S34_ROW QOD_OFF t=40.1 edge=left mult=1.500 dot=-0.001 angle=180.00 turn=0.00 left_m=13.51 front_m=0.00
+S34_ROW QOD_OFF t=40.2 edge=left mult=1.500 dot=-0.001 angle=180.00 turn=0.00 left_m=13.48 front_m=0.00
+S34_ROW QOD_OFF t=40.3 edge=left mult=1.500 dot=-0.001 angle=180.00 turn=0.00 left_m=13.46 front_m=0.00
+S34_ROW QOD_OFF t=40.4 edge=left mult=1.500 dot=-0.001 angle=180.00 turn=0.00 left_m=13.43 front_m=0.00
+S34_ROW QOD_OFF t=40.5 edge=left mult=1.500 dot=-0.001 angle=180.00 turn=0.00 left_m=13.41 front_m=0.00
+S34_ROW QOD_OFF t=40.6 edge=left mult=1.500 dot=-0.000 angle=180.00 turn=0.00 left_m=13.38 front_m=0.00
+S34_ROW QOD_OFF t=40.7 edge=left mult=1.500 dot=-0.000 angle=180.00 turn=0.00 left_m=13.36 front_m=0.00
+S34_ROW QOD_OFF t=40.8 edge=left mult=1.500 dot=-0.000 angle=180.00 turn=0.00 left_m=13.33 front_m=0.00
+S34_ROW QOD_OFF t=40.9 edge=left mult=1.500 dot=-0.000 angle=180.00 turn=0.00 left_m=13.32 front_m=0.00
+S34_ROW QOD_OFF t=41.0 edge=front mult=1.000 dot=0.000 angle=180.00 turn=0.00 left_m=0.00 front_m=0.00
+S34_ROW QOD_OFF t=41.1 edge=front mult=1.000 dot=0.000 angle=180.00 turn=0.00 left_m=0.00 front_m=0.00
+S34_ROW QOD_OFF t=41.2 edge=front mult=1.000 dot=-0.004 angle=180.00 turn=0.00 left_m=0.00 front_m=0.00
+S34_ROW QOD_OFF t=41.3 edge=left mult=1.501 dot=-0.004 angle=180.00 turn=0.00 left_m=13.27 front_m=0.00
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+S34_DIAG tag=QOD_ON flank_persist=true no_reface=true q=1.0233/1.0424/0.9450 n_rows=21
+S34_DIAG_SUM tag=QOD_ON max_abs_turn_deg=0.00 max_dot_to_flanker=0.000 min_mult=1.000 edges left=19 front=2 other=0 mult_gt1=19/21
+S34_DIAG_ROWS tag=QOD_ON t,edge,mult,dot,angle_deg,turn_deg,left_m,front_m
+S34_ROW QOD_ON t=39.5 edge=front mult=1.000 dot=0.000 angle=180.00 turn=0.00 left_m=0.00 front_m=0.00
+S34_ROW QOD_ON t=39.6 edge=front mult=1.000 dot=0.000 angle=180.00 turn=0.00 left_m=0.00 front_m=0.00
+S34_ROW QOD_ON t=39.7 edge=left mult=1.501 dot=-0.004 angle=180.00 turn=0.00 left_m=13.51 front_m=0.00
+S34_ROW QOD_ON t=39.8 edge=left mult=1.501 dot=-0.004 angle=180.00 turn=0.00 left_m=13.48 front_m=0.00
+S34_ROW QOD_ON t=39.9 edge=left mult=1.500 dot=-0.004 angle=180.00 turn=0.00 left_m=13.46 front_m=0.00
+S34_ROW QOD_ON t=40.0 edge=left mult=1.500 dot=-0.004 angle=180.00 turn=0.00 left_m=13.43 front_m=0.00
+S34_ROW QOD_ON t=40.1 edge=left mult=1.500 dot=-0.004 angle=180.00 turn=0.00 left_m=13.42 front_m=0.00
+S34_ROW QOD_ON t=40.2 edge=left mult=1.500 dot=-0.004 angle=180.00 turn=0.00 left_m=13.39 front_m=0.00
+S34_ROW QOD_ON t=40.3 edge=left mult=1.500 dot=-0.004 angle=180.00 turn=0.00 left_m=13.37 front_m=0.00
+S34_ROW QOD_ON t=40.4 edge=left mult=1.500 dot=-0.003 angle=180.00 turn=0.00 left_m=13.34 front_m=0.00
+S34_ROW QOD_ON t=40.5 edge=left mult=1.500 dot=-0.003 angle=180.00 turn=0.00 left_m=13.33 front_m=0.00
+S34_ROW QOD_ON t=40.6 edge=left mult=1.500 dot=-0.003 angle=180.00 turn=0.00 left_m=13.29 front_m=0.00
+S34_ROW QOD_ON t=40.7 edge=left mult=1.500 dot=-0.003 angle=180.00 turn=0.00 left_m=13.28 front_m=0.00
+S34_ROW QOD_ON t=40.8 edge=left mult=1.500 dot=-0.003 angle=180.00 turn=0.00 left_m=13.25 front_m=0.00
+S34_ROW QOD_ON t=40.9 edge=left mult=1.500 dot=-0.003 angle=180.00 turn=0.00 left_m=13.23 front_m=0.00
+S34_ROW QOD_ON t=41.0 edge=left mult=1.500 dot=-0.002 angle=180.00 turn=0.00 left_m=13.20 front_m=0.00
+S34_ROW QOD_ON t=41.1 edge=left mult=1.500 dot=-0.002 angle=180.00 turn=0.00 left_m=13.19 front_m=0.00
+S34_ROW QOD_ON t=41.2 edge=left mult=1.500 dot=-0.002 angle=180.00 turn=0.00 left_m=13.15 front_m=0.00
+S34_ROW QOD_ON t=41.3 edge=left mult=1.500 dot=-0.002 angle=180.00 turn=0.00 left_m=13.14 front_m=0.00
+S34_ROW QOD_ON t=41.4 edge=left mult=1.500 dot=-0.001 angle=180.00 turn=0.00 left_m=13.11 front_m=0.00
+S34_ROW QOD_ON t=41.5 edge=left mult=1.500 dot=-0.001 angle=180.00 turn=0.00 left_m=13.09 front_m=0.00
+S34_DIAG_VERDICT verdict=b_or_c max_turn=0.00 max_dot=0.000 min_mult=1.000 scenario_flank_persist=true no_reface=true
+WO028_S34_DIAG_DONE

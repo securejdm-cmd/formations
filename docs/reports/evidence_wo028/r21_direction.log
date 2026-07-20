@@ -1,0 +1,310 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+WO028_R21_DIRECTION sigma=0.045 enabled=true seeds=1000-1009
+[RNG] Battle seed set: 1000
+[Scenario 03] Battle seed: 1000
+R21_OK seed=1000 S3 winner=red_b ratio=0.263
+R21_OK seed=1000 S34 no_reface=true mean_mult=1.500 frac_gt1=1.00
+[Scenario 18] Trace written: res://tests/traces/scenario_18_1000.csv
+R21_OK seed=1000 S18 braced_stop shock=0.000 reflected=10.800 winner=blue_spears
+[Scenario 19] Trace written: res://tests/traces/scenario_19_1000.csv
+R21_OK seed=1000 S19 late_brace_fails shock=76.683
+[Scenario 21] Trace written: res://tests/traces/scenario_21_flank_1000.csv
+R21_OK seed=1000 S21_flank edge=left land=-3.37 winner=red_cav
+[Scenario 21] Trace written: res://tests/traces/scenario_21_rear_1000.csv
+R21_OK seed=1000 S21_rear edge=rear land=-37.82
+[Scenario 23] Trace written: res://tests/traces/scenario_23_1000.csv
+R21_OK seed=1000 S23 T1 holds winner=blue_inf
+[Scenario 24] Trace written: res://tests/traces/scenario_24_1000.csv
+R21_OK seed=1000 S24 T3 breaks land=23.32
+[Scenario 25] Trace written: res://tests/traces/scenario_25_1000.csv
+R21_OK seed=1000 S25 T3 breaks land=28.80
+[Scenario 26] Trace written: res://tests/traces/scenario_26_1000.csv
+R21_OK seed=1000 S26 T3 breaks land=23.32
+[Scenario 36] Trace written: res://tests/traces/scenario_36_1000.csv
+[Scenario 36] SUMMARY | winner=red_downhill | combat=42.0s | displace_m=12.01 | routed=blue_uphill | str_at_rout=69.83
+R21_OK seed=1000 S36 downhill_won
+[Scenario 37] Trace written: res://tests/traces/scenario_37_1000.csv
+[Scenario 37] SUMMARY | down_v=13.122/i=21.121 up_v=8.775/i=14.124 ratio=1.495
+R21_OK seed=1000 S37 downhill_advantage ratio=1.495
+R21_OK seed=1000 S38 downhill_range>uphill 172.5>127.3
+[Scenario 39] Trace written: res://tests/traces/scenario_39_1000.csv
+[Scenario 39] SUMMARY | winner=blue_hold | combat=52.8s | routed=red_climb | str_at_rout=67.50
+R21_OK seed=1000 S39 high_ground defender_won
+R21_SEED_DONE seed=1000 fails_so_far=0
+[Scenario 03] Battle seed: 1001
+R21_OK seed=1001 S3 winner=red_b ratio=0.268
+R21_OK seed=1001 S34 no_reface=true mean_mult=1.500 frac_gt1=1.00
+[Scenario 18] Trace written: res://tests/traces/scenario_18_1001.csv
+R21_OK seed=1001 S18 braced_stop shock=0.000 reflected=10.800 winner=blue_spears
+[Scenario 19] Trace written: res://tests/traces/scenario_19_1001.csv
+R21_OK seed=1001 S19 late_brace_fails shock=76.683
+[Scenario 21] Trace written: res://tests/traces/scenario_21_flank_1001.csv
+R21_OK seed=1001 S21_flank edge=left land=-3.37 winner=red_cav
+[Scenario 21] Trace written: res://tests/traces/scenario_21_rear_1001.csv
+R21_OK seed=1001 S21_rear edge=rear land=-37.82
+[Scenario 23] Trace written: res://tests/traces/scenario_23_1001.csv
+R21_OK seed=1001 S23 T1 holds winner=blue_inf
+[Scenario 24] Trace written: res://tests/traces/scenario_24_1001.csv
+R21_OK seed=1001 S24 T3 breaks land=23.32
+[Scenario 25] Trace written: res://tests/traces/scenario_25_1001.csv
+R21_OK seed=1001 S25 T3 breaks land=28.80
+[Scenario 26] Trace written: res://tests/traces/scenario_26_1001.csv
+R21_OK seed=1001 S26 T3 breaks land=23.32
+[Scenario 36] Trace written: res://tests/traces/scenario_36_1001.csv
+[Scenario 36] SUMMARY | winner=red_downhill | combat=43.8s | displace_m=12.63 | routed=blue_uphill | str_at_rout=70.06
+R21_OK seed=1001 S36 downhill_won
+[Scenario 37] Trace written: res://tests/traces/scenario_37_1001.csv
+[Scenario 37] SUMMARY | down_v=13.122/i=21.121 up_v=8.775/i=14.124 ratio=1.495
+R21_OK seed=1001 S37 downhill_advantage ratio=1.495
+R21_OK seed=1001 S38 downhill_range>uphill 172.5>127.3
+[Scenario 39] Trace written: res://tests/traces/scenario_39_1001.csv
+[Scenario 39] SUMMARY | winner=blue_hold | combat=54.8s | routed=red_climb | str_at_rout=67.74
+R21_OK seed=1001 S39 high_ground defender_won
+R21_SEED_DONE seed=1001 fails_so_far=0
+[Scenario 03] Battle seed: 1002
+R21_OK seed=1002 S3 winner=red_b ratio=0.285
+R21_OK seed=1002 S34 no_reface=true mean_mult=1.475 frac_gt1=0.95
+[Scenario 18] Trace written: res://tests/traces/scenario_18_1002.csv
+R21_OK seed=1002 S18 braced_stop shock=0.000 reflected=10.800 winner=blue_spears
+[Scenario 19] Trace written: res://tests/traces/scenario_19_1002.csv
+R21_OK seed=1002 S19 late_brace_fails shock=76.683
+[Scenario 21] Trace written: res://tests/traces/scenario_21_flank_1002.csv
+R21_OK seed=1002 S21_flank edge=left land=-3.37 winner=red_cav
+[Scenario 21] Trace written: res://tests/traces/scenario_21_rear_1002.csv
+R21_OK seed=1002 S21_rear edge=rear land=-37.82
+[Scenario 23] Trace written: res://tests/traces/scenario_23_1002.csv
+R21_OK seed=1002 S23 T1 holds winner=blue_inf
+[Scenario 24] Trace written: res://tests/traces/scenario_24_1002.csv
+R21_OK seed=1002 S24 T3 breaks land=23.32
+[Scenario 25] Trace written: res://tests/traces/scenario_25_1002.csv
+R21_OK seed=1002 S25 T3 breaks land=28.80
+[Scenario 26] Trace written: res://tests/traces/scenario_26_1002.csv
+R21_OK seed=1002 S26 T3 breaks land=23.32
+[Scenario 36] Trace written: res://tests/traces/scenario_36_1002.csv
+[Scenario 36] SUMMARY | winner=red_downhill | combat=50.6s | displace_m=12.01 | routed=blue_uphill | str_at_rout=69.79
+R21_OK seed=1002 S36 downhill_won
+[Scenario 37] Trace written: res://tests/traces/scenario_37_1002.csv
+[Scenario 37] SUMMARY | down_v=13.122/i=21.121 up_v=8.775/i=14.124 ratio=1.495
+R21_OK seed=1002 S37 downhill_advantage ratio=1.495
+R21_OK seed=1002 S38 downhill_range>uphill 172.5>127.3
+[Scenario 39] Trace written: res://tests/traces/scenario_39_1002.csv
+[Scenario 39] SUMMARY | winner=blue_hold | combat=64.8s | routed=red_climb | str_at_rout=67.20
+R21_OK seed=1002 S39 high_ground defender_won
+R21_SEED_DONE seed=1002 fails_so_far=0
+[Scenario 03] Battle seed: 1003
+R21_OK seed=1003 S3 winner=red_b ratio=0.298
+R21_OK seed=1003 S34 no_reface=true mean_mult=1.401 frac_gt1=0.80
+[Scenario 18] Trace written: res://tests/traces/scenario_18_1003.csv
+R21_OK seed=1003 S18 braced_stop shock=0.000 reflected=10.800 winner=blue_spears
+[Scenario 19] Trace written: res://tests/traces/scenario_19_1003.csv
+R21_OK seed=1003 S19 late_brace_fails shock=76.683
+[Scenario 21] Trace written: res://tests/traces/scenario_21_flank_1003.csv
+R21_OK seed=1003 S21_flank edge=left land=-3.37 winner=red_cav
+[Scenario 21] Trace written: res://tests/traces/scenario_21_rear_1003.csv
+R21_OK seed=1003 S21_rear edge=rear land=-37.82
+[Scenario 23] Trace written: res://tests/traces/scenario_23_1003.csv
+R21_OK seed=1003 S23 T1 holds winner=blue_inf
+[Scenario 24] Trace written: res://tests/traces/scenario_24_1003.csv
+R21_OK seed=1003 S24 T3 breaks land=23.32
+[Scenario 25] Trace written: res://tests/traces/scenario_25_1003.csv
+R21_OK seed=1003 S25 T3 breaks land=28.80
+[Scenario 26] Trace written: res://tests/traces/scenario_26_1003.csv
+R21_OK seed=1003 S26 T3 breaks land=23.32
+[Scenario 36] Trace written: res://tests/traces/scenario_36_1003.csv
+[Scenario 36] SUMMARY | winner=red_downhill | combat=53.8s | displace_m=12.22 | routed=blue_uphill | str_at_rout=69.87
+R21_OK seed=1003 S36 downhill_won
+[Scenario 37] Trace written: res://tests/traces/scenario_37_1003.csv
+[Scenario 37] SUMMARY | down_v=13.122/i=21.121 up_v=8.775/i=14.124 ratio=1.495
+R21_OK seed=1003 S37 downhill_advantage ratio=1.495
+R21_OK seed=1003 S38 downhill_range>uphill 172.5>127.3
+[Scenario 39] Trace written: res://tests/traces/scenario_39_1003.csv
+[Scenario 39] SUMMARY | winner=blue_hold | combat=69.4s | routed=red_climb | str_at_rout=67.18
+R21_OK seed=1003 S39 high_ground defender_won
+R21_SEED_DONE seed=1003 fails_so_far=0
+[Scenario 03] Battle seed: 1004
+R21_OK seed=1004 S3 winner=red_b ratio=0.276
+R21_OK seed=1004 S34 no_reface=true mean_mult=1.425 frac_gt1=0.85
+[Scenario 18] Trace written: res://tests/traces/scenario_18_1004.csv
+R21_OK seed=1004 S18 braced_stop shock=0.000 reflected=10.800 winner=blue_spears
+[Scenario 19] Trace written: res://tests/traces/scenario_19_1004.csv
+R21_OK seed=1004 S19 late_brace_fails shock=76.683
+[Scenario 21] Trace written: res://tests/traces/scenario_21_flank_1004.csv
+R21_OK seed=1004 S21_flank edge=left land=-3.37 winner=red_cav
+[Scenario 21] Trace written: res://tests/traces/scenario_21_rear_1004.csv
+R21_OK seed=1004 S21_rear edge=rear land=-37.82
+[Scenario 23] Trace written: res://tests/traces/scenario_23_1004.csv
+R21_OK seed=1004 S23 T1 holds winner=blue_inf
+[Scenario 24] Trace written: res://tests/traces/scenario_24_1004.csv
+R21_OK seed=1004 S24 T3 breaks land=23.32
+[Scenario 25] Trace written: res://tests/traces/scenario_25_1004.csv
+R21_OK seed=1004 S25 T3 breaks land=28.80
+[Scenario 26] Trace written: res://tests/traces/scenario_26_1004.csv
+R21_OK seed=1004 S26 T3 breaks land=23.32
+[Scenario 36] Trace written: res://tests/traces/scenario_36_1004.csv
+[Scenario 36] SUMMARY | winner=red_downhill | combat=46.8s | displace_m=11.75 | routed=blue_uphill | str_at_rout=69.70
+R21_OK seed=1004 S36 downhill_won
+[Scenario 37] Trace written: res://tests/traces/scenario_37_1004.csv
+[Scenario 37] SUMMARY | down_v=13.122/i=21.121 up_v=8.775/i=14.124 ratio=1.495
+R21_OK seed=1004 S37 downhill_advantage ratio=1.495
+R21_OK seed=1004 S38 downhill_range>uphill 172.5>127.3
+[Scenario 39] Trace written: res://tests/traces/scenario_39_1004.csv
+[Scenario 39] SUMMARY | winner=blue_hold | combat=59.8s | routed=red_climb | str_at_rout=67.13
+R21_OK seed=1004 S39 high_ground defender_won
+R21_SEED_DONE seed=1004 fails_so_far=0
+[Scenario 03] Battle seed: 1005
+R21_OK seed=1005 S3 winner=red_b ratio=0.278
+R21_OK seed=1005 S34 no_reface=true mean_mult=1.500 frac_gt1=1.00
+[Scenario 18] Trace written: res://tests/traces/scenario_18_1005.csv
+R21_OK seed=1005 S18 braced_stop shock=0.000 reflected=10.800 winner=blue_spears
+[Scenario 19] Trace written: res://tests/traces/scenario_19_1005.csv
+R21_OK seed=1005 S19 late_brace_fails shock=76.683
+[Scenario 21] Trace written: res://tests/traces/scenario_21_flank_1005.csv
+R21_OK seed=1005 S21_flank edge=left land=-3.37 winner=red_cav
+[Scenario 21] Trace written: res://tests/traces/scenario_21_rear_1005.csv
+R21_OK seed=1005 S21_rear edge=rear land=-37.82
+[Scenario 23] Trace written: res://tests/traces/scenario_23_1005.csv
+R21_OK seed=1005 S23 T1 holds winner=blue_inf
+[Scenario 24] Trace written: res://tests/traces/scenario_24_1005.csv
+R21_OK seed=1005 S24 T3 breaks land=23.32
+[Scenario 25] Trace written: res://tests/traces/scenario_25_1005.csv
+R21_OK seed=1005 S25 T3 breaks land=28.80
+[Scenario 26] Trace written: res://tests/traces/scenario_26_1005.csv
+R21_OK seed=1005 S26 T3 breaks land=23.32
+[Scenario 36] Trace written: res://tests/traces/scenario_36_1005.csv
+[Scenario 36] SUMMARY | winner=red_downhill | combat=44.4s | displace_m=12.13 | routed=blue_uphill | str_at_rout=69.89
+R21_OK seed=1005 S36 downhill_won
+[Scenario 37] Trace written: res://tests/traces/scenario_37_1005.csv
+[Scenario 37] SUMMARY | down_v=13.122/i=21.121 up_v=8.775/i=14.124 ratio=1.495
+R21_OK seed=1005 S37 downhill_advantage ratio=1.495
+R21_OK seed=1005 S38 downhill_range>uphill 172.5>127.3
+[Scenario 39] Trace written: res://tests/traces/scenario_39_1005.csv
+[Scenario 39] SUMMARY | winner=blue_hold | combat=56.2s | routed=red_climb | str_at_rout=67.43
+R21_OK seed=1005 S39 high_ground defender_won
+R21_SEED_DONE seed=1005 fails_so_far=0
+[Scenario 03] Battle seed: 1006
+R21_OK seed=1006 S3 winner=red_b ratio=0.273
+R21_OK seed=1006 S34 no_reface=true mean_mult=1.500 frac_gt1=1.00
+[Scenario 18] Trace written: res://tests/traces/scenario_18_1006.csv
+R21_OK seed=1006 S18 braced_stop shock=0.000 reflected=10.800 winner=blue_spears
+[Scenario 19] Trace written: res://tests/traces/scenario_19_1006.csv
+R21_OK seed=1006 S19 late_brace_fails shock=76.683
+[Scenario 21] Trace written: res://tests/traces/scenario_21_flank_1006.csv
+R21_OK seed=1006 S21_flank edge=left land=-3.37 winner=red_cav
+[Scenario 21] Trace written: res://tests/traces/scenario_21_rear_1006.csv
+R21_OK seed=1006 S21_rear edge=rear land=-37.82
+[Scenario 23] Trace written: res://tests/traces/scenario_23_1006.csv
+R21_OK seed=1006 S23 T1 holds winner=blue_inf
+[Scenario 24] Trace written: res://tests/traces/scenario_24_1006.csv
+R21_OK seed=1006 S24 T3 breaks land=23.32
+[Scenario 25] Trace written: res://tests/traces/scenario_25_1006.csv
+R21_OK seed=1006 S25 T3 breaks land=28.80
+[Scenario 26] Trace written: res://tests/traces/scenario_26_1006.csv
+R21_OK seed=1006 S26 T3 breaks land=23.32
+[Scenario 36] Trace written: res://tests/traces/scenario_36_1006.csv
+[Scenario 36] SUMMARY | winner=red_downhill | combat=47.4s | displace_m=12.68 | routed=blue_uphill | str_at_rout=70.10
+R21_OK seed=1006 S36 downhill_won
+[Scenario 37] Trace written: res://tests/traces/scenario_37_1006.csv
+[Scenario 37] SUMMARY | down_v=13.122/i=21.121 up_v=8.775/i=14.124 ratio=1.495
+R21_OK seed=1006 S37 downhill_advantage ratio=1.495
+R21_OK seed=1006 S38 downhill_range>uphill 172.5>127.3
+[Scenario 39] Trace written: res://tests/traces/scenario_39_1006.csv
+[Scenario 39] SUMMARY | winner=blue_hold | combat=59.8s | routed=red_climb | str_at_rout=67.64
+R21_OK seed=1006 S39 high_ground defender_won
+R21_SEED_DONE seed=1006 fails_so_far=0
+[Scenario 03] Battle seed: 1007
+R21_OK seed=1007 S3 winner=red_b ratio=0.285
+R21_OK seed=1007 S34 no_reface=true mean_mult=1.500 frac_gt1=1.00
+[Scenario 18] Trace written: res://tests/traces/scenario_18_1007.csv
+R21_OK seed=1007 S18 braced_stop shock=0.000 reflected=10.800 winner=blue_spears
+[Scenario 19] Trace written: res://tests/traces/scenario_19_1007.csv
+R21_OK seed=1007 S19 late_brace_fails shock=76.683
+[Scenario 21] Trace written: res://tests/traces/scenario_21_flank_1007.csv
+R21_OK seed=1007 S21_flank edge=left land=-3.37 winner=red_cav
+[Scenario 21] Trace written: res://tests/traces/scenario_21_rear_1007.csv
+R21_OK seed=1007 S21_rear edge=rear land=-37.82
+[Scenario 23] Trace written: res://tests/traces/scenario_23_1007.csv
+R21_OK seed=1007 S23 T1 holds winner=blue_inf
+[Scenario 24] Trace written: res://tests/traces/scenario_24_1007.csv
+R21_OK seed=1007 S24 T3 breaks land=23.32
+[Scenario 25] Trace written: res://tests/traces/scenario_25_1007.csv
+R21_OK seed=1007 S25 T3 breaks land=28.80
+[Scenario 26] Trace written: res://tests/traces/scenario_26_1007.csv
+R21_OK seed=1007 S26 T3 breaks land=23.32
+[Scenario 36] Trace written: res://tests/traces/scenario_36_1007.csv
+[Scenario 36] SUMMARY | winner=red_downhill | combat=49.6s | displace_m=12.25 | routed=blue_uphill | str_at_rout=69.96
+R21_OK seed=1007 S36 downhill_won
+[Scenario 37] Trace written: res://tests/traces/scenario_37_1007.csv
+[Scenario 37] SUMMARY | down_v=13.122/i=21.121 up_v=8.775/i=14.124 ratio=1.495
+R21_OK seed=1007 S37 downhill_advantage ratio=1.495
+R21_OK seed=1007 S38 downhill_range>uphill 172.5>127.3
+[Scenario 39] Trace written: res://tests/traces/scenario_39_1007.csv
+[Scenario 39] SUMMARY | winner=blue_hold | combat=63.2s | routed=red_climb | str_at_rout=67.39
+R21_OK seed=1007 S39 high_ground defender_won
+R21_SEED_DONE seed=1007 fails_so_far=0
+[Scenario 03] Battle seed: 1008
+R21_OK seed=1008 S3 winner=red_b ratio=0.288
+R21_OK seed=1008 S34 no_reface=true mean_mult=1.500 frac_gt1=1.00
+[Scenario 18] Trace written: res://tests/traces/scenario_18_1008.csv
+R21_OK seed=1008 S18 braced_stop shock=0.000 reflected=10.800 winner=blue_spears
+[Scenario 19] Trace written: res://tests/traces/scenario_19_1008.csv
+R21_OK seed=1008 S19 late_brace_fails shock=76.683
+[Scenario 21] Trace written: res://tests/traces/scenario_21_flank_1008.csv
+R21_OK seed=1008 S21_flank edge=left land=-3.37 winner=red_cav
+[Scenario 21] Trace written: res://tests/traces/scenario_21_rear_1008.csv
+R21_OK seed=1008 S21_rear edge=rear land=-37.82
+[Scenario 23] Trace written: res://tests/traces/scenario_23_1008.csv
+R21_OK seed=1008 S23 T1 holds winner=blue_inf
+[Scenario 24] Trace written: res://tests/traces/scenario_24_1008.csv
+R21_OK seed=1008 S24 T3 breaks land=23.32
+[Scenario 25] Trace written: res://tests/traces/scenario_25_1008.csv
+R21_OK seed=1008 S25 T3 breaks land=28.80
+[Scenario 26] Trace written: res://tests/traces/scenario_26_1008.csv
+R21_OK seed=1008 S26 T3 breaks land=23.32
+[Scenario 36] Trace written: res://tests/traces/scenario_36_1008.csv
+[Scenario 36] SUMMARY | winner=red_downhill | combat=51.6s | displace_m=12.06 | routed=blue_uphill | str_at_rout=69.82
+R21_OK seed=1008 S36 downhill_won
+[Scenario 37] Trace written: res://tests/traces/scenario_37_1008.csv
+[Scenario 37] SUMMARY | down_v=13.122/i=21.121 up_v=8.775/i=14.124 ratio=1.495
+R21_OK seed=1008 S37 downhill_advantage ratio=1.495
+R21_OK seed=1008 S38 downhill_range>uphill 172.5>127.3
+[Scenario 39] Trace written: res://tests/traces/scenario_39_1008.csv
+[Scenario 39] SUMMARY | winner=blue_hold | combat=66.4s | routed=red_climb | str_at_rout=67.15
+R21_OK seed=1008 S39 high_ground defender_won
+R21_SEED_DONE seed=1008 fails_so_far=0
+[Scenario 03] Battle seed: 1009
+R21_OK seed=1009 S3 winner=red_b ratio=0.284
+R21_OK seed=1009 S34 no_reface=true mean_mult=1.500 frac_gt1=1.00
+[Scenario 18] Trace written: res://tests/traces/scenario_18_1009.csv
+R21_OK seed=1009 S18 braced_stop shock=0.000 reflected=10.800 winner=blue_spears
+[Scenario 19] Trace written: res://tests/traces/scenario_19_1009.csv
+R21_OK seed=1009 S19 late_brace_fails shock=76.683
+[Scenario 21] Trace written: res://tests/traces/scenario_21_flank_1009.csv
+R21_OK seed=1009 S21_flank edge=left land=-3.37 winner=red_cav
+[Scenario 21] Trace written: res://tests/traces/scenario_21_rear_1009.csv
+R21_OK seed=1009 S21_rear edge=rear land=-37.82
+[Scenario 23] Trace written: res://tests/traces/scenario_23_1009.csv
+R21_OK seed=1009 S23 T1 holds winner=blue_inf
+[Scenario 24] Trace written: res://tests/traces/scenario_24_1009.csv
+R21_OK seed=1009 S24 T3 breaks land=23.32
+[Scenario 25] Trace written: res://tests/traces/scenario_25_1009.csv
+R21_OK seed=1009 S25 T3 breaks land=28.80
+[Scenario 26] Trace written: res://tests/traces/scenario_26_1009.csv
+R21_OK seed=1009 S26 T3 breaks land=23.32
+[Scenario 36] Trace written: res://tests/traces/scenario_36_1009.csv
+[Scenario 36] SUMMARY | winner=red_downhill | combat=45.4s | displace_m=11.59 | routed=blue_uphill | str_at_rout=69.63
+R21_OK seed=1009 S36 downhill_won
+[Scenario 37] Trace written: res://tests/traces/scenario_37_1009.csv
+[Scenario 37] SUMMARY | down_v=13.122/i=21.121 up_v=8.775/i=14.124 ratio=1.495
+R21_OK seed=1009 S37 downhill_advantage ratio=1.495
+R21_OK seed=1009 S38 downhill_range>uphill 172.5>127.3
+[Scenario 39] Trace written: res://tests/traces/scenario_39_1009.csv
+[Scenario 39] SUMMARY | winner=blue_hold | combat=58.0s | routed=red_climb | str_at_rout=67.08
+R21_OK seed=1009 S39 high_ground defender_won
+R21_SEED_DONE seed=1009 fails_so_far=0
+WO028_R21_DIRECTION_SUMMARY fails=0
+WO028_R21_DIRECTION_DONE
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+     at: cleanup (core/object/object.cpp:2378)
+ERROR: 1 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:614)

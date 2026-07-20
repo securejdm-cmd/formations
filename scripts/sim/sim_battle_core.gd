@@ -51,6 +51,8 @@ func configure_rng(seed_value: int) -> void:
 	_rng.set_seed(seed_value)
 	battle_seed = seed_value
 	_quality_of_day_assigned = false
+	# Drop any stale bridge pointer from a prior battle (static on SimRngBridge).
+	SimRngBridge.clear_worker_rng()
 
 
 func advance_one_tick() -> void:
@@ -73,10 +75,14 @@ func assign_quality_of_day_if_needed() -> void:
 	_quality_of_day_assigned = true
 	var enabled: bool = bool(Constants.get_constant("quality_of_day_enabled", false))
 	var sigma: float = float(Constants.get_float("quality_of_day_sigma"))
+	# Roll from THIS core's _rng only — never via SimRngBridge here.
+	# write_trace_header can assign before begin_sim_tick sets the bridge; a stale
+	# static worker_rng from a prior battle would desync fast/realtime/threaded certs
+	# and break determinism A/B (WO-028).
 	for unit in units:
 		if unit == null:
 			continue
-		unit.quality_of_day = SimRngBridge.roll_quality_of_day(sigma, enabled)
+		unit.quality_of_day = _rng.roll_quality_of_day(sigma, enabled)
 		# Log only when enabled — disabled must be a byte-identical no-op vs WO-024.
 		if enabled:
 			log_trace_event(

@@ -1,0 +1,65 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+WO028_S34_HARDEN_START seeds=1000..1009 sigma=0.045
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+S34_HARDEN qod=false seed=1000 soft_persist=true soft_noreface=true hard_ok=true max_dot=0.000 mean_mult=1.425 frac_gt1=0.85 n=20
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+S34_HARDEN qod=false seed=1001 soft_persist=true soft_noreface=true hard_ok=true max_dot=0.000 mean_mult=1.425 frac_gt1=0.85 n=20
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+S34_HARDEN qod=false seed=1002 soft_persist=true soft_noreface=true hard_ok=true max_dot=-0.000 mean_mult=1.500 frac_gt1=1.00 n=20
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+S34_HARDEN qod=false seed=1003 soft_persist=true soft_noreface=true hard_ok=true max_dot=-0.001 mean_mult=1.500 frac_gt1=1.00 n=20
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+S34_HARDEN qod=false seed=1004 soft_persist=true soft_noreface=true hard_ok=true max_dot=-0.001 mean_mult=1.500 frac_gt1=1.00 n=20
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+S34_HARDEN qod=false seed=1005 soft_persist=true soft_noreface=true hard_ok=true max_dot=-0.000 mean_mult=1.500 frac_gt1=1.00 n=20
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+S34_HARDEN qod=false seed=1006 soft_persist=true soft_noreface=true hard_ok=true max_dot=0.000 mean_mult=1.425 frac_gt1=0.85 n=20
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+S34_HARDEN qod=false seed=1007 soft_persist=true soft_noreface=true hard_ok=true max_dot=0.000 mean_mult=1.425 frac_gt1=0.85 n=20
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+S34_HARDEN qod=false seed=1008 soft_persist=true soft_noreface=true hard_ok=true max_dot=0.000 mean_mult=1.425 frac_gt1=0.85 n=20
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+S34_HARDEN qod=false seed=1009 soft_persist=true soft_noreface=true hard_ok=true max_dot=0.000 mean_mult=1.425 frac_gt1=0.85 n=20
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+S34_HARDEN qod=true seed=1000 soft_persist=true soft_noreface=true hard_ok=true max_dot=-0.000 mean_mult=1.500 frac_gt1=1.00 n=20
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+S34_HARDEN qod=true seed=1001 soft_persist=true soft_noreface=true hard_ok=true max_dot=-0.001 mean_mult=1.500 frac_gt1=1.00 n=20
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+S34_HARDEN qod=true seed=1002 soft_persist=true soft_noreface=true hard_ok=true max_dot=0.000 mean_mult=1.425 frac_gt1=0.85 n=20
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+S34_HARDEN qod=true seed=1003 soft_persist=true soft_noreface=true hard_ok=true max_dot=0.000 mean_mult=1.425 frac_gt1=0.85 n=20
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+S34_HARDEN qod=true seed=1004 soft_persist=false soft_noreface=true hard_ok=true max_dot=0.002 mean_mult=1.293 frac_gt1=0.55 n=20
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+S34_HARDEN qod=true seed=1005 soft_persist=true soft_noreface=true hard_ok=true max_dot=-0.004 mean_mult=1.500 frac_gt1=1.00 n=20
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+S34_HARDEN qod=true seed=1006 soft_persist=true soft_noreface=true hard_ok=true max_dot=-0.004 mean_mult=1.500 frac_gt1=1.00 n=20
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+S34_HARDEN qod=true seed=1007 soft_persist=true soft_noreface=true hard_ok=true max_dot=-0.004 mean_mult=1.500 frac_gt1=1.00 n=20
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+S34_HARDEN qod=true seed=1008 soft_persist=true soft_noreface=true hard_ok=true max_dot=-0.002 mean_mult=1.500 frac_gt1=1.00 n=20
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+S34_HARDEN qod=true seed=1009 soft_persist=true soft_noreface=true hard_ok=true max_dot=0.000 mean_mult=1.401 frac_gt1=0.80 n=20
+S34_HARDEN_SUMMARY soft_fails=1 hard_fails=0
+WO028_S34_HARDEN_DONE

@@ -98,6 +98,11 @@ func _ready() -> void:
 
 func _exit_tree() -> void:
 	stop_sim_thread_for_harness()
+	# WO-028: clear static SimRngBridge worker so the next scenario cannot roll
+	# QoD / wobble against a freed prior core's RNG.
+	var bridge = load("res://scripts/sim/sim_rng_bridge.gd")
+	if bridge != null and bridge.has_method("clear_worker_rng"):
+		bridge.clear_worker_rng()
 	_sim_core = null
 
 
