@@ -59,8 +59,8 @@ const SCENARIO_EXTRA_TICKS := 120
 ## Gated PASS lines emitted when every check is green (WO-015).
 ## Compass, Fast+Threaded cert, S1×11, S2×11, Determinism, S3, Overlap, S4, S5–S8, S8b, S9,
 ## S10–S11, S12, S13×3, S14×2, S15, S16×2, S17×2 retired, S17b, S18, S19, S20×2, S21, S22,
-## S23–S26, S27–S29, S30–S34, S35, S36–S39, S40 = 74
-const EXPECTED_GREEN_PASS_COUNT := 74
+## S23–S26, S27–S29, S30–S34, S35, S36–S39, S40, S41–S44 = 78
+const EXPECTED_GREEN_PASS_COUNT := 78
 
 var _scenario: Scenario01 = null
 var _exit_code := 0
@@ -84,6 +84,16 @@ var _s11_control_damage: float = 0.0
 var _s11_control_breach: float = -1.0
 var _s9_heavy_wins: int = 0
 var _s9_casualty_ratio: float = 0.0
+## WO-031 S41–S44 accumulators
+var _s41_ok_count: int = 0
+var _s41_flank_count: int = 0
+var _s42_ok_count: int = 0
+var _s42_flank_count: int = 0
+var _s43_horn_str: Array = []
+var _s43_ctrl_str: Array = []
+var _s44_ok_count: int = 0
+var _s44_abs_max: float = 0.0
+var _s44_hold_max: float = 0.0
 var _perf_stats: Dictionary = {}
 var _perf_main_tick_stats: Dictionary = {}
 var _perf_scale_results: Array[Dictionary] = []
@@ -382,6 +392,21 @@ func _spawn_and_run() -> void:
 		"s40_mixed":
 			scene = "scenario_40_mixed"
 			seed_value = 1000
+		"s41_hammer":
+			scene = "scenario_41"
+			seed_value = ALL_SEEDS[_seed_idx]
+		"s42_cannae":
+			scene = "scenario_42"
+			seed_value = ALL_SEEDS[_seed_idx]
+		"s43_horn":
+			scene = "scenario_43"
+			seed_value = ALL_SEEDS[_seed_idx]
+		"s43_control":
+			scene = "scenario_43"
+			seed_value = ALL_SEEDS[_seed_idx]
+		"s44_abs_hold":
+			scene = "scenario_44"
+			seed_value = ALL_SEEDS[_seed_idx]
 
 	if _scenario != null:
 		_scenario.free()
@@ -443,6 +468,9 @@ func _spawn_and_run() -> void:
 			_scenario.set("run_up_m", 120.0)
 	elif scene == "scenario_14":
 		_scenario.set("control_mode", _mode == "s14_ff_control")
+	elif scene == "scenario_43":
+		_scenario.set("use_horn", _mode == "s43_horn")
+		_scenario.set("horn_at_sec", 35.0)
 
 	root.add_child(_scenario)
 	_pending_ready = true
@@ -529,6 +557,11 @@ func _run_when_ready() -> void:
 		"s37_slope_charge",
 		"s38_missile_high",
 		"s39_high_ground",
+		"s41_hammer",
+		"s42_cannae",
+		"s43_horn",
+		"s43_control",
+		"s44_abs_hold",
 	]:
 		_sim_harness.run_ticks(_scenario, 4500)
 	elif _mode == "s40_mixed":
@@ -826,8 +859,66 @@ func _finish() -> void:
 			_spawn_and_run()
 		"s40_mixed":
 			_check_s40_mixed()
-			_mode = "perf_40"
+			_mode = "s41_hammer"
+			_seed_idx = 0
+			_s41_ok_count = 0
+			_s41_flank_count = 0
 			_spawn_and_run()
+		"s41_hammer":
+			_accumulate_s41(ALL_SEEDS[_seed_idx])
+			_seed_idx += 1
+			if _seed_idx < ALL_SEEDS.size():
+				_spawn_and_run()
+			else:
+				_finalize_s41()
+				_mode = "s42_cannae"
+				_seed_idx = 0
+				_s42_ok_count = 0
+				_s42_flank_count = 0
+				_spawn_and_run()
+		"s42_cannae":
+			_accumulate_s42(ALL_SEEDS[_seed_idx])
+			_seed_idx += 1
+			if _seed_idx < ALL_SEEDS.size():
+				_spawn_and_run()
+			else:
+				_finalize_s42()
+				_mode = "s43_horn"
+				_seed_idx = 0
+				_s43_horn_str.clear()
+				_s43_ctrl_str.clear()
+				_spawn_and_run()
+		"s43_horn":
+			_s43_horn_str.append(float(_scenario.blue_surviving_strength()))
+			_seed_idx += 1
+			if _seed_idx < ALL_SEEDS.size():
+				_spawn_and_run()
+			else:
+				_mode = "s43_control"
+				_seed_idx = 0
+				_spawn_and_run()
+		"s43_control":
+			_s43_ctrl_str.append(float(_scenario.blue_surviving_strength()))
+			_seed_idx += 1
+			if _seed_idx < ALL_SEEDS.size():
+				_spawn_and_run()
+			else:
+				_finalize_s43()
+				_mode = "s44_abs_hold"
+				_seed_idx = 0
+				_s44_ok_count = 0
+				_s44_abs_max = 0.0
+				_s44_hold_max = 0.0
+				_spawn_and_run()
+		"s44_abs_hold":
+			_accumulate_s44(ALL_SEEDS[_seed_idx])
+			_seed_idx += 1
+			if _seed_idx < ALL_SEEDS.size():
+				_spawn_and_run()
+			else:
+				_finalize_s44()
+				_mode = "perf_40"
+				_spawn_and_run()
 		"perf_40":
 			_check_perf_40()
 			_mode = "perf_scale"
@@ -842,6 +933,128 @@ func _finish() -> void:
 				if _scenario != null:
 					_scenario.free()
 				_reconcile_and_quit()
+
+
+func _accumulate_s41(_seed_value: int) -> void:
+	var edge: String = str(_scenario.get_charge_edge())
+	var shock: float = float(_scenario.get_charge_shock())
+	var ok := true
+	# Flank or rear contact for directional shock.
+	if edge != "left" and edge != "right" and edge != "rear" and not edge.contains("left") and not edge.contains("right") and not edge.contains("rear"):
+		ok = false
+	else:
+		_s41_flank_count += 1
+	if shock < 0.0:
+		ok = false
+	if ok:
+		_s41_ok_count += 1
+	print(
+		"[WO-031] S41 seed=%d edge=%s shock=%.2f winner=%s ok=%s"
+		% [_seed_value, edge, shock, _scenario.get_winner_id(), str(ok)]
+	)
+
+
+func _finalize_s41() -> void:
+	var ok := _s41_ok_count >= 8 and _s41_flank_count >= 8
+	if not ok:
+		push_error(
+			"S41 hammer-anvil failed: ok=%d/11 flank=%d/11 (need >=8)"
+			% [_s41_ok_count, _s41_flank_count]
+		)
+	_record_check(
+		"[WO-031] S41",
+		ok,
+		"ok=%d/11 flank_or_rear=%d/11" % [_s41_ok_count, _s41_flank_count],
+	)
+
+
+func _accumulate_s42(_seed_value: int) -> void:
+	var edges: Dictionary = _scenario.get_edges_seen()
+	var has_flank := (
+		edges.has("left")
+		or edges.has("right")
+		or edges.has("rear")
+	)
+	var coh: float = float(_scenario.get_enemy_cohesion_min())
+	var ok := has_flank and coh < 80.0
+	if has_flank:
+		_s42_flank_count += 1
+	if ok:
+		_s42_ok_count += 1
+	print(
+		"[WO-031] S42 seed=%d edges=%s coh_min=%.1f winner=%s ok=%s"
+		% [_seed_value, edges, coh, _scenario.get_winner_id(), str(ok)]
+	)
+
+
+func _finalize_s42() -> void:
+	var ok := _s42_ok_count >= 8 and _s42_flank_count >= 8
+	if not ok:
+		push_error(
+			"S42 Cannae failed: ok=%d/11 flank=%d/11 (need >=8)"
+			% [_s42_ok_count, _s42_flank_count]
+		)
+	_record_check(
+		"[WO-031] S42",
+		ok,
+		"ok=%d/11 flank_edges=%d/11" % [_s42_ok_count, _s42_flank_count],
+	)
+
+
+func _finalize_s43() -> void:
+	var n: int = mini(_s43_horn_str.size(), _s43_ctrl_str.size())
+	var saved := 0
+	var total_margin := 0.0
+	for i in n:
+		var h: float = float(_s43_horn_str[i])
+		var c: float = float(_s43_ctrl_str[i])
+		var margin: float = h - c
+		total_margin += margin
+		if margin > 0.5:
+			saved += 1
+		print("[WO-031] S43 seed_i=%d horn=%.2f ctrl=%.2f margin=%.2f" % [i, h, c, margin])
+	var ok := saved >= 8 and total_margin > 0.0
+	if not ok:
+		push_error(
+			"S43 horn failed: saved=%d/11 total_margin=%.2f (horn should save men)"
+			% [saved, total_margin]
+		)
+	_record_check(
+		"[WO-031] S43",
+		ok,
+		"saved=%d/11 total_margin=%.2f horn_costs=%s"
+		% [saved, total_margin, str(_scenario.get_horn_disengage_costs()) if _scenario != null else "{}"],
+	)
+
+
+func _accumulate_s44(_seed_value: int) -> void:
+	var abs_d: float = float(_scenario.abs_max_disp_m)
+	var hold_d: float = float(_scenario.hold_max_disp_m)
+	_s44_abs_max = maxf(_s44_abs_max, abs_d)
+	_s44_hold_max = maxf(_s44_hold_max, hold_d)
+	# Absolute hold: intentional displacement ≈ 0 (allow tiny float/push noise < 2m).
+	var ok := abs_d < 2.0
+	if ok:
+		_s44_ok_count += 1
+	print(
+		"[WO-031] S44 seed=%d abs_disp=%.2f hold_disp=%.2f ok=%s"
+		% [_seed_value, abs_d, hold_d, str(ok)]
+	)
+
+
+func _finalize_s44() -> void:
+	var ok := _s44_ok_count >= 10
+	if not ok:
+		push_error(
+			"S44 absolute_hold moved: ok=%d/11 abs_max=%.2fm hold_max=%.2fm"
+			% [_s44_ok_count, _s44_abs_max, _s44_hold_max]
+		)
+	_record_check(
+		"[WO-031] S44",
+		ok,
+		"ok=%d/11 abs_max_disp_m=%.2f hold_max_disp_m=%.2f"
+		% [_s44_ok_count, _s44_abs_max, _s44_hold_max],
+	)
 
 
 func _check_s1_regression(seed_value: int) -> void:

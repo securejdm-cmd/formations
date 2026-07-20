@@ -115,3 +115,27 @@ Like-vs-like fights must be **genuine contests**. Per-tick zero-mean wobble cann
 **Supporting levers (logged, not this WO):** slow (low-frequency) wobble; rout-threshold variance. Adding them is a TD decision if the committed width cannot meet the R21 curve alone.
 
 **STATUS: DESIGN LAW — effective WO-025.**
+
+## R23. Order Queue Cap & Primitives (designer + TD; WO-031)
+
+Per-unit order queue: **at most 3 steps**. Each step is `{ primitive, params, trigger? }`. Steps execute in sequence; a triggered step waits until the trigger fires. The final completed step’s terminal behavior persists. Rally contingency remains a **separate** field outside the cap.
+
+v1 primitives: `advance_to`, `hold`, `absolute_hold`, `attack_nearest`, `attack_target`, `feign_retreat`, `flank_move`, `swing_and_charge`.
+
+v1 triggers: `at_start`, `after_seconds`, `enemy_within`, `unit_engages`, `unit_routs`, `my_cohesion_below`, `horn_sounded`, `unit_order_started`.
+
+Absolute hold: gravity may square facing but must not translate; combat push shift remains lawful. Schema: `/docs/ORDER_SCHEMA.md`.
+
+**STATUS: DESIGN LAW — effective WO-031.**
+
+## R24. Sound Horn — Army Order (designer + TD; WO-031)
+
+Once per battle per side. Immediately aborts all unit queues on that side and forces orderly withdrawal toward the own map edge (fighting withdrawal if contacted; ordered-retreat drain × Retreating Skill). Braced / absolute_hold units abandon post and comply. Deployment-reset after horn is **backlogged**. Schema: `/docs/ORDER_SCHEMA.md`.
+
+**STATUS: DESIGN LAW — effective WO-031.**
+
+## R25. Battle Types as Data (designer + TD; WO-031)
+
+Scenario definitions carry `battle_type` metadata (default `pitched`), per-side deployment zone rects, per-unit starting `posture` (`normal` | `concealed`), and extensible victory conditions. Concealment **mechanics** are a later WO — schema field only in WO-031. Schema: `/docs/ORDER_SCHEMA.md`.
+
+**STATUS: DESIGN LAW — effective WO-031.**

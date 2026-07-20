@@ -6,6 +6,8 @@ const SimUnitProxy := preload("res://scripts/sim/sim_unit_proxy.gd")
 const SimRngBridge := preload("res://scripts/sim/sim_rng_bridge.gd")
 const SimRng := preload("res://scripts/sim/sim_rng.gd")
 const _Charge := preload("res://scripts/charge_combat.gd")
+const _OrderExecutor := preload("res://scripts/orders/order_executor.gd")
+const _OrderSchema := preload("res://scripts/orders/order_schema.gd")
 
 ## Last charge-impact telemetry for scenario probes.
 var last_charge_events: Array = []
@@ -38,6 +40,16 @@ var force_trace_logging: bool = false
 var battle_seed: int = 0
 var _rng: SimRng = SimRng.new()
 var shock_floater_callback: Callable = Callable()
+## WO-031 order system.
+var order_executor = null
+var horn_schedule: Dictionary = {}  # team -> seconds
+var horn_sounded: Dictionary = {}  # team -> bool
+var horn_disengage_start_str: Dictionary = {}
+var horn_disengage_cost: Dictionary = {}
+var order_started_flags: Dictionary = {}
+var battle_type: String = "pitched"
+var deployment_zones: Dictionary = {}
+var victory_spec: Dictionary = {"mode": "rout"}
 var volley_visual_callback: Callable = Callable()
 ## WO-029b: plain-data visual events for main-thread drain (worker must not touch Nodes).
 var pending_shock_floaters: Array = []
@@ -59,6 +71,28 @@ func configure_rng(seed_value: int) -> void:
 	_quality_of_day_assigned = false
 	# Drop any stale bridge pointer from a prior battle (static on SimRngBridge).
 	SimRngBridge.clear_worker_rng()
+	_ensure_order_executor()
+
+
+func _ensure_order_executor() -> void:
+	if order_executor != null:
+		return
+	order_executor = _OrderExecutor.new()
+	order_executor.bind(self)
+
+
+func schedule_horn(team: String, after_seconds: float) -> void:
+	_ensure_order_executor()
+	horn_schedule[team] = after_seconds
+	order_executor.activate_if_needed()
+
+
+func note_order_started(unit_id: String, primitive: String) -> void:
+	order_started_flags["%s:%s" % [unit_id, primitive]] = true
+	log_trace_event(
+		"order_started",
+		"unit=%s,primitive=%s" % [unit_id, primitive]
+	)
 
 
 func advance_one_tick() -> void:
@@ -146,6 +180,7 @@ func unit_moved_this_tick(unit: SimUnitProxy) -> bool:
 func advance_one_tick_fast(tick_interval: float) -> void:
 	rebuild_spatial_grid()
 	refresh_slope_mods()
+	_tick_orders(tick_interval)
 	update_movement(tick_interval)
 	process_rout_events()
 	ranged_volley_tick(tick_interval)
@@ -162,6 +197,11 @@ func advance_one_tick_fast(tick_interval: float) -> void:
 	if trace_logging_enabled() and sim_tick_count % ticks_per_sec == 0:
 		log_trace_row()
 	check_epilogue_end()
+
+
+func _tick_orders(tick_interval: float) -> void:
+	_ensure_order_executor()
+	order_executor.tick(tick_interval)
 
 
 func refresh_slope_mods() -> void:
@@ -198,6 +238,7 @@ func advance_one_tick_profiled(tick_interval: float) -> void:
 	_TickProfiler.end_section("slope_sampling", t0)
 
 	t0 = _TickProfiler.begin_section("movement")
+	_tick_orders(tick_interval)
 	update_movement(tick_interval)
 	process_rout_events()
 	ranged_volley_tick(tick_interval)
@@ -473,6 +514,11 @@ func update_movement(delta: float) -> void:
 		unit.tick_disengage(delta)
 		_clear_charge_latch_if_requested(unit)
 		unit.tick_wheel(delta)
+		# WO-031: absolute_hold may square facing without translating.
+		if unit.absolute_hold and unit.get_state() == Unit.State.HOLD:
+			_OrderExecutor.tick_absolute_hold_facing(unit, enemies, delta)
+			# Snap back any accidental drift from facing-only path (post lock).
+			# Push shifts happen in combat_tick after movement.
 		# Decelerate only when deliberately holding / bracing — never while ENGAGED.
 		# Mid-fight partner flicker returns units to MARCHING briefly; decelerating in
 		# combat made those gaps crawl and drifted S1/S2/S8 grind timing.
@@ -502,6 +548,8 @@ func try_begin_engagement(unit: SimUnitProxy) -> void:
 	if unit.profile.get("skip_auto_engage", false):
 		return
 	if unit.auto_engage_locked or unit.disengaging:
+		return
+	if unit.horn_retreating:
 		return
 
 	for other in spatial_neighbors_sorted(unit):

@@ -693,6 +693,9 @@ static func is_within_pursuit_contact(pursuer: Variant, routing_unit: Variant) -
 
 static func can_apply_pursuit(pursuer: Variant) -> bool:
 	# Phase 1: only marching enemies on the flee path apply pursuit (S6 scripted pursuer).
+	# WO-031: absolute_hold never pursues.
+	if "absolute_hold" in pursuer and bool(pursuer.absolute_hold):
+		return false
 	return pursuer.get_state() == Unit.State.MARCHING and pursuer.current_order == Unit.Order.MARCH_TO
 
 

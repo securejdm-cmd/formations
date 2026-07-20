@@ -2,6 +2,9 @@
 
 Canonical index of FORMATIONS work-order reports (newest first). Raw `main` branch links.
 
+- [WO-031_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-031-order-system-fd84/docs/reports/WO-031_completion.md) — WO-031 order system (R23–R25); S41–S44; Meta 78
+- [WO-031_escalation.md](https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-031-order-system-fd84/docs/reports/WO-031_escalation.md) — WO-031 primitive/trigger ambiguities (green-lit 1A–7A)
+- [ORDER_SCHEMA.md](https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-031-order-system-fd84/docs/ORDER_SCHEMA.md) — Order & battle-type schema
 - [WO-028_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/main/docs/reports/WO-028_completion.md) — WO-028 boundary vs band; QoD enabled σ=0.045
 - [WO-027_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-027-qod-measurable-fd84/docs/reports/WO-027_completion.md) — WO-027 QoD measurable sweep; σ=0.045; Task 4 S3 escalate
 - [WO-027_escalation.md](https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-027-qod-measurable-fd84/docs/reports/WO-027_escalation.md) — WO-027 R21 boundary S3 band under QoD

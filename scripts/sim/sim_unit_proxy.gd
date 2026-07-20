@@ -65,6 +65,26 @@ var _pending_latch_partner_ids: Array[String] = []
 ## WO-021 slope caches (refreshed each tick from HeightField; identity at grade 0).
 var slope_speed_mult: float = 1.0
 var slope_push_mod: float = 1.0
+## WO-031 order queue (definition from Unit; runtime owned by sim).
+var order_queue_steps: Array = []
+var order_runtime_ready: bool = false
+var order_step_index: int = 0
+var order_phase: String = ""
+var order_primitive: String = ""
+var order_prim_phase: String = ""
+var order_trigger_type: String = ""
+var order_trigger_live: bool = false
+var order_trigger: Dictionary = {}
+var order_params: Dictionary = {}
+var order_attack_target_id: String = ""
+var absolute_hold: bool = false
+var post_anchor: Vector2 = Vector2.ZERO
+var horn_retreating: bool = false
+var feign_dist_m: float = 0.0
+var feign_start_pos: Vector2 = Vector2.ZERO
+var flank_waypoints: Array = []
+var flank_wp_index: int = 0
+var starting_posture: String = "normal"
 
 
 static func from_unit(unit: Unit) -> SimUnitProxy:
@@ -112,6 +132,11 @@ static func from_unit(unit: Unit) -> SimUnitProxy:
 	p.rotate_under_contact_drain_accum = unit.rotate_under_contact_drain_accum
 	if unit.ammo_remaining >= 0:
 		p._ammo_remaining = unit.ammo_remaining
+	if "order_queue_steps" in unit:
+		p.order_queue_steps = unit.order_queue_steps.duplicate(true)
+	if "starting_posture" in unit:
+		p.starting_posture = str(unit.starting_posture)
+	p.post_anchor = unit.position
 	for partner in unit.get_contact_partners():
 		if partner != null:
 			p._partner_ids.append(partner.unit_id)
@@ -160,6 +185,12 @@ func refresh_from_unit(unit: Unit) -> void:
 	wheel_facing_target = unit.wheel_facing_target
 	wheel_under_contact = unit.wheel_under_contact
 	rotate_under_contact_drain_accum = unit.rotate_under_contact_drain_accum
+	# WO-031: do not clobber order runtime from Unit each tick — sim owns it.
+	if not order_runtime_ready and "order_queue_steps" in unit:
+		if order_queue_steps.is_empty() and not unit.order_queue_steps.is_empty():
+			order_queue_steps = unit.order_queue_steps.duplicate(true)
+	if "starting_posture" in unit:
+		starting_posture = str(unit.starting_posture)
 	_partner_ids.clear()
 	_contact_partners.clear()
 	for partner in unit.get_contact_partners():
@@ -215,6 +246,11 @@ func duplicate_render_state() -> SimUnitProxy:
 	p.rotate_under_contact_drain_accum = rotate_under_contact_drain_accum
 	p.slope_speed_mult = slope_speed_mult
 	p.slope_push_mod = slope_push_mod
+	p.absolute_hold = absolute_hold
+	p.horn_retreating = horn_retreating
+	p.order_phase = order_phase
+	p.order_primitive = order_primitive
+	p.order_step_index = order_step_index
 	return p
 
 
@@ -263,6 +299,7 @@ func apply_to_unit(unit: Unit, all_units: Array = []) -> void:
 	unit.rotate_under_contact_drain_accum = rotate_under_contact_drain_accum
 	unit.slope_speed_mult = slope_speed_mult
 	unit.slope_push_mod = slope_push_mod
+	unit.absolute_hold = absolute_hold
 	if unit.has_method("_update_brace_visual"):
 		unit._update_brace_visual()
 	unit.set_active_contact_edges(_active_contact_edges)
@@ -419,6 +456,10 @@ func update_marching(delta: float, enemies: Array = []) -> void:
 
 func _update_marching_step(delta: float, enemies: Array = []) -> void:
 	_update_charge_commit(enemies)
+	# WO-031 absolute_hold: no intentional translation (push still applies elsewhere).
+	if absolute_hold:
+		current_speed_m_s = 0.0
+		return
 	var to_target := march_target - position
 	var top := _ChargeCombat.target_speed_m_s(self)
 	if wheeling:

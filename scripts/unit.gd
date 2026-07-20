@@ -87,6 +87,15 @@ var rotate_under_contact_drain_accum: float = 0.0
 ## WO-021 slope caches (synced from sim; identity at grade 0).
 var slope_speed_mult: float = 1.0
 var slope_push_mod: float = 1.0
+## WO-031 order definition (copied to sim proxy once).
+var order_queue_steps: Array = []
+var starting_posture: String = "normal"
+var absolute_hold: bool = false
+
+
+func set_order_queue(steps: Array) -> void:
+	var _Schema = preload("res://scripts/orders/order_schema.gd")
+	order_queue_steps = _Schema.clamp_queue(steps)
 
 
 func _ready() -> void:
@@ -464,6 +473,9 @@ func update_marching(delta: float, enemies: Array[Unit] = []) -> void:
 
 func _update_marching_step(delta: float, enemies: Array[Unit] = []) -> void:
 	_update_charge_commit(enemies)
+	if absolute_hold:
+		current_speed_m_s = 0.0
+		return
 	var to_target := march_target - position
 	var top := _ChargeCombat.target_speed_m_s(self)
 	# Explicit wheel: facing owned by tick_wheel; hold position.
