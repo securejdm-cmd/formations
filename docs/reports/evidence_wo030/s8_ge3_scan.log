@@ -1,0 +1,26 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+WO030_GE3_SCAN_START
+SCANNING n=20
+SEED=1001 ratio=3.038 single=18.43 triple=56.00 max_partners=1 multi_ticks=0 by={ "attacker_1": 18.4342835431884, "attacker_2": 37.5613909169559, "attacker_3": 0.0 }
+SEED=1033 ratio=3.141 single=18.47 triple=58.02 max_partners=1 multi_ticks=0 by={ "attacker_1": 18.4697913756941, "attacker_2": 39.547408434231, "attacker_3": 0.0 }
+SEED=1130 ratio=3.101 single=18.82 triple=58.35 max_partners=1 multi_ticks=0 by={ "attacker_1": 18.8193351227557, "attacker_2": 39.534671602005, "attacker_3": 0.0 }
+SEED=1135 ratio=3.015 single=18.70 triple=56.39 max_partners=1 multi_ticks=0 by={ "attacker_1": 18.7020199855622, "attacker_2": 37.686291098604, "attacker_3": 0.0 }
+SEED=1153 ratio=3.090 single=18.74 triple=57.92 max_partners=1 multi_ticks=0 by={ "attacker_1": 18.7441132174439, "attacker_2": 39.1804210059195, "attacker_3": 0.0 }
+SEED=1233 ratio=3.186 single=17.22 triple=54.87 max_partners=1 multi_ticks=0 by={ "attacker_1": 17.2210700539603, "attacker_2": 37.6497688816286, "attacker_3": 0.0 }
+SEED=1247 ratio=3.121 single=18.49 triple=57.71 max_partners=1 multi_ticks=0 by={ "attacker_1": 18.4903246260502, "attacker_2": 39.217505151696, "attacker_3": 0.0 }
+SEED=1283 ratio=3.102 single=18.73 triple=58.10 max_partners=1 multi_ticks=0 by={ "attacker_1": 18.7278443137839, "attacker_2": 39.3690976075895, "attacker_3": 0.0 }
+SEED=1287 ratio=3.708 single=16.11 triple=59.74 max_partners=1 multi_ticks=0 by={ "attacker_1": 16.1110335170189, "attacker_2": 43.6266753363687, "attacker_3": 0.0 }
+SEED=1300 ratio=3.016 single=18.83 triple=56.77 max_partners=1 multi_ticks=0 by={ "attacker_1": 18.8257179440704, "attacker_2": 37.9487111058125, "attacker_3": 0.0 }
+SEED=1321 ratio=3.857 single=15.55 triple=59.96 max_partners=1 multi_ticks=0 by={ "attacker_1": 15.5467335844069, "attacker_2": 44.4131912237919, "attacker_3": 0.0 }
+SEED=1346 ratio=3.257 single=17.64 triple=57.44 max_partners=1 multi_ticks=0 by={ "attacker_1": 17.6368090072872, "attacker_2": 39.8030223894525, "attacker_3": 0.0 }
+SEED=1370 ratio=3.689 single=16.17 triple=59.66 max_partners=1 multi_ticks=0 by={ "attacker_1": 16.1735660271705, "attacker_2": 43.4895192828622, "attacker_3": 0.0 }
+SEED=1415 ratio=3.458 single=16.93 triple=58.55 max_partners=1 multi_ticks=0 by={ "attacker_1": 16.9339700590383, "attacker_2": 41.6156059038851, "attacker_3": 0.0 }
+SEED=1455 ratio=3.025 single=18.51 triple=55.99 max_partners=1 multi_ticks=0 by={ "attacker_1": 18.5068190537173, "attacker_2": 37.4832106647017, "attacker_3": 0.0 }
+SEED=1456 ratio=3.098 single=17.49 triple=54.20 max_partners=1 multi_ticks=0 by={ "attacker_1": 17.4931009611821, "attacker_2": 36.7071510559934, "attacker_3": 0.0 }
+SEED=1474 ratio=3.167 single=17.84 triple=56.50 max_partners=1 multi_ticks=0 by={ "attacker_1": 17.8380516792977, "attacker_2": 38.6583785349454, "attacker_3": 0.0 }
+SEED=1476 ratio=3.511 single=16.84 triple=59.12 max_partners=1 multi_ticks=0 by={ "attacker_1": 16.838582299843, "attacker_2": 42.2806324253617, "attacker_3": 0.0 }
+SEED=1484 ratio=3.285 single=17.84 triple=58.61 max_partners=1 multi_ticks=0 by={ "attacker_1": 17.8430643966902, "attacker_2": 40.7669198178427, "attacker_3": 0.0 }
+SEED=1492 ratio=3.098 single=18.46 triple=57.20 max_partners=1 multi_ticks=0 by={ "attacker_1": 18.4619188528776, "attacker_2": 38.7365015701482, "attacker_3": 0.0 }
+SEEDS_WITH_2PLUS_PARTNERS=0 / 20
+WO030_GE3_SCAN_DONE

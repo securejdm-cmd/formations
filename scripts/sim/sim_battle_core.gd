@@ -930,15 +930,16 @@ func combat_tick() -> void:
 	var bump_winners: Dictionary = {}
 	var contact_edge_labels: Dictionary = {}  # Unit -> Array[String]
 
+	# WO-030: collect head-on pairs, then allocate each unit's FRONT edge among
+	# concurrent opponents so ContactFrontage% cannot double-count meters.
+	var head_on_pairs: Array = []
 	for unit in units:
 		if unit.get_state() == Unit.State.REMOVED:
 			continue
 		if unit.get_state() != Unit.State.ENGAGED and unit.get_state() != Unit.State.WAVERING:
 			continue
-		# Disengagers are handled exclusively by _apply_disengage_free_hits.
 		if unit.disengaging:
 			continue
-
 		for partner in unit.get_contact_partners():
 			if partner == null or partner.get_state() == Unit.State.REMOVED:
 				continue
@@ -946,35 +947,66 @@ func combat_tick() -> void:
 				continue
 			if partner.disengaging:
 				continue
-
 			if not CombatResolver.is_head_on_pair(unit, partner):
 				continue
 			if not CombatResolver.units_have_front_contact(unit, partner):
 				continue
 			if EdgeContact.has_non_front_segment_contact(unit, partner):
 				continue
-
 			var pk := pair_key(unit, partner)
 			if pk in processed_head_on:
 				continue
 			processed_head_on.append(pk)
+			head_on_pairs.append([unit, partner])
 
-			var result := CombatResolver.resolve_engagement(unit, partner)
-			CombatResolver.apply_ground_shift(unit, result.shift_a_m)
-			CombatResolver.apply_ground_shift(partner, result.shift_b_m)
+	var front_alloc_by_defender: Dictionary = {}
+	for pair in head_on_pairs:
+		for side_i in 2:
+			var defender = pair[side_i]
+			var did: String = str(defender.unit_id)
+			if front_alloc_by_defender.has(did):
+				continue
+			var claimants: Array = []
+			for pair2 in head_on_pairs:
+				if pair2[0] == defender:
+					claimants.append(pair2[1])
+				elif pair2[1] == defender:
+					claimants.append(pair2[0])
+			if claimants.size() <= 1:
+				# WO-030: allocation applies only when multiple attackers share one front.
+				# Single head-on pairs keep legacy ContactFrontage%=1.0 (1v1 tuning).
+				var single_alloc: Dictionary = {}
+				for c in claimants:
+					single_alloc[str(c.unit_id)] = 1.0
+				front_alloc_by_defender[did] = single_alloc
+			else:
+				front_alloc_by_defender[did] = EdgeContact.allocate_front_edge_frontage(defender, claimants)
 
-			var applied_to_unit := CombatResolver.apply_strength_loss(unit, result.damage_a)
-			partner.record_damage_dealt(applied_to_unit)
-			var applied_to_partner := CombatResolver.apply_strength_loss(partner, result.damage_b)
-			unit.record_damage_dealt(applied_to_partner)
+	for pair3 in head_on_pairs:
+		var unit = pair3[0]
+		var partner = pair3[1]
+		var alloc_on_partner: Dictionary = front_alloc_by_defender.get(str(partner.unit_id), {})
+		var alloc_on_unit: Dictionary = front_alloc_by_defender.get(str(unit.unit_id), {})
+		var fa: float = float(alloc_on_partner.get(str(unit.unit_id), 1.0))
+		var fb: float = float(alloc_on_unit.get(str(partner.unit_id), 1.0))
+		var result := CombatResolver.resolve_engagement(unit, partner, fa, fb)
+		CombatResolver.apply_ground_shift(unit, result.shift_a_m)
+		CombatResolver.apply_ground_shift(partner, result.shift_b_m)
 
-			unit.set_bump_state(result.gap_ratio, result.a_is_winner)
-			partner.set_bump_state(result.gap_ratio, not result.a_is_winner)
+		var applied_to_unit := CombatResolver.apply_strength_loss(unit, result.damage_a)
+		partner.record_damage_dealt(applied_to_unit)
+		var applied_to_partner := CombatResolver.apply_strength_loss(partner, result.damage_b)
+		unit.record_damage_dealt(applied_to_partner)
 
-			if unit.get_state() == Unit.State.ROUTING or partner.get_state() == Unit.State.ROUTING:
-				on_first_rout()
-				try_start_victory_delay(unit if unit.get_state() == Unit.State.ROUTING else partner)
+		unit.set_bump_state(result.gap_ratio, result.a_is_winner)
+		partner.set_bump_state(result.gap_ratio, not result.a_is_winner)
 
+		if unit.get_state() == Unit.State.ROUTING or partner.get_state() == Unit.State.ROUTING:
+			on_first_rout()
+			try_start_victory_delay(unit if unit.get_state() == Unit.State.ROUTING else partner)
+
+	# Segment path: allocate FRONT-edge claimants on each defender before resolve.
+	var segment_jobs: Array = []
 	for defender in units:
 		if defender.get_state() == Unit.State.REMOVED:
 			continue
@@ -994,10 +1026,10 @@ func combat_tick() -> void:
 				if not EdgeContact.has_non_front_segment_contact(attacker, defender):
 					continue
 
-			var pk := pair_key(attacker, defender)
-			if pk in processed_segments:
+			var pk2 := pair_key(attacker, defender)
+			if pk2 in processed_segments:
 				continue
-			processed_segments.append(pk)
+			processed_segments.append(pk2)
 
 			var orientation := EdgeContact.pick_segment_orientation(attacker, defender)
 			var seg_attacker: SimUnitProxy = orientation.get("attacker")
@@ -1005,75 +1037,119 @@ func combat_tick() -> void:
 			var contact: Dictionary = orientation.get("contact", {})
 			if not contact.get("has_contact", false):
 				continue
+			segment_jobs.append(
+				{"attacker": seg_attacker, "defender": seg_defender, "contact": contact}
+			)
 
-			var edge_label: String = contact.get("edge_label", "")
-			if not edge_label.is_empty():
-				if not contact_edge_labels.has(seg_defender):
-					contact_edge_labels[seg_defender] = [] as Array[String]
-				(contact_edge_labels[seg_defender] as Array[String]).append(edge_label)
-
-			var segment := CombatResolver.resolve_contact_segment(seg_attacker, seg_defender, contact)
-			var edge_lengths: Dictionary = segment.get("edge_lengths_m", {})
-			var push_normal: Vector2 = segment.get("push_normal", seg_defender.facing)
-
-			if is_equal_approx(segment.attacker_push, segment.defender_push):
-				var dmg_attacker := CombatResolver.apply_strength_loss_with_edge(
-					seg_attacker, segment.attacker_damage, edge_lengths
-				)
-				var dmg_defender := CombatResolver.apply_strength_loss_with_edge(
-					seg_defender, segment.defender_damage, edge_lengths
-				)
-				seg_defender.record_damage_dealt(dmg_attacker)
-				seg_attacker.record_damage_dealt(dmg_defender)
-			elif segment.attacker_wins:
-				accumulate_directed_shift(defender_shifts, seg_defender, push_normal, segment.defender_shift_m)
-				CombatResolver.apply_shift_morale_drain(seg_defender, segment.defender_shift_m, edge_lengths)
-				var applied_defender := CombatResolver.apply_strength_loss_with_edge(
-					seg_defender, segment.defender_damage, edge_lengths
-				)
-				var applied_attacker := CombatResolver.apply_strength_loss_with_edge(
-					seg_attacker, segment.attacker_damage, edge_lengths
-				)
-				seg_attacker.record_damage_dealt(applied_defender)
-				seg_defender.record_damage_dealt(applied_attacker)
-			else:
-				accumulate_directed_shift(defender_shifts, seg_attacker, -push_normal, segment.attacker_shift_m)
-				CombatResolver.apply_shift_morale_drain(seg_attacker, segment.attacker_shift_m, edge_lengths)
-				var applied_attacker := CombatResolver.apply_strength_loss_with_edge(
-					seg_attacker, segment.attacker_damage, edge_lengths
-				)
-				var applied_defender := CombatResolver.apply_strength_loss_with_edge(
-					seg_defender, segment.defender_damage, edge_lengths
-				)
-				seg_defender.record_damage_dealt(applied_attacker)
-				seg_attacker.record_damage_dealt(applied_defender)
-
-			var gap_ratio: float = segment.get("gap_ratio", 0.0)
-			bump_winners[seg_attacker] = segment.attacker_wins
-			seg_attacker.set_bump_state(gap_ratio, segment.attacker_wins)
-			seg_defender.set_bump_state(gap_ratio, not segment.attacker_wins)
-
-			if seg_attacker.get_state() == Unit.State.ROUTING or seg_defender.get_state() == Unit.State.ROUTING:
-				on_first_rout()
-				try_start_victory_delay(
-					seg_attacker if seg_attacker.get_state() == Unit.State.ROUTING else seg_defender
-				)
-
-		defender.set_active_contact_edges("")
-
-	for unit in units:
-		if unit.get_state() == Unit.State.REMOVED:
+	var front_segment_claimants: Dictionary = {}
+	for job in segment_jobs:
+		var cdict: Dictionary = job.contact
+		var edges: Dictionary = cdict.get("edge_lengths_m", {})
+		if not edges.has(EdgeContact.EDGE_FRONT):
 			continue
-		var labels: Array[String] = contact_edge_labels.get(unit, [] as Array[String])
-		unit.set_active_contact_edges(join_edge_labels(labels))
+		if edges.size() != 1:
+			continue
+		var def2 = job.defender
+		var did2: String = str(def2.unit_id)
+		if not front_segment_claimants.has(did2):
+			front_segment_claimants[did2] = {"defender": def2, "attackers": []}
+		(front_segment_claimants[did2]["attackers"] as Array).append(job.attacker)
 
-	for defender in defender_shifts.keys():
-		var shift_info: Dictionary = defender_shifts[defender]
+	var front_segment_alloc: Dictionary = {}
+	for did3 in front_segment_claimants.keys():
+		var entry: Dictionary = front_segment_claimants[did3]
+		var seg_attackers: Array = entry.attackers
+		if seg_attackers.size() <= 1:
+			var single_seg: Dictionary = {}
+			for atk in seg_attackers:
+				single_seg[str(atk.unit_id)] = 1.0
+			front_segment_alloc[did3] = single_seg
+		else:
+			front_segment_alloc[did3] = EdgeContact.allocate_front_edge_frontage(
+				entry.defender, seg_attackers
+			)
+
+	for job2 in segment_jobs:
+		var seg_attacker2 = job2.attacker
+		var seg_defender2 = job2.defender
+		var contact2: Dictionary = job2.contact.duplicate(true)
+		var edges2: Dictionary = contact2.get("edge_lengths_m", {})
+		if edges2.has(EdgeContact.EDGE_FRONT) and edges2.size() == 1:
+			var alloc2: Dictionary = front_segment_alloc.get(str(seg_defender2.unit_id), {})
+			if alloc2.has(str(seg_attacker2.unit_id)):
+				contact2["attacker_frontage_pct"] = float(alloc2[str(seg_attacker2.unit_id)])
+
+		var edge_label: String = contact2.get("edge_label", "")
+		if not edge_label.is_empty():
+			if not contact_edge_labels.has(seg_defender2):
+				contact_edge_labels[seg_defender2] = [] as Array[String]
+			(contact_edge_labels[seg_defender2] as Array[String]).append(edge_label)
+
+		var segment := CombatResolver.resolve_contact_segment(seg_attacker2, seg_defender2, contact2)
+		var edge_lengths: Dictionary = segment.get("edge_lengths_m", {})
+		var push_normal: Vector2 = segment.get("push_normal", seg_defender2.facing)
+
+		if is_equal_approx(segment.attacker_push, segment.defender_push):
+			var dmg_attacker := CombatResolver.apply_strength_loss_with_edge(
+				seg_attacker2, segment.attacker_damage, edge_lengths
+			)
+			var dmg_defender := CombatResolver.apply_strength_loss_with_edge(
+				seg_defender2, segment.defender_damage, edge_lengths
+			)
+			seg_defender2.record_damage_dealt(dmg_attacker)
+			seg_attacker2.record_damage_dealt(dmg_defender)
+		elif segment.attacker_wins:
+			accumulate_directed_shift(defender_shifts, seg_defender2, push_normal, segment.defender_shift_m)
+			CombatResolver.apply_shift_morale_drain(seg_defender2, segment.defender_shift_m, edge_lengths)
+			var applied_defender := CombatResolver.apply_strength_loss_with_edge(
+				seg_defender2, segment.defender_damage, edge_lengths
+			)
+			var applied_attacker := CombatResolver.apply_strength_loss_with_edge(
+				seg_attacker2, segment.attacker_damage, edge_lengths
+			)
+			seg_attacker2.record_damage_dealt(applied_defender)
+			seg_defender2.record_damage_dealt(applied_attacker)
+		else:
+			accumulate_directed_shift(defender_shifts, seg_attacker2, -push_normal, segment.attacker_shift_m)
+			CombatResolver.apply_shift_morale_drain(seg_attacker2, segment.attacker_shift_m, edge_lengths)
+			var applied_attacker2 := CombatResolver.apply_strength_loss_with_edge(
+				seg_attacker2, segment.attacker_damage, edge_lengths
+			)
+			var applied_defender2 := CombatResolver.apply_strength_loss_with_edge(
+				seg_defender2, segment.defender_damage, edge_lengths
+			)
+			seg_defender2.record_damage_dealt(applied_attacker2)
+			seg_attacker2.record_damage_dealt(applied_defender2)
+
+		var gap_ratio: float = segment.get("gap_ratio", 0.0)
+		bump_winners[seg_attacker2] = segment.attacker_wins
+		seg_attacker2.set_bump_state(gap_ratio, segment.attacker_wins)
+		seg_defender2.set_bump_state(gap_ratio, not segment.attacker_wins)
+
+		if seg_attacker2.get_state() == Unit.State.ROUTING or seg_defender2.get_state() == Unit.State.ROUTING:
+			on_first_rout()
+			try_start_victory_delay(
+				seg_attacker2 if seg_attacker2.get_state() == Unit.State.ROUTING else seg_defender2
+			)
+
+	for defender3 in units:
+		if defender3.get_state() == Unit.State.REMOVED:
+			continue
+		defender3.set_active_contact_edges("")
+
+	for unit2 in units:
+		if unit2.get_state() == Unit.State.REMOVED:
+			continue
+		var labels: Array[String] = contact_edge_labels.get(unit2, [] as Array[String])
+		unit2.set_active_contact_edges(join_edge_labels(labels))
+
+	for defender4 in defender_shifts.keys():
+		var shift_info: Dictionary = defender_shifts[defender4]
 		var shift_vector: Vector2 = shift_info.vector
 		var shift_m := shift_vector.length() / Constants.get_float("px_per_meter")
 		if shift_m > 0.0:
 			CombatResolver.apply_directed_position_shift(
-				defender,
+				defender4,
 				shift_m,
 				shift_vector.normalized(),
 			)

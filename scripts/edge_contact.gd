@@ -363,6 +363,131 @@ static func _attacker_front_face_contact_pct(attacker: Variant, defender: Varian
 	return clampf(contact_span / maxf(half_frontage_m * 2.0, 0.001), 0.0, 1.0)
 
 
+## WO-030: interval of attacker's claim on the defender's FRONT edge, meters along
+## the defender's left-axis (soldier-left positive), clamped to the defender front.
+## Returns {lo, hi, length}. Empty/invalid → length 0.
+## Head-on pairs use center-gap contact (CombatResolver.units_have_front_contact);
+## for those, lateral AABB overlap on the front line is the claim even when the
+## geometric front-face slab test would miss (penetration / depth mismatch).
+static func front_edge_interval_m(attacker: Variant, defender: Variant) -> Dictionary:
+	var px_per_meter: float = Constants.get_float("px_per_meter")
+	var forward: Vector2 = defender.facing.normalized()
+	var left: Vector2 = FormationGeometry.left_vector(forward)
+	var half_depth_m: float = defender.effective_depth_m() * 0.5
+	var half_frontage_m: float = defender.effective_frontage_m() * 0.5
+	var eps: float = contact_epsilon_m()
+
+	var along_min: float = INF
+	var along_max: float = -INF
+	var across_min: float = INF
+	var across_max: float = -INF
+	for corner in FormationGeometry.get_corners(attacker):
+		var local: Vector2 = corner - defender.position
+		var along: float = local.dot(forward) / px_per_meter
+		var across: float = local.dot(left) / px_per_meter
+		along_min = minf(along_min, along)
+		along_max = maxf(along_max, along)
+		across_min = minf(across_min, across)
+		across_max = maxf(across_max, across)
+
+	var head_on_front: bool = _is_head_on_front_contact(attacker, defender)
+	# Geometric front-face touch (positive along = in front of defender).
+	var touches_front: bool = (
+		along_max >= half_depth_m - eps
+		and along_min <= half_depth_m + eps
+		and along_max > 0.0
+	)
+	if not head_on_front and not touches_front:
+		return {"lo": 0.0, "hi": 0.0, "length": 0.0}
+
+	var lo: float = maxf(across_min, -half_frontage_m)
+	var hi: float = minf(across_max, half_frontage_m)
+	var length: float = maxf(0.0, hi - lo)
+	return {"lo": lo, "hi": hi, "length": length}
+
+
+## Head-on center-gap contact (mirrors CombatResolver without circular preload).
+static func _is_head_on_front_contact(unit_a: Variant, unit_b: Variant) -> bool:
+	var to_b: Vector2 = unit_b.position - unit_a.position
+	var to_a: Vector2 = unit_a.position - unit_b.position
+	if to_b.dot(unit_a.facing) <= 0.0 or to_a.dot(unit_b.facing) <= 0.0:
+		return false
+	var px_per_meter: float = Constants.get_float("px_per_meter")
+	var center_distance_m: float = to_b.length() / px_per_meter
+	var gap_m: float = (
+		center_distance_m
+		- unit_a.effective_depth_m() * 0.5
+		- unit_b.effective_depth_m() * 0.5
+	)
+	return gap_m <= contact_epsilon_m()
+
+
+## WO-030: partition the defender FRONT edge among concurrent attackers so
+## Σ allocated length ≤ defender front width (no double-counted meters).
+## Returns Dictionary unit_id -> ContactFrontage% (= allocated_m / attacker.frontage_m).
+## Deterministic: claimants sorted by unit_id; overlapping slices split equally.
+static func allocate_front_edge_frontage(defender: Variant, attackers: Array) -> Dictionary:
+	var out: Dictionary = {}
+	if defender == null or attackers.is_empty():
+		return out
+
+	var claims: Array = []
+	for atk in attackers:
+		if atk == null:
+			continue
+		var iv: Dictionary = front_edge_interval_m(atk, defender)
+		var length: float = float(iv.get("length", 0.0))
+		if length <= 0.0:
+			out[str(atk.unit_id)] = 0.0
+			continue
+		claims.append(
+			{
+				"id": str(atk.unit_id),
+				"atk": atk,
+				"lo": float(iv.lo),
+				"hi": float(iv.hi),
+			}
+		)
+	if claims.is_empty():
+		return out
+
+	claims.sort_custom(func(a, b): return str(a.id) < str(b.id))
+
+	# Sweep endpoints.
+	var points: Array = []
+	for c in claims:
+		points.append(float(c.lo))
+		points.append(float(c.hi))
+	points.sort()
+
+	var allocated_m: Dictionary = {}
+	for c2 in claims:
+		allocated_m[str(c2.id)] = 0.0
+
+	for i in range(points.size() - 1):
+		var a: float = float(points[i])
+		var b: float = float(points[i + 1])
+		var seg: float = b - a
+		if seg <= 1e-9:
+			continue
+		var mid: float = (a + b) * 0.5
+		var owners: Array = []
+		for c3 in claims:
+			if float(c3.lo) <= mid and mid <= float(c3.hi):
+				owners.append(str(c3.id))
+		if owners.is_empty():
+			continue
+		var share: float = seg / float(owners.size())
+		for oid in owners:
+			allocated_m[oid] = float(allocated_m.get(oid, 0.0)) + share
+
+	for c4 in claims:
+		var id4: String = str(c4.id)
+		var front_m: float = maxf(float(c4.atk.effective_frontage_m()), 0.001)
+		out[id4] = clampf(float(allocated_m.get(id4, 0.0)) / front_m, 0.0, 1.0)
+	return out
+
+
 static func _dominant_push_normal(edge_lengths: Dictionary, forward: Vector2, left: Vector2) -> Vector2:
 	var best_edge: Variant = EDGE_FRONT
 	var best_len: Variant = -1.0

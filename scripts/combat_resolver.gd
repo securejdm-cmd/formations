@@ -366,9 +366,17 @@ static func clamp_march_distance(unit: Variant, enemy: Variant, move_px: float) 
 	return minf(move_px, gap_px)
 
 
-static func resolve_engagement(unit_a: Variant, unit_b: Variant) -> Dictionary:
-	var push_a: Variant = calc_push_score(unit_a, 1.0, _slope_push_mod(unit_a))
-	var push_b: Variant = calc_push_score(unit_b, 1.0, _slope_push_mod(unit_b))
+static func resolve_engagement(
+	unit_a: Variant,
+	unit_b: Variant,
+	frontage_a: float = 1.0,
+	frontage_b: float = 1.0
+) -> Dictionary:
+	## WO-030: ContactFrontage% per side (allocated on the opponent's front edge).
+	var fa: float = clampf(frontage_a, 0.0, 1.0)
+	var fb: float = clampf(frontage_b, 0.0, 1.0)
+	var push_a: Variant = calc_push_score(unit_a, fa, _slope_push_mod(unit_a))
+	var push_b: Variant = calc_push_score(unit_b, fb, _slope_push_mod(unit_b))
 
 	var result: Variant = {
 		"push_a": push_a,
@@ -379,11 +387,13 @@ static func resolve_engagement(unit_a: Variant, unit_b: Variant) -> Dictionary:
 		"damage_b": 0.0,
 		"gap_ratio": 0.0,
 		"a_is_winner": false,
+		"frontage_a": fa,
+		"frontage_b": fb,
 	}
 
 	if is_equal_approx(push_a, push_b):
-		result.damage_a = calc_melee_strength_loss(unit_b, unit_a, 1.0, false)
-		result.damage_b = calc_melee_strength_loss(unit_a, unit_b, 1.0, false)
+		result.damage_a = calc_melee_strength_loss(unit_b, unit_a, fb, false)
+		result.damage_b = calc_melee_strength_loss(unit_a, unit_b, fa, false)
 		return result
 
 	var a_wins: Variant = push_a > push_b
@@ -395,12 +405,12 @@ static func resolve_engagement(unit_a: Variant, unit_b: Variant) -> Dictionary:
 
 	if a_wins:
 		result.shift_b_m = shift_m
-		result.damage_a = calc_melee_strength_loss(unit_b, unit_a, 1.0, false)
-		result.damage_b = calc_melee_strength_loss(unit_a, unit_b, 1.0, true)
+		result.damage_a = calc_melee_strength_loss(unit_b, unit_a, fb, false)
+		result.damage_b = calc_melee_strength_loss(unit_a, unit_b, fa, true)
 	else:
 		result.shift_a_m = shift_m
-		result.damage_a = calc_melee_strength_loss(unit_b, unit_a, 1.0, true)
-		result.damage_b = calc_melee_strength_loss(unit_a, unit_b, 1.0, false)
+		result.damage_a = calc_melee_strength_loss(unit_b, unit_a, fb, true)
+		result.damage_b = calc_melee_strength_loss(unit_a, unit_b, fa, false)
 
 	return result
 

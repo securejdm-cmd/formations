@@ -57,10 +57,10 @@ const S4_CONTACT_BALANCE_MAX_M := 6.0
 const S8_STACK_RATIO_MAX := 3.0
 const SCENARIO_EXTRA_TICKS := 120
 ## Gated PASS lines emitted when every check is green (WO-015).
-## Compass, Fast+Threaded cert, S1×11, S2×11, Determinism, S3, Overlap, S4, S5–S8, S9,
+## Compass, Fast+Threaded cert, S1×11, S2×11, Determinism, S3, Overlap, S4, S5–S8, S8b, S9,
 ## S10–S11, S12, S13×3, S14×2, S15, S16×2, S17×2 retired, S17b, S18, S19, S20×2, S21, S22,
-## S23–S26, S27–S29, S30–S34, S35, S36–S39, S40 = 72
-const EXPECTED_GREEN_PASS_COUNT := 73
+## S23–S26, S27–S29, S30–S34, S35, S36–S39, S40 = 74
+const EXPECTED_GREEN_PASS_COUNT := 74
 
 var _scenario: Scenario01 = null
 var _exit_code := 0
@@ -253,6 +253,10 @@ func _spawn_and_run() -> void:
 			scene = "scenario_08"
 			seed_value = 1000
 			extra_ticks = 80
+		"s8b_sequential":
+			scene = "scenario_08b"
+			seed_value = 1000
+			extra_ticks = 80
 		"perf_40":
 			scene = "scenario_40_perf"
 			seed_value = 1000
@@ -400,6 +404,8 @@ func _spawn_and_run() -> void:
 			_scenario.set("attacker_count", 3)
 		else:
 			_scenario.set("attacker_count", 1)
+	elif scene == "scenario_08b":
+		_scenario.set("attacker_count", 3)
 	elif scene == "scenario_perf_scale":
 		_scenario.set("unit_pairs", _perf_scale_pairs[_perf_scale_idx])
 	elif scene == "scenario_11":
@@ -488,7 +494,7 @@ func _run_when_ready() -> void:
 		for _i in 800:
 			_scenario.advance_one_tick()
 		_perf_scale_results.append(_scenario.get_tick_perf_stats())
-	elif _mode in ["s5_rally", "s6_pursuit", "s7_cascade", "s8_blob_single", "s8_blob_triple"]:
+	elif _mode in ["s5_rally", "s6_pursuit", "s7_cascade", "s8_blob_single", "s8_blob_triple", "s8b_sequential"]:
 		_sim_harness.run_ticks(_scenario, 3500 + _extra_ticks_for_mode)
 	elif _mode == "s13_engaged":
 		_sim_harness.run_ticks(_scenario, 2800)
@@ -626,6 +632,10 @@ func _finish() -> void:
 			_spawn_and_run()
 		"s8_blob_triple":
 			_check_scenario_08(_s8_single_damage)
+			_mode = "s8b_sequential"
+			_spawn_and_run()
+		"s8b_sequential":
+			_check_scenario_08b()
 			_mode = "s9_regression"
 			_seed_idx = 0
 			_s9_heavy_wins = 0
@@ -1409,11 +1419,37 @@ func _check_scenario_08(single_damage: float) -> void:
 			% [ratio, S8_STACK_RATIO_MAX]
 		)
 		ok = false
+	var peak_partners := 0
+	if _scenario.get("max_defender_partners") != null:
+		peak_partners = int(_scenario.get("max_defender_partners"))
 	_record_check(
-		"[WO-029b] S8",
+		"[WO-030] S8",
 		ok,
-		"single_damage=%.2f triple_damage=%.2f ratio=%.3f (sublinear <%.1f)"
-		% [single_damage, triple_damage, ratio, S8_STACK_RATIO_MAX],
+		"single_damage=%.2f triple_damage=%.2f ratio=%.3f (sublinear <%.1f) peak_partners=%d"
+		% [single_damage, triple_damage, ratio, S8_STACK_RATIO_MAX, peak_partners],
+	)
+
+
+func _check_scenario_08b() -> void:
+	## Depth-column sequential contact: defender never hosts 2+ partners at once.
+	var peak := int(_scenario.get("max_defender_partners"))
+	var multi_ticks := int(_scenario.get("multi_partner_ticks"))
+	var dmg: float = float(_scenario.get_defender_damage_taken())
+	var ok := true
+	if peak > 1 or multi_ticks > 0:
+		push_error(
+			"S8b sequential violated: max_partners=%d multi_partner_ticks=%d (expected sequential depth column)"
+			% [peak, multi_ticks]
+		)
+		ok = false
+	if dmg <= 0.0:
+		push_error("S8b zero defender damage")
+		ok = false
+	_record_check(
+		"[WO-030] S8b",
+		ok,
+		"max_partners=%d multi_partner_ticks=%d defender_damage=%.2f (sequential depth column)"
+		% [peak, multi_ticks, dmg],
 	)
 
 
