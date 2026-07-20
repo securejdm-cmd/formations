@@ -1,0 +1,10 @@
+12:[WO-010] Fast-mode certification PASS (seed 12345 trace byte-identical)
+17:[WO-011] Threaded certification PASS (seed 12345 trace byte-identical)
+72:[WO-010] S1 seed 12345 PASS winner=blue_1 combat=81.6s
+289:[WO-016] S18 PASS impact=21.601 reflected=10.800 cav_str=80.25 winner=blue_spears
+361:[WO-019] S29 PASS 20m:v=2.82/i=0.00 60m:v=7.44/i=11.98 120m:v=11.28/i=18.16 200m:v=13.42/i=21.60
+407:[WO-024] Perf40 GAMEPLAY_TICK begin (canonical gate)
+408:[WO-024] Perf40 GAMEPLAY_TICK sample done
+413:[WO-024] Perf40 GAMEPLAY_TICK avg_tick_ms=20.428 p95_tick_ms=29.098 max_tick_ms=31.735 ticks=800
+416:[WO-024] Perf40 GATE_50MS GAMEPLAY_TICK_p95=29.098 verdict=PASS (no optimization this WO)
+428:[WO-015] Meta PASS=72 FAIL=0 expected_green_pass=72 exit=0

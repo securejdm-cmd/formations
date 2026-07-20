@@ -2,6 +2,7 @@
 
 Canonical index of FORMATIONS work-order reports (newest first). Raw `main` branch links.
 
+- [WO-026_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-026-movement-diagnostic-fd84/docs/reports/WO-026_completion.md) — WO-026 movement diagnostic; march enemy query fix
 - [WO-025_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-025-quality-of-day-fd84/docs/reports/WO-025_completion.md) — WO-025 quality_of_day (R21); Task 2 width escalated
 - [WO-025_escalation.md](https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-025-quality-of-day-fd84/docs/reports/WO-025_escalation.md) — WO-025 no σ meets R21 bands
 - [WO-024_completion.md](https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-024-honest-numbers-fd84/docs/reports/WO-024_completion.md) — WO-024 Honest Numbers (GAMEPLAY_TICK, surface-gap gravity, sensitivity)

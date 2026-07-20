@@ -42,6 +42,9 @@ var volley_visual_callback: Callable = Callable()
 ## WO-021: optional coarse height grid (null = absent; flat grid = identity modifiers).
 var height_field = null
 var _quality_of_day_assigned: bool = false
+## WO-026: per-tick caches for march enemy query radius (avoid O(units) rescans).
+var _cached_max_closing_speed_m: float = -1.0
+var _cached_max_unit_dimension_m: float = -1.0
 
 
 func configure_rng(seed_value: int) -> void:
@@ -84,10 +87,16 @@ func assign_quality_of_day_if_needed() -> void:
 
 func begin_sim_tick(tick_interval: float) -> void:
 	current_tick_interval = tick_interval
+	_invalidate_march_radius_cache()
 	SimRngBridge.set_worker_rng(_rng)
 	assign_quality_of_day_if_needed()
 	EdgeContact.begin_tick(sim_tick_count)
 	capture_tick_start_positions()
+
+
+func _invalidate_march_radius_cache() -> void:
+	_cached_max_closing_speed_m = -1.0
+	_cached_max_unit_dimension_m = -1.0
 
 
 func overlap_assert_enabled() -> bool:
@@ -286,48 +295,88 @@ func spatial_neighbors_sorted(unit: SimUnitProxy) -> Array:
 
 
 func max_closing_speed_m() -> float:
+	if _cached_max_closing_speed_m >= 0.0:
+		return _cached_max_closing_speed_m
+	var t0 := _TickProfiler.begin_section("move_max_scan")
+	if _TickProfiler.enabled:
+		_TickProfiler.move_max_scan_calls += 1
 	var max_speed := 0.0
 	for unit in units:
 		if unit == null or unit.get_state() == Unit.State.REMOVED:
 			continue
 		max_speed = maxf(max_speed, _Charge.gait_top_speed_m_s(unit))
-	return max_speed * 2.0
+	_cached_max_closing_speed_m = max_speed * 2.0
+	if _TickProfiler.enabled and t0 >= 0:
+		_TickProfiler.move_max_scan_usec += Time.get_ticks_usec() - t0
+	return _cached_max_closing_speed_m
 
 
 func max_unit_dimension_m() -> float:
+	if _cached_max_unit_dimension_m >= 0.0:
+		return _cached_max_unit_dimension_m
+	var t0 := _TickProfiler.begin_section("move_max_scan")
+	if _TickProfiler.enabled:
+		_TickProfiler.move_max_scan_calls += 1
 	var max_dim := 0.0
 	for unit in units:
 		if unit == null or unit.get_state() == Unit.State.REMOVED:
 			continue
 		var dim: float = unit.effective_depth_m() + unit.effective_frontage_m()
 		max_dim = maxf(max_dim, dim)
-	return max_dim
+	_cached_max_unit_dimension_m = max_dim
+	if _TickProfiler.enabled and t0 >= 0:
+		_TickProfiler.move_max_scan_usec += Time.get_ticks_usec() - t0
+	return _cached_max_unit_dimension_m
 
 
-func march_enemy_query_radius_px() -> float:
-	## Contact-scale radius for collision clamping, plus charge_commit_range so
-	## R17 gait commitment can see targets before the final 50m (WO-019/R18).
+func march_enemy_query_radius_px(unit: SimUnitProxy = null) -> float:
+	## Contact-scale radius for collision clamping. Charge-commit range (WO-019)
+	## is included only for units that can commit a charge gait (gait_mult > 1).
+	## Infantry (gait_mult=1) never use find_charge_commit_target; widen only for
+	## them would scan ~150m for a no-op (WO-026).
+	var t0 := _TickProfiler.begin_section("move_radius_calc")
+	if _TickProfiler.enabled:
+		_TickProfiler.move_radius_calc_calls += 1
 	var px_per_meter := Constants.get_float("px_per_meter")
 	var contact_radius_m := (
 		max_closing_speed_m() * current_tick_interval
 		+ max_unit_dimension_m()
 	)
-	var commit_radius_m := (
-		Constants.get_float("charge_commit_range_m")
-		+ max_unit_dimension_m()
-	)
-	return maxf(contact_radius_m, commit_radius_m) * px_per_meter
+	var out_m := contact_radius_m
+	var need_commit := false
+	if not _TickProfiler.debug_disable_charge_commit_radius and unit != null:
+		need_commit = _Charge.charge_gait_mult(unit) > 1.0 + 0.001
+	elif not _TickProfiler.debug_disable_charge_commit_radius and unit == null:
+		# Legacy callers without a unit: keep prior widen (should not happen).
+		need_commit = true
+	if need_commit:
+		var commit_radius_m := (
+			Constants.get_float("charge_commit_range_m")
+			+ max_unit_dimension_m()
+		)
+		out_m = maxf(contact_radius_m, commit_radius_m)
+	var out := out_m * px_per_meter
+	if _TickProfiler.enabled and t0 >= 0:
+		_TickProfiler.move_radius_calc_usec += Time.get_ticks_usec() - t0
+	return out
 
 
 func grid_units_within_radius_sorted(unit: SimUnitProxy, radius_px: float) -> Array:
+	var t0 := _TickProfiler.begin_section("move_enemy_query")
 	if grid_cells.is_empty():
 		rebuild_spatial_grid()
 	var origin: Vector2i = grid_cell_key(unit.position)
 	var ring := maxi(int(ceil(radius_px / grid_cell_size_px)), 1)
 	var found: Array = []
 	var seen: Dictionary = {}
+	var cells_scanned := 0
+	if _TickProfiler.enabled:
+		_TickProfiler.move_enemy_query_calls += 1
+		_TickProfiler.move_alloc_arrays += 1
+		_TickProfiler.move_alloc_dicts += 1
 	for dx in range(-ring, ring + 1):
 		for dy in range(-ring, ring + 1):
+			cells_scanned += 1
 			var key := Vector2i(origin.x + dx, origin.y + dy)
 			if not grid_cells.has(key):
 				continue
@@ -341,6 +390,11 @@ func grid_units_within_radius_sorted(unit: SimUnitProxy, radius_px: float) -> Ar
 	found.sort_custom(func(a: SimUnitProxy, b: SimUnitProxy) -> bool:
 		return a.unit_id < b.unit_id
 	)
+	if _TickProfiler.enabled:
+		_TickProfiler.move_enemy_query_cells_scanned += cells_scanned
+		_TickProfiler.move_enemy_query_candidates += found.size()
+		if t0 >= 0:
+			_TickProfiler.move_enemy_query_usec += Time.get_ticks_usec() - t0
 	return found
 
 
@@ -370,9 +424,11 @@ func clear_charge_pair_latch(attacker_id: String, defender_id: String) -> void:
 
 func enemies_for(unit: SimUnitProxy) -> Array:
 	var enemies: Array = []
+	if _TickProfiler.enabled:
+		_TickProfiler.move_alloc_arrays += 1
 	var candidates: Array = units
 	if uses_march_grid_enemies(unit):
-		candidates = grid_units_within_radius_sorted(unit, march_enemy_query_radius_px())
+		candidates = grid_units_within_radius_sorted(unit, march_enemy_query_radius_px(unit))
 	elif unit.get_state() in [Unit.State.ENGAGED, Unit.State.WAVERING, Unit.State.ROUTING, Unit.State.RALLYING]:
 		candidates = spatial_neighbors_sorted(unit)
 	for other in candidates:
@@ -385,11 +441,15 @@ func enemies_for(unit: SimUnitProxy) -> Array:
 
 
 func update_movement(delta: float) -> void:
+	_invalidate_march_radius_cache()
 	for unit in units:
 		if unit.get_state() == Unit.State.REMOVED:
 			continue
 		unit.tick_charge_amp(delta)
-		unit.update_brace(delta, enemies_for(unit))
+		# One enemy query per unit per tick — brace + march previously each
+		# rebuilt the march-radius candidate list (WO-026).
+		var enemies: Array = enemies_for(unit)
+		unit.update_brace(delta, enemies)
 		unit.tick_disengage(delta)
 		_clear_charge_latch_if_requested(unit)
 		unit.tick_wheel(delta)
@@ -403,16 +463,16 @@ func update_movement(delta: float) -> void:
 			var decel: float = _Charge.decel_m_s2(unit)
 			unit.current_speed_m_s = maxf(0.0, unit.current_speed_m_s - decel * delta)
 		if unit.get_state() == Unit.State.MARCHING:
-			unit.update_marching(delta, enemies_for(unit))
+			unit.update_marching(delta, enemies)
 			try_begin_engagement(unit)
 		elif unit.get_state() == Unit.State.ROUTING or unit.get_state() == Unit.State.RALLYING:
-			unit.update_routing(delta, enemies_for(unit))
+			unit.update_routing(delta, enemies)
 		elif (
 			unit.get_state() == Unit.State.HOLD
 			and unit.current_order == Unit.Order.MARCH_TO
 			and not unit.is_rallied_hold()
 		):
-			unit.update_marching(delta, enemies_for(unit))
+			unit.update_marching(delta, enemies)
 			try_begin_engagement(unit)
 
 

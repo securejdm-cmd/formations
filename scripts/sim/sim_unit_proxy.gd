@@ -3,6 +3,7 @@ extends RefCounted
 
 const _ChargeCombat := preload("res://scripts/charge_combat.gd")
 const _Magnetism := preload("res://scripts/magnetism.gd")
+const _TickProfiler := preload("res://scripts/tick_profiler.gd")
 
 var unit_id: String = ""
 var team_id: String = ""
@@ -407,6 +408,9 @@ func update_marching(delta: float, enemies: Array = []) -> void:
 		return
 	var steps := maxi(1, _ChargeCombat.march_substep_count(self, delta))
 	var sub := delta / float(steps)
+	if _TickProfiler.enabled:
+		_TickProfiler.move_substep_unit_ticks += 1
+		_TickProfiler.move_substep_iterations += steps
 	for _i in range(steps):
 		if _state != Unit.State.MARCHING:
 			return
@@ -422,22 +426,37 @@ func _update_marching_step(delta: float, enemies: Array = []) -> void:
 		return
 	var gravity_target = null
 	if not auto_engage_locked and not disengaging:
+		var t_grav := _TickProfiler.begin_section("move_gravity")
+		if _TickProfiler.enabled:
+			_TickProfiler.move_gravity_calls += 1
 		gravity_target = _Magnetism.find_gravity_target(self, enemies)
+		if _TickProfiler.enabled and t_grav >= 0:
+			_TickProfiler.move_gravity_usec += Time.get_ticks_usec() - t_grav
 	var desired_move: Vector2 = Vector2.ZERO
 	if gravity_target != null:
 		var to_enemy: Vector2 = gravity_target.position - position
 		if to_enemy.length_squared() > 0.0001:
+			var t_rot := _TickProfiler.begin_section("move_auto_rotation")
+			if _TickProfiler.enabled:
+				_TickProfiler.move_auto_rotation_calls += 1
 			_Magnetism.rotate_toward(self, to_enemy, delta)
+			if _TickProfiler.enabled and t_rot >= 0:
+				_TickProfiler.move_auto_rotation_usec += Time.get_ticks_usec() - t_rot
 			desired_move = to_enemy.normalized()
 	elif to_target.length() > 0.001:
 		var desired: Vector2 = to_target.normalized()
 		var angled: float = facing.angle_to(desired)
 		if absf(angled) > 0.15:
+			var t_rot2 := _TickProfiler.begin_section("move_auto_rotation")
+			if _TickProfiler.enabled:
+				_TickProfiler.move_auto_rotation_calls += 1
 			var max_turn: float = _ChargeCombat.turn_rate_rad_s(self) * delta
 			if absf(angled) <= max_turn:
 				facing = desired
 			else:
 				facing = facing.rotated(signf(angled) * max_turn)
+			if _TickProfiler.enabled and t_rot2 >= 0:
+				_TickProfiler.move_auto_rotation_usec += Time.get_ticks_usec() - t_rot2
 		desired_move = desired
 	var accel: float = _ChargeCombat.accel_m_s2(self)
 	var decel: float = _ChargeCombat.decel_m_s2(self)
@@ -450,7 +469,12 @@ func _update_marching_step(delta: float, enemies: Array = []) -> void:
 	if desired_move == Vector2.ZERO:
 		desired_move = to_target.normalized() if to_target.length() > 0.001 else facing.normalized()
 	if gravity_target == null and to_target.length() <= move_px:
+		var t_pos0 := _TickProfiler.begin_section("move_position")
+		if _TickProfiler.enabled:
+			_TickProfiler.move_position_integrate_calls += 1
 		position = march_target
+		if _TickProfiler.enabled and t_pos0 >= 0:
+			_TickProfiler.move_position_integrate_usec += Time.get_ticks_usec() - t_pos0
 		current_speed_m_s = maxf(0.0, current_speed_m_s - decel * delta)
 		charge_committed = false
 		_charge_commit_target_id = ""
@@ -461,9 +485,14 @@ func _update_marching_step(delta: float, enemies: Array = []) -> void:
 	for enemy in enemies:
 		if not CombatResolver.could_have_contact(self, enemy):
 			continue
+		var t_ct := _TickProfiler.begin_section("move_contact")
+		if _TickProfiler.enabled:
+			_TickProfiler.move_contact_check_calls += 1
 		var touching: bool = (
 			EdgeContact.units_have_contact(self, enemy) or EdgeContact.units_have_contact(enemy, self)
 		)
+		if _TickProfiler.enabled and t_ct >= 0:
+			_TickProfiler.move_contact_check_usec += Time.get_ticks_usec() - t_ct
 		if touching:
 			still_touching = true
 			if auto_engage_locked:
@@ -472,7 +501,12 @@ func _update_marching_step(delta: float, enemies: Array = []) -> void:
 		move_px = CombatResolver.clamp_march_distance(self, enemy, move_px)
 		if move_px <= 0.0:
 			return
+	var t_pos := _TickProfiler.begin_section("move_position")
+	if _TickProfiler.enabled:
+		_TickProfiler.move_position_integrate_calls += 1
 	position += desired_move * move_px
+	if _TickProfiler.enabled and t_pos >= 0:
+		_TickProfiler.move_position_integrate_usec += Time.get_ticks_usec() - t_pos
 	if auto_engage_locked and not enemies.is_empty() and not still_touching:
 		auto_engage_locked = false
 
@@ -574,17 +608,26 @@ func set_march_to(target: Vector2) -> void:
 
 func _update_charge_commit(enemies: Array) -> void:
 	## R17: commit to charge gait when marching toward a front-arc enemy in range.
+	var t0 := _TickProfiler.begin_section("move_charge_commit")
+	if _TickProfiler.enabled:
+		_TickProfiler.move_charge_commit_calls += 1
 	if current_order != Unit.Order.MARCH_TO:
 		charge_committed = false
 		_charge_commit_target_id = ""
+		if _TickProfiler.enabled and t0 >= 0:
+			_TickProfiler.move_charge_commit_usec += Time.get_ticks_usec() - t0
 		return
 	var target = _ChargeCombat.find_charge_commit_target(self, enemies)
 	if target == null:
 		charge_committed = false
 		_charge_commit_target_id = ""
+		if _TickProfiler.enabled and t0 >= 0:
+			_TickProfiler.move_charge_commit_usec += Time.get_ticks_usec() - t0
 		return
 	charge_committed = true
 	_charge_commit_target_id = str(target.unit_id)
+	if _TickProfiler.enabled and t0 >= 0:
+		_TickProfiler.move_charge_commit_usec += Time.get_ticks_usec() - t0
 
 
 func start_from_rest() -> void:
