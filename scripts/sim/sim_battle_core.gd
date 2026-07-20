@@ -394,7 +394,26 @@ func try_begin_engagement(unit: SimUnitProxy) -> void:
 		if other.auto_engage_locked or other.disengaging:
 			continue
 		if not CombatResolver.units_have_any_contact(unit, other):
-			continue
+			# WO-023: head-on near-miss after destination arrival. S1 keeps
+			# re-closing via residual march (dest still ahead); spears↔cavalry
+			# froze when the attacker reached dest with gap≈0.02m and no gravity
+			# (engage_radius 4m << formation depths). Snap only when the marcher
+			# has exhausted its destination — preserves S1's ~50% duty cycle.
+			if not (
+				CombatResolver.is_head_on_pair(unit, other)
+				and not EdgeContact.has_non_front_segment_contact(unit, other)
+			):
+				continue
+			var gap_m: float = CombatResolver.center_gap_m(unit, other)
+			if gap_m <= CombatResolver.contact_epsilon_m() or gap_m > CombatResolver.engage_snap_max_m():
+				continue
+			var px := Constants.get_float("px_per_meter")
+			var dest_left_m: float = unit.position.distance_to(unit.march_target) / px
+			if dest_left_m > CombatResolver.engage_snap_max_m() and unit.get_state() != Unit.State.HOLD:
+				continue
+			CombatResolver.snap_pair_to_contact(unit, other)
+			if not CombatResolver.units_have_any_contact(unit, other):
+				continue
 
 		var already: bool = unit.has_contact_with(other)
 		if not already:

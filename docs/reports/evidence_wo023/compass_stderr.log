@@ -1,0 +1,14 @@
+SCRIPT ERROR: Compile Error: Identifier not found: Constants
+          at: GDScript::reload (res://scripts/edge_contact.gd:17)
+SCRIPT ERROR: Compile Error: Identifier not found: Constants
+          at: GDScript::reload (res://scripts/formation_geometry.gd:18)
+SCRIPT ERROR: Compile Error: Identifier not found: Constants
+          at: GDScript::reload (res://scripts/combat_resolver.gd:14)
+SCRIPT ERROR: Compile Error: Failed to compile depended scripts.
+          at: GDScript::reload (res://tests/edge_contact_compass_test.gd:0)
+ERROR: Failed to load script "res://tests/edge_contact_compass_test.gd" with error "Compilation failed".
+   at: load (modules/gdscript/gdscript.cpp:3022)
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+     at: cleanup (core/object/object.cpp:2378)
+ERROR: 1 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:614)

@@ -1,0 +1,11 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+PERF40_PROBE_START mode=REPEAT_MAIN sha_hint=env
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+PERF40_PROBE mode=MAIN_TICK_R1 n=800 avg=46.105 p95=53.577 max=54.105
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+PERF40_PROBE mode=MAIN_TICK_R2 n=800 avg=46.199 p95=53.733 max=54.811
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000

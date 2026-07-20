@@ -1,0 +1,2131 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+MATRIX_START configuration=FRONTAL_VS_STANDING profiles=6 seeds=11 pairs=36
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=124.1s | combat=75.8s | flee=100.5s | winner_strength=71.28 | winner_cohesion=28.08
+MATRIX_ROW test_infantry>test_infantry seed=1000 winner=attacker combat=75.8
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1001.csv
+[Scenario 01] SUMMARY | winner=attacker | march=124.1s | combat=80.6s | flee=101.1s | winner_strength=69.15 | winner_cohesion=22.64
+MATRIX_ROW test_infantry>test_infantry seed=1001 winner=attacker combat=80.6
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1002.csv
+[Scenario 01] SUMMARY | winner=defender | march=124.1s | combat=76.0s | flee=200.0s | winner_strength=71.20 | winner_cohesion=27.86
+MATRIX_ROW test_infantry>test_infantry seed=1002 winner=defender combat=76.0
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1003.csv
+[Scenario 01] SUMMARY | winner=defender | march=124.1s | combat=83.9s | flee=200.3s | winner_strength=67.71 | winner_cohesion=18.95
+MATRIX_ROW test_infantry>test_infantry seed=1003 winner=defender combat=83.9
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1004.csv
+[Scenario 01] SUMMARY | winner=attacker | march=124.1s | combat=83.4s | flee=101.6s | winner_strength=67.77 | winner_cohesion=19.10
+MATRIX_ROW test_infantry>test_infantry seed=1004 winner=attacker combat=83.4
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1005.csv
+[Scenario 01] SUMMARY | winner=attacker | march=124.1s | combat=73.2s | flee=100.1s | winner_strength=72.49 | winner_cohesion=31.14
+MATRIX_ROW test_infantry>test_infantry seed=1005 winner=attacker combat=73.2
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1006.csv
+[Scenario 01] SUMMARY | winner=attacker | march=124.1s | combat=77.0s | flee=100.6s | winner_strength=70.76 | winner_cohesion=26.75
+MATRIX_ROW test_infantry>test_infantry seed=1006 winner=attacker combat=77.0
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1007.csv
+[Scenario 01] SUMMARY | winner=defender | march=124.1s | combat=82.4s | flee=200.2s | winner_strength=68.36 | winner_cohesion=20.65
+MATRIX_ROW test_infantry>test_infantry seed=1007 winner=defender combat=82.4
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1008.csv
+[Scenario 01] SUMMARY | winner=attacker | march=124.1s | combat=81.0s | flee=101.2s | winner_strength=69.01 | winner_cohesion=22.31
+MATRIX_ROW test_infantry>test_infantry seed=1008 winner=attacker combat=81.0
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1009.csv
+[Scenario 01] SUMMARY | winner=attacker | march=124.1s | combat=84.6s | flee=101.7s | winner_strength=67.21 | winner_cohesion=17.72
+MATRIX_ROW test_infantry>test_infantry seed=1009 winner=attacker combat=84.6
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=defender | march=124.1s | combat=81.6s | flee=200.2s | winner_strength=68.68 | winner_cohesion=21.47
+MATRIX_ROW test_infantry>test_infantry seed=12345 winner=defender combat=81.6
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=124.1s | combat=75.8s | flee=100.5s | winner_strength=71.28 | winner_cohesion=28.08
+MATRIX_ROW test_infantry>test_infantry_charge seed=1000 winner=attacker combat=75.8
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1001.csv
+[Scenario 01] SUMMARY | winner=attacker | march=124.1s | combat=80.6s | flee=101.1s | winner_strength=69.15 | winner_cohesion=22.64
+MATRIX_ROW test_infantry>test_infantry_charge seed=1001 winner=attacker combat=80.6
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1002.csv
+[Scenario 01] SUMMARY | winner=defender | march=124.1s | combat=76.0s | flee=200.0s | winner_strength=71.20 | winner_cohesion=27.86
+MATRIX_ROW test_infantry>test_infantry_charge seed=1002 winner=defender combat=76.0
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1003.csv
+[Scenario 01] SUMMARY | winner=defender | march=124.1s | combat=83.9s | flee=200.3s | winner_strength=67.71 | winner_cohesion=18.95
+MATRIX_ROW test_infantry>test_infantry_charge seed=1003 winner=defender combat=83.9
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1004.csv
+[Scenario 01] SUMMARY | winner=attacker | march=124.1s | combat=83.4s | flee=101.6s | winner_strength=67.77 | winner_cohesion=19.10
+MATRIX_ROW test_infantry>test_infantry_charge seed=1004 winner=attacker combat=83.4
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1005.csv
+[Scenario 01] SUMMARY | winner=attacker | march=124.1s | combat=73.2s | flee=100.1s | winner_strength=72.49 | winner_cohesion=31.14
+MATRIX_ROW test_infantry>test_infantry_charge seed=1005 winner=attacker combat=73.2
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1006.csv
+[Scenario 01] SUMMARY | winner=attacker | march=124.1s | combat=77.0s | flee=100.6s | winner_strength=70.76 | winner_cohesion=26.75
+MATRIX_ROW test_infantry>test_infantry_charge seed=1006 winner=attacker combat=77.0
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1007.csv
+[Scenario 01] SUMMARY | winner=defender | march=124.1s | combat=82.4s | flee=200.2s | winner_strength=68.36 | winner_cohesion=20.65
+MATRIX_ROW test_infantry>test_infantry_charge seed=1007 winner=defender combat=82.4
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1008.csv
+[Scenario 01] SUMMARY | winner=attacker | march=124.1s | combat=81.0s | flee=101.2s | winner_strength=69.01 | winner_cohesion=22.31
+MATRIX_ROW test_infantry>test_infantry_charge seed=1008 winner=attacker combat=81.0
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1009.csv
+[Scenario 01] SUMMARY | winner=attacker | march=124.1s | combat=84.6s | flee=101.7s | winner_strength=67.21 | winner_cohesion=17.72
+MATRIX_ROW test_infantry>test_infantry_charge seed=1009 winner=attacker combat=84.6
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=defender | march=124.1s | combat=81.6s | flee=200.2s | winner_strength=68.68 | winner_cohesion=21.47
+MATRIX_ROW test_infantry>test_infantry_charge seed=12345 winner=defender combat=81.6
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=124.1s | combat=54.0s | flee=105.9s | winner_strength=96.99 | winner_cohesion=92.29
+MATRIX_ROW test_infantry>test_spears seed=1000 winner=attacker combat=54.0
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1001.csv
+[Scenario 01] SUMMARY | winner=attacker | march=124.1s | combat=53.9s | flee=105.9s | winner_strength=97.03 | winner_cohesion=92.40
+MATRIX_ROW test_infantry>test_spears seed=1001 winner=attacker combat=53.9
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1002.csv
+[Scenario 01] SUMMARY | winner=attacker | march=124.1s | combat=54.4s | flee=105.9s | winner_strength=96.98 | winner_cohesion=92.22
+MATRIX_ROW test_infantry>test_spears seed=1002 winner=attacker combat=54.4
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1003.csv
+[Scenario 01] SUMMARY | winner=attacker | march=124.1s | combat=54.3s | flee=105.9s | winner_strength=96.99 | winner_cohesion=92.27
+MATRIX_ROW test_infantry>test_spears seed=1003 winner=attacker combat=54.3
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1004.csv
+[Scenario 01] SUMMARY | winner=attacker | march=124.1s | combat=53.9s | flee=105.9s | winner_strength=96.98 | winner_cohesion=92.23
+MATRIX_ROW test_infantry>test_spears seed=1004 winner=attacker combat=53.9
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1005.csv
+[Scenario 01] SUMMARY | winner=attacker | march=124.1s | combat=54.0s | flee=105.8s | winner_strength=97.02 | winner_cohesion=92.38
+MATRIX_ROW test_infantry>test_spears seed=1005 winner=attacker combat=54.0
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1006.csv
+[Scenario 01] SUMMARY | winner=attacker | march=124.1s | combat=54.0s | flee=105.9s | winner_strength=97.02 | winner_cohesion=92.38
+MATRIX_ROW test_infantry>test_spears seed=1006 winner=attacker combat=54.0
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1007.csv
+[Scenario 01] SUMMARY | winner=attacker | march=124.1s | combat=54.2s | flee=105.9s | winner_strength=96.95 | winner_cohesion=92.19
+MATRIX_ROW test_infantry>test_spears seed=1007 winner=attacker combat=54.2
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1008.csv
+[Scenario 01] SUMMARY | winner=attacker | march=124.1s | combat=54.1s | flee=105.9s | winner_strength=97.02 | winner_cohesion=92.38
+MATRIX_ROW test_infantry>test_spears seed=1008 winner=attacker combat=54.1
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1009.csv
+[Scenario 01] SUMMARY | winner=attacker | march=124.1s | combat=53.7s | flee=105.9s | winner_strength=97.03 | winner_cohesion=92.40
+MATRIX_ROW test_infantry>test_spears seed=1009 winner=attacker combat=53.7
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=attacker | march=124.1s | combat=53.9s | flee=106.0s | winner_strength=97.02 | winner_cohesion=92.36
+MATRIX_ROW test_infantry>test_spears seed=12345 winner=attacker combat=53.9
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=124.5s | combat=35.4s | flee=80.9s | winner_strength=90.68 | winner_cohesion=76.69
+MATRIX_ROW test_infantry>test_archer seed=1000 winner=attacker combat=35.4
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1001.csv
+[Scenario 01] SUMMARY | winner=attacker | march=124.5s | combat=35.4s | flee=80.9s | winner_strength=90.68 | winner_cohesion=76.69
+MATRIX_ROW test_infantry>test_archer seed=1001 winner=attacker combat=35.4
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1002.csv
+[Scenario 01] SUMMARY | winner=attacker | march=124.5s | combat=35.4s | flee=80.9s | winner_strength=90.68 | winner_cohesion=76.69
+MATRIX_ROW test_infantry>test_archer seed=1002 winner=attacker combat=35.4
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1003.csv
+[Scenario 01] SUMMARY | winner=attacker | march=124.5s | combat=35.4s | flee=80.9s | winner_strength=90.68 | winner_cohesion=76.69
+MATRIX_ROW test_infantry>test_archer seed=1003 winner=attacker combat=35.4
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1004.csv
+[Scenario 01] SUMMARY | winner=attacker | march=124.5s | combat=35.4s | flee=80.9s | winner_strength=90.68 | winner_cohesion=76.69
+MATRIX_ROW test_infantry>test_archer seed=1004 winner=attacker combat=35.4
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1005.csv
+[Scenario 01] SUMMARY | winner=attacker | march=124.5s | combat=35.2s | flee=80.9s | winner_strength=90.68 | winner_cohesion=76.71
+MATRIX_ROW test_infantry>test_archer seed=1005 winner=attacker combat=35.2
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1006.csv
+[Scenario 01] SUMMARY | winner=attacker | march=124.5s | combat=35.2s | flee=80.9s | winner_strength=90.68 | winner_cohesion=76.71
+MATRIX_ROW test_infantry>test_archer seed=1006 winner=attacker combat=35.2
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1007.csv
+[Scenario 01] SUMMARY | winner=attacker | march=124.5s | combat=35.4s | flee=80.9s | winner_strength=90.68 | winner_cohesion=76.69
+MATRIX_ROW test_infantry>test_archer seed=1007 winner=attacker combat=35.4
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1008.csv
+[Scenario 01] SUMMARY | winner=attacker | march=124.5s | combat=35.2s | flee=80.9s | winner_strength=90.68 | winner_cohesion=76.71
+MATRIX_ROW test_infantry>test_archer seed=1008 winner=attacker combat=35.2
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1009.csv
+[Scenario 01] SUMMARY | winner=attacker | march=124.5s | combat=35.4s | flee=80.9s | winner_strength=90.68 | winner_cohesion=76.69
+MATRIX_ROW test_infantry>test_archer seed=1009 winner=attacker combat=35.4
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=attacker | march=124.5s | combat=35.4s | flee=80.9s | winner_strength=90.68 | winner_cohesion=76.69
+MATRIX_ROW test_infantry>test_archer seed=12345 winner=attacker combat=35.4
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=125.1s | combat=47.4s | flee=36.4s | winner_strength=95.77 | winner_cohesion=89.43
+MATRIX_ROW test_infantry>test_cavalry seed=1000 winner=attacker combat=47.4
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1001.csv
+[Scenario 01] SUMMARY | winner=attacker | march=125.1s | combat=47.4s | flee=36.4s | winner_strength=95.77 | winner_cohesion=89.43
+MATRIX_ROW test_infantry>test_cavalry seed=1001 winner=attacker combat=47.4
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1002.csv
+[Scenario 01] SUMMARY | winner=attacker | march=125.1s | combat=47.6s | flee=36.4s | winner_strength=95.76 | winner_cohesion=89.40
+MATRIX_ROW test_infantry>test_cavalry seed=1002 winner=attacker combat=47.6
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1003.csv
+[Scenario 01] SUMMARY | winner=attacker | march=125.1s | combat=47.4s | flee=36.4s | winner_strength=95.77 | winner_cohesion=89.43
+MATRIX_ROW test_infantry>test_cavalry seed=1003 winner=attacker combat=47.4
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1004.csv
+[Scenario 01] SUMMARY | winner=attacker | march=125.1s | combat=47.4s | flee=36.4s | winner_strength=95.77 | winner_cohesion=89.43
+MATRIX_ROW test_infantry>test_cavalry seed=1004 winner=attacker combat=47.4
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1005.csv
+[Scenario 01] SUMMARY | winner=attacker | march=125.1s | combat=47.4s | flee=36.4s | winner_strength=95.77 | winner_cohesion=89.43
+MATRIX_ROW test_infantry>test_cavalry seed=1005 winner=attacker combat=47.4
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1006.csv
+[Scenario 01] SUMMARY | winner=attacker | march=125.1s | combat=47.4s | flee=36.4s | winner_strength=95.77 | winner_cohesion=89.43
+MATRIX_ROW test_infantry>test_cavalry seed=1006 winner=attacker combat=47.4
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1007.csv
+[Scenario 01] SUMMARY | winner=attacker | march=125.1s | combat=47.6s | flee=36.4s | winner_strength=95.76 | winner_cohesion=89.40
+MATRIX_ROW test_infantry>test_cavalry seed=1007 winner=attacker combat=47.6
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1008.csv
+[Scenario 01] SUMMARY | winner=attacker | march=125.1s | combat=47.4s | flee=36.4s | winner_strength=95.77 | winner_cohesion=89.43
+MATRIX_ROW test_infantry>test_cavalry seed=1008 winner=attacker combat=47.4
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1009.csv
+[Scenario 01] SUMMARY | winner=attacker | march=125.1s | combat=47.4s | flee=36.4s | winner_strength=95.77 | winner_cohesion=89.43
+MATRIX_ROW test_infantry>test_cavalry seed=1009 winner=attacker combat=47.4
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=attacker | march=125.1s | combat=47.4s | flee=36.4s | winner_strength=95.77 | winner_cohesion=89.43
+MATRIX_ROW test_infantry>test_cavalry seed=12345 winner=attacker combat=47.4
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=125.8s | combat=36.2s | flee=65.7s | winner_strength=97.44 | winner_cohesion=93.59
+MATRIX_ROW test_infantry>test_skirmisher seed=1000 winner=attacker combat=36.2
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1001.csv
+[Scenario 01] SUMMARY | winner=attacker | march=125.8s | combat=36.2s | flee=65.7s | winner_strength=97.44 | winner_cohesion=93.59
+MATRIX_ROW test_infantry>test_skirmisher seed=1001 winner=attacker combat=36.2
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1002.csv
+[Scenario 01] SUMMARY | winner=attacker | march=125.8s | combat=36.2s | flee=65.7s | winner_strength=97.44 | winner_cohesion=93.59
+MATRIX_ROW test_infantry>test_skirmisher seed=1002 winner=attacker combat=36.2
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1003.csv
+[Scenario 01] SUMMARY | winner=attacker | march=125.8s | combat=36.2s | flee=65.7s | winner_strength=97.44 | winner_cohesion=93.59
+MATRIX_ROW test_infantry>test_skirmisher seed=1003 winner=attacker combat=36.2
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1004.csv
+[Scenario 01] SUMMARY | winner=attacker | march=125.8s | combat=36.2s | flee=65.7s | winner_strength=97.44 | winner_cohesion=93.59
+MATRIX_ROW test_infantry>test_skirmisher seed=1004 winner=attacker combat=36.2
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1005.csv
+[Scenario 01] SUMMARY | winner=attacker | march=125.8s | combat=36.2s | flee=65.7s | winner_strength=97.44 | winner_cohesion=93.59
+MATRIX_ROW test_infantry>test_skirmisher seed=1005 winner=attacker combat=36.2
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1006.csv
+[Scenario 01] SUMMARY | winner=attacker | march=125.8s | combat=36.2s | flee=65.7s | winner_strength=97.44 | winner_cohesion=93.59
+MATRIX_ROW test_infantry>test_skirmisher seed=1006 winner=attacker combat=36.2
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1007.csv
+[Scenario 01] SUMMARY | winner=attacker | march=125.8s | combat=36.2s | flee=65.7s | winner_strength=97.44 | winner_cohesion=93.59
+MATRIX_ROW test_infantry>test_skirmisher seed=1007 winner=attacker combat=36.2
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1008.csv
+[Scenario 01] SUMMARY | winner=attacker | march=125.8s | combat=36.2s | flee=65.7s | winner_strength=97.44 | winner_cohesion=93.59
+MATRIX_ROW test_infantry>test_skirmisher seed=1008 winner=attacker combat=36.2
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1009.csv
+[Scenario 01] SUMMARY | winner=attacker | march=125.8s | combat=36.2s | flee=65.7s | winner_strength=97.44 | winner_cohesion=93.59
+MATRIX_ROW test_infantry>test_skirmisher seed=1009 winner=attacker combat=36.2
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=attacker | march=125.8s | combat=36.2s | flee=65.7s | winner_strength=97.44 | winner_cohesion=93.59
+MATRIX_ROW test_infantry>test_skirmisher seed=12345 winner=attacker combat=36.2
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=52.8s | flee=98.8s | winner_strength=80.38 | winner_cohesion=50.94
+MATRIX_ROW test_infantry_charge>test_infantry seed=1000 winner=attacker combat=52.8
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1001.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=52.8s | flee=98.8s | winner_strength=80.38 | winner_cohesion=50.94
+MATRIX_ROW test_infantry_charge>test_infantry seed=1001 winner=attacker combat=52.8
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1002.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=53.0s | flee=98.8s | winner_strength=80.32 | winner_cohesion=50.81
+MATRIX_ROW test_infantry_charge>test_infantry seed=1002 winner=attacker combat=53.0
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1003.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=52.8s | flee=98.8s | winner_strength=80.38 | winner_cohesion=50.94
+MATRIX_ROW test_infantry_charge>test_infantry seed=1003 winner=attacker combat=52.8
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1004.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=52.8s | flee=98.9s | winner_strength=80.38 | winner_cohesion=50.94
+MATRIX_ROW test_infantry_charge>test_infantry seed=1004 winner=attacker combat=52.8
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1005.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=52.8s | flee=98.8s | winner_strength=80.38 | winner_cohesion=50.94
+MATRIX_ROW test_infantry_charge>test_infantry seed=1005 winner=attacker combat=52.8
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1006.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=52.8s | flee=98.8s | winner_strength=80.38 | winner_cohesion=50.94
+MATRIX_ROW test_infantry_charge>test_infantry seed=1006 winner=attacker combat=52.8
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1007.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=53.0s | flee=98.9s | winner_strength=80.32 | winner_cohesion=50.81
+MATRIX_ROW test_infantry_charge>test_infantry seed=1007 winner=attacker combat=53.0
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1008.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=52.8s | flee=98.8s | winner_strength=80.38 | winner_cohesion=50.94
+MATRIX_ROW test_infantry_charge>test_infantry seed=1008 winner=attacker combat=52.8
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1009.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=52.8s | flee=98.8s | winner_strength=80.38 | winner_cohesion=50.94
+MATRIX_ROW test_infantry_charge>test_infantry seed=1009 winner=attacker combat=52.8
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=53.0s | flee=98.8s | winner_strength=80.32 | winner_cohesion=50.81
+MATRIX_ROW test_infantry_charge>test_infantry seed=12345 winner=attacker combat=53.0
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=52.8s | flee=98.8s | winner_strength=80.38 | winner_cohesion=50.94
+MATRIX_ROW test_infantry_charge>test_infantry_charge seed=1000 winner=attacker combat=52.8
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1001.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=52.8s | flee=98.8s | winner_strength=80.38 | winner_cohesion=50.94
+MATRIX_ROW test_infantry_charge>test_infantry_charge seed=1001 winner=attacker combat=52.8
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1002.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=53.0s | flee=98.8s | winner_strength=80.32 | winner_cohesion=50.81
+MATRIX_ROW test_infantry_charge>test_infantry_charge seed=1002 winner=attacker combat=53.0
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1003.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=52.8s | flee=98.8s | winner_strength=80.38 | winner_cohesion=50.94
+MATRIX_ROW test_infantry_charge>test_infantry_charge seed=1003 winner=attacker combat=52.8
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1004.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=52.8s | flee=98.9s | winner_strength=80.38 | winner_cohesion=50.94
+MATRIX_ROW test_infantry_charge>test_infantry_charge seed=1004 winner=attacker combat=52.8
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1005.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=52.8s | flee=98.8s | winner_strength=80.38 | winner_cohesion=50.94
+MATRIX_ROW test_infantry_charge>test_infantry_charge seed=1005 winner=attacker combat=52.8
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1006.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=52.8s | flee=98.8s | winner_strength=80.38 | winner_cohesion=50.94
+MATRIX_ROW test_infantry_charge>test_infantry_charge seed=1006 winner=attacker combat=52.8
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1007.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=53.0s | flee=98.9s | winner_strength=80.32 | winner_cohesion=50.81
+MATRIX_ROW test_infantry_charge>test_infantry_charge seed=1007 winner=attacker combat=53.0
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1008.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=52.8s | flee=98.8s | winner_strength=80.38 | winner_cohesion=50.94
+MATRIX_ROW test_infantry_charge>test_infantry_charge seed=1008 winner=attacker combat=52.8
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1009.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=52.8s | flee=98.8s | winner_strength=80.38 | winner_cohesion=50.94
+MATRIX_ROW test_infantry_charge>test_infantry_charge seed=1009 winner=attacker combat=52.8
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=53.0s | flee=98.8s | winner_strength=80.32 | winner_cohesion=50.81
+MATRIX_ROW test_infantry_charge>test_infantry_charge seed=12345 winner=attacker combat=53.0
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=56.4s | flee=106.3s | winner_strength=95.27 | winner_cohesion=85.09
+MATRIX_ROW test_infantry_charge>test_spears seed=1000 winner=attacker combat=56.4
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1001.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=57.1s | flee=106.3s | winner_strength=95.25 | winner_cohesion=85.04
+MATRIX_ROW test_infantry_charge>test_spears seed=1001 winner=attacker combat=57.1
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1002.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=56.7s | flee=106.3s | winner_strength=95.28 | winner_cohesion=85.08
+MATRIX_ROW test_infantry_charge>test_spears seed=1002 winner=attacker combat=56.7
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1003.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=57.1s | flee=106.2s | winner_strength=95.24 | winner_cohesion=84.99
+MATRIX_ROW test_infantry_charge>test_spears seed=1003 winner=attacker combat=57.1
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1004.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=56.8s | flee=106.3s | winner_strength=95.22 | winner_cohesion=84.93
+MATRIX_ROW test_infantry_charge>test_spears seed=1004 winner=attacker combat=56.8
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1005.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=56.4s | flee=106.2s | winner_strength=95.26 | winner_cohesion=85.09
+MATRIX_ROW test_infantry_charge>test_spears seed=1005 winner=attacker combat=56.4
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1006.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=56.8s | flee=106.3s | winner_strength=95.22 | winner_cohesion=84.96
+MATRIX_ROW test_infantry_charge>test_spears seed=1006 winner=attacker combat=56.8
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1007.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=57.2s | flee=106.3s | winner_strength=95.24 | winner_cohesion=84.99
+MATRIX_ROW test_infantry_charge>test_spears seed=1007 winner=attacker combat=57.2
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1008.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=56.5s | flee=106.2s | winner_strength=95.27 | winner_cohesion=85.11
+MATRIX_ROW test_infantry_charge>test_spears seed=1008 winner=attacker combat=56.5
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1009.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=56.6s | flee=106.3s | winner_strength=95.24 | winner_cohesion=85.02
+MATRIX_ROW test_infantry_charge>test_spears seed=1009 winner=attacker combat=56.6
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=56.8s | flee=106.3s | winner_strength=95.26 | winner_cohesion=85.07
+MATRIX_ROW test_infantry_charge>test_spears seed=12345 winner=attacker combat=56.8
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.6s | combat=28.0s | flee=81.4s | winner_strength=95.09 | winner_cohesion=87.71
+MATRIX_ROW test_infantry_charge>test_archer seed=1000 winner=attacker combat=28.0
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1001.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.6s | combat=28.0s | flee=81.4s | winner_strength=95.09 | winner_cohesion=87.71
+MATRIX_ROW test_infantry_charge>test_archer seed=1001 winner=attacker combat=28.0
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1002.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.6s | combat=28.0s | flee=81.4s | winner_strength=95.09 | winner_cohesion=87.71
+MATRIX_ROW test_infantry_charge>test_archer seed=1002 winner=attacker combat=28.0
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1003.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.6s | combat=28.0s | flee=81.4s | winner_strength=95.09 | winner_cohesion=87.71
+MATRIX_ROW test_infantry_charge>test_archer seed=1003 winner=attacker combat=28.0
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1004.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.6s | combat=28.0s | flee=81.4s | winner_strength=95.09 | winner_cohesion=87.71
+MATRIX_ROW test_infantry_charge>test_archer seed=1004 winner=attacker combat=28.0
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1005.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.6s | combat=28.0s | flee=81.4s | winner_strength=95.09 | winner_cohesion=87.71
+MATRIX_ROW test_infantry_charge>test_archer seed=1005 winner=attacker combat=28.0
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1006.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.6s | combat=28.0s | flee=81.4s | winner_strength=95.09 | winner_cohesion=87.71
+MATRIX_ROW test_infantry_charge>test_archer seed=1006 winner=attacker combat=28.0
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1007.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.6s | combat=28.0s | flee=81.4s | winner_strength=95.09 | winner_cohesion=87.71
+MATRIX_ROW test_infantry_charge>test_archer seed=1007 winner=attacker combat=28.0
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1008.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.6s | combat=28.0s | flee=81.4s | winner_strength=95.09 | winner_cohesion=87.71
+MATRIX_ROW test_infantry_charge>test_archer seed=1008 winner=attacker combat=28.0
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1009.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.6s | combat=28.0s | flee=81.4s | winner_strength=95.09 | winner_cohesion=87.71
+MATRIX_ROW test_infantry_charge>test_archer seed=1009 winner=attacker combat=28.0
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.6s | combat=28.0s | flee=81.4s | winner_strength=95.09 | winner_cohesion=87.71
+MATRIX_ROW test_infantry_charge>test_archer seed=12345 winner=attacker combat=28.0
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=80.0s | combat=39.8s | flee=36.5s | winner_strength=96.52 | winner_cohesion=91.31
+MATRIX_ROW test_infantry_charge>test_cavalry seed=1000 winner=attacker combat=39.8
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1001.csv
+[Scenario 01] SUMMARY | winner=attacker | march=80.0s | combat=39.8s | flee=36.5s | winner_strength=96.52 | winner_cohesion=91.31
+MATRIX_ROW test_infantry_charge>test_cavalry seed=1001 winner=attacker combat=39.8
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1002.csv
+[Scenario 01] SUMMARY | winner=attacker | march=80.0s | combat=39.8s | flee=36.5s | winner_strength=96.52 | winner_cohesion=91.31
+MATRIX_ROW test_infantry_charge>test_cavalry seed=1002 winner=attacker combat=39.8
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1003.csv
+[Scenario 01] SUMMARY | winner=attacker | march=80.0s | combat=39.8s | flee=36.5s | winner_strength=96.52 | winner_cohesion=91.31
+MATRIX_ROW test_infantry_charge>test_cavalry seed=1003 winner=attacker combat=39.8
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1004.csv
+[Scenario 01] SUMMARY | winner=attacker | march=80.0s | combat=39.8s | flee=36.5s | winner_strength=96.52 | winner_cohesion=91.31
+MATRIX_ROW test_infantry_charge>test_cavalry seed=1004 winner=attacker combat=39.8
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1005.csv
+[Scenario 01] SUMMARY | winner=attacker | march=80.0s | combat=39.8s | flee=36.5s | winner_strength=96.52 | winner_cohesion=91.31
+MATRIX_ROW test_infantry_charge>test_cavalry seed=1005 winner=attacker combat=39.8
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1006.csv
+[Scenario 01] SUMMARY | winner=attacker | march=80.0s | combat=39.8s | flee=36.5s | winner_strength=96.52 | winner_cohesion=91.31
+MATRIX_ROW test_infantry_charge>test_cavalry seed=1006 winner=attacker combat=39.8
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1007.csv
+[Scenario 01] SUMMARY | winner=attacker | march=80.0s | combat=40.0s | flee=36.5s | winner_strength=96.51 | winner_cohesion=91.28
+MATRIX_ROW test_infantry_charge>test_cavalry seed=1007 winner=attacker combat=40.0
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1008.csv
+[Scenario 01] SUMMARY | winner=attacker | march=80.0s | combat=39.8s | flee=36.5s | winner_strength=96.52 | winner_cohesion=91.31
+MATRIX_ROW test_infantry_charge>test_cavalry seed=1008 winner=attacker combat=39.8
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1009.csv
+[Scenario 01] SUMMARY | winner=attacker | march=80.0s | combat=39.8s | flee=36.5s | winner_strength=96.52 | winner_cohesion=91.31
+MATRIX_ROW test_infantry_charge>test_cavalry seed=1009 winner=attacker combat=39.8
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=attacker | march=80.0s | combat=39.8s | flee=36.5s | winner_strength=96.52 | winner_cohesion=91.31
+MATRIX_ROW test_infantry_charge>test_cavalry seed=12345 winner=attacker combat=39.8
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=80.3s | combat=30.6s | flee=66.2s | winner_strength=97.83 | winner_cohesion=94.58
+MATRIX_ROW test_infantry_charge>test_skirmisher seed=1000 winner=attacker combat=30.6
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1001.csv
+[Scenario 01] SUMMARY | winner=attacker | march=80.3s | combat=30.6s | flee=66.2s | winner_strength=97.83 | winner_cohesion=94.58
+MATRIX_ROW test_infantry_charge>test_skirmisher seed=1001 winner=attacker combat=30.6
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1002.csv
+[Scenario 01] SUMMARY | winner=attacker | march=80.3s | combat=30.6s | flee=66.2s | winner_strength=97.83 | winner_cohesion=94.58
+MATRIX_ROW test_infantry_charge>test_skirmisher seed=1002 winner=attacker combat=30.6
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1003.csv
+[Scenario 01] SUMMARY | winner=attacker | march=80.3s | combat=30.6s | flee=66.2s | winner_strength=97.83 | winner_cohesion=94.58
+MATRIX_ROW test_infantry_charge>test_skirmisher seed=1003 winner=attacker combat=30.6
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1004.csv
+[Scenario 01] SUMMARY | winner=attacker | march=80.3s | combat=30.6s | flee=66.2s | winner_strength=97.83 | winner_cohesion=94.58
+MATRIX_ROW test_infantry_charge>test_skirmisher seed=1004 winner=attacker combat=30.6
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1005.csv
+[Scenario 01] SUMMARY | winner=attacker | march=80.3s | combat=30.6s | flee=66.2s | winner_strength=97.83 | winner_cohesion=94.58
+MATRIX_ROW test_infantry_charge>test_skirmisher seed=1005 winner=attacker combat=30.6
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1006.csv
+[Scenario 01] SUMMARY | winner=attacker | march=80.3s | combat=30.6s | flee=66.2s | winner_strength=97.83 | winner_cohesion=94.58
+MATRIX_ROW test_infantry_charge>test_skirmisher seed=1006 winner=attacker combat=30.6
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1007.csv
+[Scenario 01] SUMMARY | winner=attacker | march=80.3s | combat=30.6s | flee=66.2s | winner_strength=97.83 | winner_cohesion=94.58
+MATRIX_ROW test_infantry_charge>test_skirmisher seed=1007 winner=attacker combat=30.6
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1008.csv
+[Scenario 01] SUMMARY | winner=attacker | march=80.3s | combat=30.6s | flee=66.2s | winner_strength=97.83 | winner_cohesion=94.58
+MATRIX_ROW test_infantry_charge>test_skirmisher seed=1008 winner=attacker combat=30.6
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1009.csv
+[Scenario 01] SUMMARY | winner=attacker | march=80.3s | combat=30.6s | flee=66.2s | winner_strength=97.83 | winner_cohesion=94.58
+MATRIX_ROW test_infantry_charge>test_skirmisher seed=1009 winner=attacker combat=30.6
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=attacker | march=80.3s | combat=30.6s | flee=66.2s | winner_strength=97.83 | winner_cohesion=94.58
+MATRIX_ROW test_infantry_charge>test_skirmisher seed=12345 winner=attacker combat=30.6
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=defender | march=132.9s | combat=54.1s | flee=213.2s | winner_strength=96.99 | winner_cohesion=92.26
+MATRIX_ROW test_spears>test_infantry seed=1000 winner=defender combat=54.1
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1001.csv
+[Scenario 01] SUMMARY | winner=defender | march=132.9s | combat=53.9s | flee=213.2s | winner_strength=96.99 | winner_cohesion=92.26
+MATRIX_ROW test_spears>test_infantry seed=1001 winner=defender combat=53.9
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1002.csv
+[Scenario 01] SUMMARY | winner=defender | march=132.9s | combat=54.1s | flee=213.2s | winner_strength=97.00 | winner_cohesion=92.30
+MATRIX_ROW test_spears>test_infantry seed=1002 winner=defender combat=54.1
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1003.csv
+[Scenario 01] SUMMARY | winner=defender | march=132.9s | combat=54.0s | flee=213.2s | winner_strength=97.00 | winner_cohesion=92.29
+MATRIX_ROW test_spears>test_infantry seed=1003 winner=defender combat=54.0
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1004.csv
+[Scenario 01] SUMMARY | winner=defender | march=132.9s | combat=54.1s | flee=213.2s | winner_strength=97.02 | winner_cohesion=92.36
+MATRIX_ROW test_spears>test_infantry seed=1004 winner=defender combat=54.1
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1005.csv
+[Scenario 01] SUMMARY | winner=defender | march=132.9s | combat=54.0s | flee=213.2s | winner_strength=96.97 | winner_cohesion=92.21
+MATRIX_ROW test_spears>test_infantry seed=1005 winner=defender combat=54.0
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1006.csv
+[Scenario 01] SUMMARY | winner=defender | march=132.9s | combat=54.0s | flee=213.2s | winner_strength=96.99 | winner_cohesion=92.24
+MATRIX_ROW test_spears>test_infantry seed=1006 winner=defender combat=54.0
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1007.csv
+[Scenario 01] SUMMARY | winner=defender | march=132.9s | combat=53.9s | flee=213.2s | winner_strength=97.03 | winner_cohesion=92.37
+MATRIX_ROW test_spears>test_infantry seed=1007 winner=defender combat=53.9
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1008.csv
+[Scenario 01] SUMMARY | winner=defender | march=132.9s | combat=53.9s | flee=213.2s | winner_strength=96.99 | winner_cohesion=92.25
+MATRIX_ROW test_spears>test_infantry seed=1008 winner=defender combat=53.9
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1009.csv
+[Scenario 01] SUMMARY | winner=defender | march=132.9s | combat=54.3s | flee=213.2s | winner_strength=96.97 | winner_cohesion=92.22
+MATRIX_ROW test_spears>test_infantry seed=1009 winner=defender combat=54.3
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=defender | march=132.9s | combat=54.1s | flee=213.2s | winner_strength=96.96 | winner_cohesion=92.21
+MATRIX_ROW test_spears>test_infantry seed=12345 winner=defender combat=54.1
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=defender | march=132.9s | combat=54.1s | flee=213.2s | winner_strength=96.99 | winner_cohesion=92.26
+MATRIX_ROW test_spears>test_infantry_charge seed=1000 winner=defender combat=54.1
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1001.csv
+[Scenario 01] SUMMARY | winner=defender | march=132.9s | combat=53.9s | flee=213.2s | winner_strength=96.99 | winner_cohesion=92.26
+MATRIX_ROW test_spears>test_infantry_charge seed=1001 winner=defender combat=53.9
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1002.csv
+[Scenario 01] SUMMARY | winner=defender | march=132.9s | combat=54.1s | flee=213.2s | winner_strength=97.00 | winner_cohesion=92.30
+MATRIX_ROW test_spears>test_infantry_charge seed=1002 winner=defender combat=54.1
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1003.csv
+[Scenario 01] SUMMARY | winner=defender | march=132.9s | combat=54.0s | flee=213.2s | winner_strength=97.00 | winner_cohesion=92.29
+MATRIX_ROW test_spears>test_infantry_charge seed=1003 winner=defender combat=54.0
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1004.csv
+[Scenario 01] SUMMARY | winner=defender | march=132.9s | combat=54.1s | flee=213.2s | winner_strength=97.02 | winner_cohesion=92.36
+MATRIX_ROW test_spears>test_infantry_charge seed=1004 winner=defender combat=54.1
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1005.csv
+[Scenario 01] SUMMARY | winner=defender | march=132.9s | combat=54.0s | flee=213.2s | winner_strength=96.97 | winner_cohesion=92.21
+MATRIX_ROW test_spears>test_infantry_charge seed=1005 winner=defender combat=54.0
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1006.csv
+[Scenario 01] SUMMARY | winner=defender | march=132.9s | combat=54.0s | flee=213.2s | winner_strength=96.99 | winner_cohesion=92.24
+MATRIX_ROW test_spears>test_infantry_charge seed=1006 winner=defender combat=54.0
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1007.csv
+[Scenario 01] SUMMARY | winner=defender | march=132.9s | combat=53.9s | flee=213.2s | winner_strength=97.03 | winner_cohesion=92.37
+MATRIX_ROW test_spears>test_infantry_charge seed=1007 winner=defender combat=53.9
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1008.csv
+[Scenario 01] SUMMARY | winner=defender | march=132.9s | combat=53.9s | flee=213.2s | winner_strength=96.99 | winner_cohesion=92.25
+MATRIX_ROW test_spears>test_infantry_charge seed=1008 winner=defender combat=53.9
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1009.csv
+[Scenario 01] SUMMARY | winner=defender | march=132.9s | combat=54.3s | flee=213.2s | winner_strength=96.97 | winner_cohesion=92.22
+MATRIX_ROW test_spears>test_infantry_charge seed=1009 winner=defender combat=54.3
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=defender | march=132.9s | combat=54.1s | flee=213.2s | winner_strength=96.96 | winner_cohesion=92.21
+MATRIX_ROW test_spears>test_infantry_charge seed=12345 winner=defender combat=54.1
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=defender | march=132.9s | combat=387.0s | flee=215.6s | winner_strength=70.35 | winner_cohesion=23.70
+MATRIX_ROW test_spears>test_spears seed=1000 winner=defender combat=387.0
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1001.csv
+[Scenario 01] SUMMARY | winner=defender | march=132.9s | combat=391.2s | flee=215.7s | winner_strength=69.64 | winner_cohesion=21.81
+MATRIX_ROW test_spears>test_spears seed=1001 winner=defender combat=391.2
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1002.csv
+[Scenario 01] SUMMARY | winner=defender | march=132.9s | combat=359.7s | flee=214.7s | winner_strength=73.66 | winner_cohesion=32.91
+MATRIX_ROW test_spears>test_spears seed=1002 winner=defender combat=359.7
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1003.csv
+[Scenario 01] SUMMARY | winner=attacker | march=132.9s | combat=390.2s | flee=103.5s | winner_strength=69.81 | winner_cohesion=22.26
+MATRIX_ROW test_spears>test_spears seed=1003 winner=attacker combat=390.2
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1004.csv
+[Scenario 01] SUMMARY | winner=attacker | march=132.9s | combat=365.9s | flee=100.2s | winner_strength=72.63 | winner_cohesion=29.98
+MATRIX_ROW test_spears>test_spears seed=1004 winner=attacker combat=365.9
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1005.csv
+[Scenario 01] SUMMARY | winner=attacker | march=132.9s | combat=356.3s | flee=98.5s | winner_strength=74.52 | winner_cohesion=35.31
+MATRIX_ROW test_spears>test_spears seed=1005 winner=attacker combat=356.3
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1006.csv
+[Scenario 01] SUMMARY | winner=attacker | march=132.9s | combat=378.0s | flee=101.9s | winner_strength=71.18 | winner_cohesion=26.11
+MATRIX_ROW test_spears>test_spears seed=1006 winner=attacker combat=378.0
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1007.csv
+[Scenario 01] SUMMARY | winner=defender | march=132.9s | combat=386.3s | flee=215.5s | winner_strength=70.57 | winner_cohesion=24.36
+MATRIX_ROW test_spears>test_spears seed=1007 winner=defender combat=386.3
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1008.csv
+[Scenario 01] SUMMARY | winner=attacker | march=132.9s | combat=387.1s | flee=102.9s | winner_strength=70.29 | winner_cohesion=23.62
+MATRIX_ROW test_spears>test_spears seed=1008 winner=attacker combat=387.1
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1009.csv
+[Scenario 01] SUMMARY | winner=attacker | march=132.9s | combat=363.6s | flee=99.8s | winner_strength=73.00 | winner_cohesion=31.09
+MATRIX_ROW test_spears>test_spears seed=1009 winner=attacker combat=363.6
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=defender | march=132.9s | combat=362.1s | flee=214.9s | winner_strength=73.16 | winner_cohesion=31.52
+MATRIX_ROW test_spears>test_spears seed=12345 winner=defender combat=362.1
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=133.3s | combat=102.6s | flee=71.9s | winner_strength=87.71 | winner_cohesion=69.27
+MATRIX_ROW test_spears>test_archer seed=1000 winner=attacker combat=102.6
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1001.csv
+[Scenario 01] SUMMARY | winner=attacker | march=133.3s | combat=102.6s | flee=71.9s | winner_strength=87.71 | winner_cohesion=69.27
+MATRIX_ROW test_spears>test_archer seed=1001 winner=attacker combat=102.6
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1002.csv
+[Scenario 01] SUMMARY | winner=attacker | march=133.3s | combat=102.6s | flee=71.9s | winner_strength=87.71 | winner_cohesion=69.27
+MATRIX_ROW test_spears>test_archer seed=1002 winner=attacker combat=102.6
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1003.csv
+[Scenario 01] SUMMARY | winner=attacker | march=133.3s | combat=102.4s | flee=71.9s | winner_strength=87.71 | winner_cohesion=69.29
+MATRIX_ROW test_spears>test_archer seed=1003 winner=attacker combat=102.4
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1004.csv
+[Scenario 01] SUMMARY | winner=attacker | march=133.3s | combat=102.6s | flee=71.9s | winner_strength=87.71 | winner_cohesion=69.27
+MATRIX_ROW test_spears>test_archer seed=1004 winner=attacker combat=102.6
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1005.csv
+[Scenario 01] SUMMARY | winner=attacker | march=133.3s | combat=102.4s | flee=71.9s | winner_strength=87.71 | winner_cohesion=69.29
+MATRIX_ROW test_spears>test_archer seed=1005 winner=attacker combat=102.4
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1006.csv
+[Scenario 01] SUMMARY | winner=attacker | march=133.3s | combat=102.6s | flee=71.9s | winner_strength=87.71 | winner_cohesion=69.27
+MATRIX_ROW test_spears>test_archer seed=1006 winner=attacker combat=102.6
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1007.csv
+[Scenario 01] SUMMARY | winner=attacker | march=133.3s | combat=102.6s | flee=71.9s | winner_strength=87.71 | winner_cohesion=69.27
+MATRIX_ROW test_spears>test_archer seed=1007 winner=attacker combat=102.6
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1008.csv
+[Scenario 01] SUMMARY | winner=attacker | march=133.3s | combat=102.6s | flee=71.9s | winner_strength=87.71 | winner_cohesion=69.27
+MATRIX_ROW test_spears>test_archer seed=1008 winner=attacker combat=102.6
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1009.csv
+[Scenario 01] SUMMARY | winner=attacker | march=133.3s | combat=102.4s | flee=71.9s | winner_strength=87.71 | winner_cohesion=69.29
+MATRIX_ROW test_spears>test_archer seed=1009 winner=attacker combat=102.4
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=attacker | march=133.3s | combat=102.6s | flee=71.9s | winner_strength=87.71 | winner_cohesion=69.27
+MATRIX_ROW test_spears>test_archer seed=12345 winner=attacker combat=102.6
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=defender | march=133.9s | combat=281.6s | flee=255.5s | winner_strength=82.08 | winner_cohesion=29.65
+MATRIX_ROW test_spears>test_cavalry seed=1000 winner=defender combat=281.6
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1001.csv
+[Scenario 01] SUMMARY | winner=defender | march=133.9s | combat=282.2s | flee=254.1s | winner_strength=82.05 | winner_cohesion=29.65
+MATRIX_ROW test_spears>test_cavalry seed=1001 winner=defender combat=282.2
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1002.csv
+[Scenario 01] SUMMARY | winner=defender | march=133.9s | combat=282.6s | flee=249.6s | winner_strength=82.00 | winner_cohesion=29.44
+MATRIX_ROW test_spears>test_cavalry seed=1002 winner=defender combat=282.6
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1003.csv
+[Scenario 01] SUMMARY | winner=defender | march=133.9s | combat=282.4s | flee=249.6s | winner_strength=82.02 | winner_cohesion=29.47
+MATRIX_ROW test_spears>test_cavalry seed=1003 winner=defender combat=282.4
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1004.csv
+[Scenario 01] SUMMARY | winner=defender | march=133.9s | combat=282.4s | flee=255.6s | winner_strength=82.01 | winner_cohesion=29.50
+MATRIX_ROW test_spears>test_cavalry seed=1004 winner=defender combat=282.4
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1005.csv
+[Scenario 01] SUMMARY | winner=defender | march=133.9s | combat=279.8s | flee=254.1s | winner_strength=82.22 | winner_cohesion=30.03
+MATRIX_ROW test_spears>test_cavalry seed=1005 winner=defender combat=279.8
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1006.csv
+[Scenario 01] SUMMARY | winner=defender | march=133.9s | combat=282.4s | flee=249.6s | winner_strength=82.01 | winner_cohesion=29.47
+MATRIX_ROW test_spears>test_cavalry seed=1006 winner=defender combat=282.4
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1007.csv
+[Scenario 01] SUMMARY | winner=defender | march=133.9s | combat=282.4s | flee=249.6s | winner_strength=82.02 | winner_cohesion=29.52
+MATRIX_ROW test_spears>test_cavalry seed=1007 winner=defender combat=282.4
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1008.csv
+[Scenario 01] SUMMARY | winner=defender | march=133.9s | combat=282.6s | flee=254.1s | winner_strength=82.01 | winner_cohesion=29.57
+MATRIX_ROW test_spears>test_cavalry seed=1008 winner=defender combat=282.6
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1009.csv
+[Scenario 01] SUMMARY | winner=defender | march=133.9s | combat=280.8s | flee=255.5s | winner_strength=82.13 | winner_cohesion=29.74
+MATRIX_ROW test_spears>test_cavalry seed=1009 winner=defender combat=280.8
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=defender | march=133.9s | combat=282.2s | flee=254.1s | winner_strength=82.04 | winner_cohesion=29.64
+MATRIX_ROW test_spears>test_cavalry seed=12345 winner=defender combat=282.2
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=134.7s | combat=110.1s | flee=59.2s | winner_strength=91.94 | winner_cohesion=79.67
+MATRIX_ROW test_spears>test_skirmisher seed=1000 winner=attacker combat=110.1
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1001.csv
+[Scenario 01] SUMMARY | winner=attacker | march=134.7s | combat=110.0s | flee=59.2s | winner_strength=91.95 | winner_cohesion=79.68
+MATRIX_ROW test_spears>test_skirmisher seed=1001 winner=attacker combat=110.0
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1002.csv
+[Scenario 01] SUMMARY | winner=attacker | march=134.7s | combat=110.2s | flee=59.2s | winner_strength=91.96 | winner_cohesion=79.70
+MATRIX_ROW test_spears>test_skirmisher seed=1002 winner=attacker combat=110.2
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1003.csv
+[Scenario 01] SUMMARY | winner=attacker | march=134.7s | combat=110.2s | flee=59.2s | winner_strength=91.94 | winner_cohesion=79.64
+MATRIX_ROW test_spears>test_skirmisher seed=1003 winner=attacker combat=110.2
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1004.csv
+[Scenario 01] SUMMARY | winner=attacker | march=134.7s | combat=110.1s | flee=59.2s | winner_strength=91.94 | winner_cohesion=79.67
+MATRIX_ROW test_spears>test_skirmisher seed=1004 winner=attacker combat=110.1
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1005.csv
+[Scenario 01] SUMMARY | winner=attacker | march=134.7s | combat=110.3s | flee=59.2s | winner_strength=91.93 | winner_cohesion=79.63
+MATRIX_ROW test_spears>test_skirmisher seed=1005 winner=attacker combat=110.3
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1006.csv
+[Scenario 01] SUMMARY | winner=attacker | march=134.7s | combat=110.1s | flee=59.2s | winner_strength=91.96 | winner_cohesion=79.70
+MATRIX_ROW test_spears>test_skirmisher seed=1006 winner=attacker combat=110.1
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1007.csv
+[Scenario 01] SUMMARY | winner=attacker | march=134.7s | combat=110.1s | flee=59.2s | winner_strength=91.97 | winner_cohesion=79.74
+MATRIX_ROW test_spears>test_skirmisher seed=1007 winner=attacker combat=110.1
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1008.csv
+[Scenario 01] SUMMARY | winner=attacker | march=134.7s | combat=110.0s | flee=59.2s | winner_strength=91.96 | winner_cohesion=79.71
+MATRIX_ROW test_spears>test_skirmisher seed=1008 winner=attacker combat=110.0
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1009.csv
+[Scenario 01] SUMMARY | winner=attacker | march=134.7s | combat=110.0s | flee=59.2s | winner_strength=91.97 | winner_cohesion=79.73
+MATRIX_ROW test_spears>test_skirmisher seed=1009 winner=attacker combat=110.0
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=attacker | march=134.7s | combat=110.4s | flee=59.2s | winner_strength=91.93 | winner_cohesion=79.62
+MATRIX_ROW test_spears>test_skirmisher seed=12345 winner=attacker combat=110.4
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=defender | march=123.8s | combat=35.4s | flee=80.9s | winner_strength=90.67 | winner_cohesion=76.69
+MATRIX_ROW test_archer>test_infantry seed=1000 winner=defender combat=35.4
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1001.csv
+[Scenario 01] SUMMARY | winner=defender | march=123.8s | combat=35.4s | flee=80.9s | winner_strength=90.67 | winner_cohesion=76.69
+MATRIX_ROW test_archer>test_infantry seed=1001 winner=defender combat=35.4
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1002.csv
+[Scenario 01] SUMMARY | winner=defender | march=123.8s | combat=35.2s | flee=80.9s | winner_strength=90.68 | winner_cohesion=76.70
+MATRIX_ROW test_archer>test_infantry seed=1002 winner=defender combat=35.2
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1003.csv
+[Scenario 01] SUMMARY | winner=defender | march=123.8s | combat=35.4s | flee=80.9s | winner_strength=90.67 | winner_cohesion=76.69
+MATRIX_ROW test_archer>test_infantry seed=1003 winner=defender combat=35.4
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1004.csv
+[Scenario 01] SUMMARY | winner=defender | march=123.8s | combat=35.4s | flee=80.9s | winner_strength=90.67 | winner_cohesion=76.69
+MATRIX_ROW test_archer>test_infantry seed=1004 winner=defender combat=35.4
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1005.csv
+[Scenario 01] SUMMARY | winner=defender | march=123.8s | combat=35.4s | flee=80.9s | winner_strength=90.67 | winner_cohesion=76.69
+MATRIX_ROW test_archer>test_infantry seed=1005 winner=defender combat=35.4
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1006.csv
+[Scenario 01] SUMMARY | winner=defender | march=123.8s | combat=35.4s | flee=80.9s | winner_strength=90.67 | winner_cohesion=76.69
+MATRIX_ROW test_archer>test_infantry seed=1006 winner=defender combat=35.4
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1007.csv
+[Scenario 01] SUMMARY | winner=defender | march=123.8s | combat=35.2s | flee=80.9s | winner_strength=90.68 | winner_cohesion=76.70
+MATRIX_ROW test_archer>test_infantry seed=1007 winner=defender combat=35.2
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1008.csv
+[Scenario 01] SUMMARY | winner=defender | march=123.8s | combat=35.4s | flee=80.9s | winner_strength=90.67 | winner_cohesion=76.69
+MATRIX_ROW test_archer>test_infantry seed=1008 winner=defender combat=35.4
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1009.csv
+[Scenario 01] SUMMARY | winner=defender | march=123.8s | combat=35.4s | flee=80.9s | winner_strength=90.67 | winner_cohesion=76.69
+MATRIX_ROW test_archer>test_infantry seed=1009 winner=defender combat=35.4
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=defender | march=123.8s | combat=35.4s | flee=80.9s | winner_strength=90.67 | winner_cohesion=76.69
+MATRIX_ROW test_archer>test_infantry seed=12345 winner=defender combat=35.4
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=defender | march=78.9s | combat=28.0s | flee=81.4s | winner_strength=95.08 | winner_cohesion=87.71
+MATRIX_ROW test_archer>test_infantry_charge seed=1000 winner=defender combat=28.0
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1001.csv
+[Scenario 01] SUMMARY | winner=defender | march=78.9s | combat=28.0s | flee=81.4s | winner_strength=95.08 | winner_cohesion=87.71
+MATRIX_ROW test_archer>test_infantry_charge seed=1001 winner=defender combat=28.0
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1002.csv
+[Scenario 01] SUMMARY | winner=defender | march=78.9s | combat=28.0s | flee=81.4s | winner_strength=95.08 | winner_cohesion=87.71
+MATRIX_ROW test_archer>test_infantry_charge seed=1002 winner=defender combat=28.0
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1003.csv
+[Scenario 01] SUMMARY | winner=defender | march=78.9s | combat=28.0s | flee=81.4s | winner_strength=95.08 | winner_cohesion=87.71
+MATRIX_ROW test_archer>test_infantry_charge seed=1003 winner=defender combat=28.0
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1004.csv
+[Scenario 01] SUMMARY | winner=defender | march=78.9s | combat=28.0s | flee=81.4s | winner_strength=95.08 | winner_cohesion=87.71
+MATRIX_ROW test_archer>test_infantry_charge seed=1004 winner=defender combat=28.0
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1005.csv
+[Scenario 01] SUMMARY | winner=defender | march=78.9s | combat=28.0s | flee=81.4s | winner_strength=95.08 | winner_cohesion=87.71
+MATRIX_ROW test_archer>test_infantry_charge seed=1005 winner=defender combat=28.0
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1006.csv
+[Scenario 01] SUMMARY | winner=defender | march=78.9s | combat=28.0s | flee=81.4s | winner_strength=95.08 | winner_cohesion=87.71
+MATRIX_ROW test_archer>test_infantry_charge seed=1006 winner=defender combat=28.0
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1007.csv
+[Scenario 01] SUMMARY | winner=defender | march=78.9s | combat=28.0s | flee=81.4s | winner_strength=95.08 | winner_cohesion=87.71
+MATRIX_ROW test_archer>test_infantry_charge seed=1007 winner=defender combat=28.0
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1008.csv
+[Scenario 01] SUMMARY | winner=defender | march=78.9s | combat=28.0s | flee=81.4s | winner_strength=95.08 | winner_cohesion=87.71
+MATRIX_ROW test_archer>test_infantry_charge seed=1008 winner=defender combat=28.0
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1009.csv
+[Scenario 01] SUMMARY | winner=defender | march=78.9s | combat=28.0s | flee=81.4s | winner_strength=95.08 | winner_cohesion=87.71
+MATRIX_ROW test_archer>test_infantry_charge seed=1009 winner=defender combat=28.0
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=defender | march=78.9s | combat=28.0s | flee=81.4s | winner_strength=95.08 | winner_cohesion=87.71
+MATRIX_ROW test_archer>test_infantry_charge seed=12345 winner=defender combat=28.0
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=defender | march=132.6s | combat=102.6s | flee=71.9s | winner_strength=87.70 | winner_cohesion=69.26
+MATRIX_ROW test_archer>test_spears seed=1000 winner=defender combat=102.6
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1001.csv
+[Scenario 01] SUMMARY | winner=defender | march=132.6s | combat=102.6s | flee=71.9s | winner_strength=87.70 | winner_cohesion=69.26
+MATRIX_ROW test_archer>test_spears seed=1001 winner=defender combat=102.6
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1002.csv
+[Scenario 01] SUMMARY | winner=defender | march=132.6s | combat=102.4s | flee=71.9s | winner_strength=87.71 | winner_cohesion=69.27
+MATRIX_ROW test_archer>test_spears seed=1002 winner=defender combat=102.4
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1003.csv
+[Scenario 01] SUMMARY | winner=defender | march=132.6s | combat=102.6s | flee=71.9s | winner_strength=87.70 | winner_cohesion=69.26
+MATRIX_ROW test_archer>test_spears seed=1003 winner=defender combat=102.6
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1004.csv
+[Scenario 01] SUMMARY | winner=defender | march=132.6s | combat=102.6s | flee=71.9s | winner_strength=87.70 | winner_cohesion=69.26
+MATRIX_ROW test_archer>test_spears seed=1004 winner=defender combat=102.6
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1005.csv
+[Scenario 01] SUMMARY | winner=defender | march=132.6s | combat=102.6s | flee=72.0s | winner_strength=87.70 | winner_cohesion=69.26
+MATRIX_ROW test_archer>test_spears seed=1005 winner=defender combat=102.6
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1006.csv
+[Scenario 01] SUMMARY | winner=defender | march=132.6s | combat=102.6s | flee=71.9s | winner_strength=87.70 | winner_cohesion=69.26
+MATRIX_ROW test_archer>test_spears seed=1006 winner=defender combat=102.6
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1007.csv
+[Scenario 01] SUMMARY | winner=defender | march=132.6s | combat=102.6s | flee=71.9s | winner_strength=87.70 | winner_cohesion=69.26
+MATRIX_ROW test_archer>test_spears seed=1007 winner=defender combat=102.6
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1008.csv
+[Scenario 01] SUMMARY | winner=defender | march=132.6s | combat=102.6s | flee=71.9s | winner_strength=87.70 | winner_cohesion=69.26
+MATRIX_ROW test_archer>test_spears seed=1008 winner=defender combat=102.6
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1009.csv
+[Scenario 01] SUMMARY | winner=defender | march=132.6s | combat=102.6s | flee=71.9s | winner_strength=87.70 | winner_cohesion=69.26
+MATRIX_ROW test_archer>test_spears seed=1009 winner=defender combat=102.6
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=defender | march=132.6s | combat=102.4s | flee=71.9s | winner_strength=87.71 | winner_cohesion=69.27
+MATRIX_ROW test_archer>test_spears seed=12345 winner=defender combat=102.4
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=103.6s | combat=88.0s | flee=165.4s | winner_strength=97.11 | winner_cohesion=82.76
+MATRIX_ROW test_archer>test_archer seed=1000 winner=attacker combat=88.0
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1001.csv
+[Scenario 01] SUMMARY | winner=attacker | march=103.6s | combat=88.0s | flee=165.4s | winner_strength=97.11 | winner_cohesion=82.76
+MATRIX_ROW test_archer>test_archer seed=1001 winner=attacker combat=88.0
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1002.csv
+[Scenario 01] SUMMARY | winner=attacker | march=103.6s | combat=88.0s | flee=165.4s | winner_strength=97.11 | winner_cohesion=82.76
+MATRIX_ROW test_archer>test_archer seed=1002 winner=attacker combat=88.0
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1003.csv
+[Scenario 01] SUMMARY | winner=attacker | march=103.6s | combat=87.8s | flee=165.4s | winner_strength=97.11 | winner_cohesion=82.78
+MATRIX_ROW test_archer>test_archer seed=1003 winner=attacker combat=87.8
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1004.csv
+[Scenario 01] SUMMARY | winner=attacker | march=103.6s | combat=88.0s | flee=165.4s | winner_strength=97.11 | winner_cohesion=82.76
+MATRIX_ROW test_archer>test_archer seed=1004 winner=attacker combat=88.0
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1005.csv
+[Scenario 01] SUMMARY | winner=attacker | march=103.6s | combat=87.6s | flee=165.4s | winner_strength=97.12 | winner_cohesion=82.80
+MATRIX_ROW test_archer>test_archer seed=1005 winner=attacker combat=87.6
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1006.csv
+[Scenario 01] SUMMARY | winner=attacker | march=103.6s | combat=87.8s | flee=165.4s | winner_strength=97.11 | winner_cohesion=82.78
+MATRIX_ROW test_archer>test_archer seed=1006 winner=attacker combat=87.8
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1007.csv
+[Scenario 01] SUMMARY | winner=attacker | march=103.6s | combat=88.0s | flee=165.4s | winner_strength=97.11 | winner_cohesion=82.76
+MATRIX_ROW test_archer>test_archer seed=1007 winner=attacker combat=88.0
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1008.csv
+[Scenario 01] SUMMARY | winner=attacker | march=103.6s | combat=87.8s | flee=165.4s | winner_strength=97.11 | winner_cohesion=82.78
+MATRIX_ROW test_archer>test_archer seed=1008 winner=attacker combat=87.8
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1009.csv
+[Scenario 01] SUMMARY | winner=attacker | march=103.6s | combat=87.8s | flee=165.4s | winner_strength=97.11 | winner_cohesion=82.78
+MATRIX_ROW test_archer>test_archer seed=1009 winner=attacker combat=87.8
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=attacker | march=103.6s | combat=88.0s | flee=165.4s | winner_strength=97.11 | winner_cohesion=82.76
+MATRIX_ROW test_archer>test_archer seed=12345 winner=attacker combat=88.0
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=defender | march=28.2s | combat=25.4s | flee=81.9s | winner_strength=95.55 | winner_cohesion=88.87
+MATRIX_ROW test_archer>test_cavalry seed=1000 winner=defender combat=25.4
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1001.csv
+[Scenario 01] SUMMARY | winner=defender | march=28.2s | combat=25.4s | flee=81.9s | winner_strength=95.55 | winner_cohesion=88.87
+MATRIX_ROW test_archer>test_cavalry seed=1001 winner=defender combat=25.4
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1002.csv
+[Scenario 01] SUMMARY | winner=defender | march=28.2s | combat=25.4s | flee=81.9s | winner_strength=95.55 | winner_cohesion=88.87
+MATRIX_ROW test_archer>test_cavalry seed=1002 winner=defender combat=25.4
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1003.csv
+[Scenario 01] SUMMARY | winner=defender | march=28.2s | combat=25.4s | flee=81.9s | winner_strength=95.55 | winner_cohesion=88.87
+MATRIX_ROW test_archer>test_cavalry seed=1003 winner=defender combat=25.4
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1004.csv
+[Scenario 01] SUMMARY | winner=defender | march=28.2s | combat=25.4s | flee=81.9s | winner_strength=95.55 | winner_cohesion=88.87
+MATRIX_ROW test_archer>test_cavalry seed=1004 winner=defender combat=25.4
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1005.csv
+[Scenario 01] SUMMARY | winner=defender | march=28.2s | combat=25.4s | flee=81.9s | winner_strength=95.55 | winner_cohesion=88.87
+MATRIX_ROW test_archer>test_cavalry seed=1005 winner=defender combat=25.4
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1006.csv
+[Scenario 01] SUMMARY | winner=defender | march=28.2s | combat=25.4s | flee=81.9s | winner_strength=95.55 | winner_cohesion=88.87
+MATRIX_ROW test_archer>test_cavalry seed=1006 winner=defender combat=25.4
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1007.csv
+[Scenario 01] SUMMARY | winner=defender | march=28.2s | combat=25.4s | flee=81.9s | winner_strength=95.55 | winner_cohesion=88.87
+MATRIX_ROW test_archer>test_cavalry seed=1007 winner=defender combat=25.4
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1008.csv
+[Scenario 01] SUMMARY | winner=defender | march=28.2s | combat=25.4s | flee=81.9s | winner_strength=95.55 | winner_cohesion=88.87
+MATRIX_ROW test_archer>test_cavalry seed=1008 winner=defender combat=25.4
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1009.csv
+[Scenario 01] SUMMARY | winner=defender | march=28.2s | combat=25.4s | flee=81.9s | winner_strength=95.55 | winner_cohesion=88.87
+MATRIX_ROW test_archer>test_cavalry seed=1009 winner=defender combat=25.4
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=defender | march=28.2s | combat=25.4s | flee=81.9s | winner_strength=95.55 | winner_cohesion=88.87
+MATRIX_ROW test_archer>test_cavalry seed=12345 winner=defender combat=25.4
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.6s | combat=151.5s | flee=83.4s | winner_strength=76.32 | winner_cohesion=32.16
+MATRIX_ROW test_archer>test_skirmisher seed=1000 winner=defender combat=151.5
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1001.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.6s | combat=150.8s | flee=83.4s | winner_strength=76.36 | winner_cohesion=32.30
+MATRIX_ROW test_archer>test_skirmisher seed=1001 winner=defender combat=150.8
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1002.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.6s | combat=151.3s | flee=83.4s | winner_strength=76.33 | winner_cohesion=32.28
+MATRIX_ROW test_archer>test_skirmisher seed=1002 winner=defender combat=151.3
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1003.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.6s | combat=151.1s | flee=83.4s | winner_strength=76.35 | winner_cohesion=32.13
+MATRIX_ROW test_archer>test_skirmisher seed=1003 winner=defender combat=151.1
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1004.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.6s | combat=151.3s | flee=83.4s | winner_strength=76.34 | winner_cohesion=32.21
+MATRIX_ROW test_archer>test_skirmisher seed=1004 winner=defender combat=151.3
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1005.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.6s | combat=152.3s | flee=83.4s | winner_strength=76.32 | winner_cohesion=31.88
+MATRIX_ROW test_archer>test_skirmisher seed=1005 winner=defender combat=152.3
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1006.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.6s | combat=151.4s | flee=83.3s | winner_strength=76.35 | winner_cohesion=32.17
+MATRIX_ROW test_archer>test_skirmisher seed=1006 winner=defender combat=151.4
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1007.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.6s | combat=151.2s | flee=83.4s | winner_strength=76.35 | winner_cohesion=32.26
+MATRIX_ROW test_archer>test_skirmisher seed=1007 winner=defender combat=151.2
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1008.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.6s | combat=151.3s | flee=83.4s | winner_strength=76.34 | winner_cohesion=32.23
+MATRIX_ROW test_archer>test_skirmisher seed=1008 winner=defender combat=151.3
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1009.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.6s | combat=152.1s | flee=83.4s | winner_strength=76.33 | winner_cohesion=32.02
+MATRIX_ROW test_archer>test_skirmisher seed=1009 winner=defender combat=152.1
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.6s | combat=150.9s | flee=83.4s | winner_strength=76.36 | winner_cohesion=32.38
+MATRIX_ROW test_archer>test_skirmisher seed=12345 winner=defender combat=150.9
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=defender | march=31.5s | combat=52.7s | flee=75.0s | winner_strength=93.51 | winner_cohesion=37.13
+MATRIX_ROW test_cavalry>test_infantry seed=1000 winner=defender combat=52.7
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1001.csv
+[Scenario 01] SUMMARY | winner=defender | march=31.5s | combat=52.2s | flee=75.0s | winner_strength=93.52 | winner_cohesion=37.13
+MATRIX_ROW test_cavalry>test_infantry seed=1001 winner=defender combat=52.2
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1002.csv
+[Scenario 01] SUMMARY | winner=defender | march=31.5s | combat=52.7s | flee=75.0s | winner_strength=93.56 | winner_cohesion=37.27
+MATRIX_ROW test_cavalry>test_infantry seed=1002 winner=defender combat=52.7
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1003.csv
+[Scenario 01] SUMMARY | winner=defender | march=31.5s | combat=52.1s | flee=75.0s | winner_strength=93.55 | winner_cohesion=37.24
+MATRIX_ROW test_cavalry>test_infantry seed=1003 winner=defender combat=52.1
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1004.csv
+[Scenario 01] SUMMARY | winner=defender | march=31.5s | combat=52.4s | flee=75.0s | winner_strength=93.60 | winner_cohesion=37.36
+MATRIX_ROW test_cavalry>test_infantry seed=1004 winner=defender combat=52.4
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1005.csv
+[Scenario 01] SUMMARY | winner=defender | march=31.5s | combat=52.5s | flee=75.0s | winner_strength=93.48 | winner_cohesion=37.05
+MATRIX_ROW test_cavalry>test_infantry seed=1005 winner=defender combat=52.5
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1006.csv
+[Scenario 01] SUMMARY | winner=defender | march=31.5s | combat=52.6s | flee=75.0s | winner_strength=93.52 | winner_cohesion=37.13
+MATRIX_ROW test_cavalry>test_infantry seed=1006 winner=defender combat=52.6
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1007.csv
+[Scenario 01] SUMMARY | winner=defender | march=31.5s | combat=52.0s | flee=75.0s | winner_strength=93.61 | winner_cohesion=37.40
+MATRIX_ROW test_cavalry>test_infantry seed=1007 winner=defender combat=52.0
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1008.csv
+[Scenario 01] SUMMARY | winner=defender | march=31.5s | combat=52.4s | flee=75.0s | winner_strength=93.53 | winner_cohesion=37.16
+MATRIX_ROW test_cavalry>test_infantry seed=1008 winner=defender combat=52.4
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1009.csv
+[Scenario 01] SUMMARY | winner=defender | march=31.5s | combat=52.7s | flee=75.0s | winner_strength=93.48 | winner_cohesion=37.06
+MATRIX_ROW test_cavalry>test_infantry seed=1009 winner=defender combat=52.7
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=defender | march=31.5s | combat=52.4s | flee=75.0s | winner_strength=93.50 | winner_cohesion=37.10
+MATRIX_ROW test_cavalry>test_infantry seed=12345 winner=defender combat=52.4
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=defender | march=31.5s | combat=52.7s | flee=75.0s | winner_strength=93.51 | winner_cohesion=37.13
+MATRIX_ROW test_cavalry>test_infantry_charge seed=1000 winner=defender combat=52.7
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1001.csv
+[Scenario 01] SUMMARY | winner=defender | march=31.5s | combat=52.2s | flee=75.0s | winner_strength=93.52 | winner_cohesion=37.13
+MATRIX_ROW test_cavalry>test_infantry_charge seed=1001 winner=defender combat=52.2
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1002.csv
+[Scenario 01] SUMMARY | winner=defender | march=31.5s | combat=52.7s | flee=75.0s | winner_strength=93.56 | winner_cohesion=37.27
+MATRIX_ROW test_cavalry>test_infantry_charge seed=1002 winner=defender combat=52.7
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1003.csv
+[Scenario 01] SUMMARY | winner=defender | march=31.5s | combat=52.1s | flee=75.0s | winner_strength=93.55 | winner_cohesion=37.24
+MATRIX_ROW test_cavalry>test_infantry_charge seed=1003 winner=defender combat=52.1
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1004.csv
+[Scenario 01] SUMMARY | winner=defender | march=31.5s | combat=52.4s | flee=75.0s | winner_strength=93.60 | winner_cohesion=37.36
+MATRIX_ROW test_cavalry>test_infantry_charge seed=1004 winner=defender combat=52.4
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1005.csv
+[Scenario 01] SUMMARY | winner=defender | march=31.5s | combat=52.5s | flee=75.0s | winner_strength=93.48 | winner_cohesion=37.05
+MATRIX_ROW test_cavalry>test_infantry_charge seed=1005 winner=defender combat=52.5
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1006.csv
+[Scenario 01] SUMMARY | winner=defender | march=31.5s | combat=52.6s | flee=75.0s | winner_strength=93.52 | winner_cohesion=37.13
+MATRIX_ROW test_cavalry>test_infantry_charge seed=1006 winner=defender combat=52.6
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1007.csv
+[Scenario 01] SUMMARY | winner=defender | march=31.5s | combat=52.0s | flee=75.0s | winner_strength=93.61 | winner_cohesion=37.40
+MATRIX_ROW test_cavalry>test_infantry_charge seed=1007 winner=defender combat=52.0
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1008.csv
+[Scenario 01] SUMMARY | winner=defender | march=31.5s | combat=52.4s | flee=75.0s | winner_strength=93.53 | winner_cohesion=37.16
+MATRIX_ROW test_cavalry>test_infantry_charge seed=1008 winner=defender combat=52.4
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1009.csv
+[Scenario 01] SUMMARY | winner=defender | march=31.5s | combat=52.7s | flee=75.0s | winner_strength=93.48 | winner_cohesion=37.06
+MATRIX_ROW test_cavalry>test_infantry_charge seed=1009 winner=defender combat=52.7
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=defender | march=31.5s | combat=52.4s | flee=75.0s | winner_strength=93.50 | winner_cohesion=37.10
+MATRIX_ROW test_cavalry>test_infantry_charge seed=12345 winner=defender combat=52.4
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=defender | march=31.5s | combat=90.4s | flee=74.6s | winner_strength=92.50 | winner_cohesion=81.24
+MATRIX_ROW test_cavalry>test_spears seed=1000 winner=defender combat=90.4
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1001.csv
+[Scenario 01] SUMMARY | winner=defender | march=31.5s | combat=90.4s | flee=74.6s | winner_strength=92.50 | winner_cohesion=81.24
+MATRIX_ROW test_cavalry>test_spears seed=1001 winner=defender combat=90.4
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1002.csv
+[Scenario 01] SUMMARY | winner=defender | march=31.5s | combat=90.4s | flee=74.6s | winner_strength=92.50 | winner_cohesion=81.24
+MATRIX_ROW test_cavalry>test_spears seed=1002 winner=defender combat=90.4
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1003.csv
+[Scenario 01] SUMMARY | winner=defender | march=31.5s | combat=90.4s | flee=74.6s | winner_strength=92.50 | winner_cohesion=81.24
+MATRIX_ROW test_cavalry>test_spears seed=1003 winner=defender combat=90.4
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1004.csv
+[Scenario 01] SUMMARY | winner=defender | march=31.5s | combat=90.4s | flee=74.6s | winner_strength=92.50 | winner_cohesion=81.24
+MATRIX_ROW test_cavalry>test_spears seed=1004 winner=defender combat=90.4
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1005.csv
+[Scenario 01] SUMMARY | winner=defender | march=31.5s | combat=90.6s | flee=74.6s | winner_strength=92.48 | winner_cohesion=81.20
+MATRIX_ROW test_cavalry>test_spears seed=1005 winner=defender combat=90.6
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1006.csv
+[Scenario 01] SUMMARY | winner=defender | march=31.5s | combat=90.4s | flee=74.6s | winner_strength=92.50 | winner_cohesion=81.24
+MATRIX_ROW test_cavalry>test_spears seed=1006 winner=defender combat=90.4
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1007.csv
+[Scenario 01] SUMMARY | winner=defender | march=31.5s | combat=90.4s | flee=74.6s | winner_strength=92.50 | winner_cohesion=81.24
+MATRIX_ROW test_cavalry>test_spears seed=1007 winner=defender combat=90.4
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1008.csv
+[Scenario 01] SUMMARY | winner=defender | march=31.5s | combat=90.4s | flee=74.6s | winner_strength=92.50 | winner_cohesion=81.24
+MATRIX_ROW test_cavalry>test_spears seed=1008 winner=defender combat=90.4
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1009.csv
+[Scenario 01] SUMMARY | winner=defender | march=31.5s | combat=90.6s | flee=74.6s | winner_strength=92.48 | winner_cohesion=81.20
+MATRIX_ROW test_cavalry>test_spears seed=1009 winner=defender combat=90.6
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=defender | march=31.5s | combat=90.4s | flee=74.6s | winner_strength=92.50 | winner_cohesion=81.24
+MATRIX_ROW test_cavalry>test_spears seed=12345 winner=defender combat=90.4
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=31.5s | combat=25.4s | flee=81.9s | winner_strength=95.55 | winner_cohesion=88.86
+MATRIX_ROW test_cavalry>test_archer seed=1000 winner=attacker combat=25.4
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1001.csv
+[Scenario 01] SUMMARY | winner=attacker | march=31.5s | combat=25.4s | flee=81.9s | winner_strength=95.55 | winner_cohesion=88.86
+MATRIX_ROW test_cavalry>test_archer seed=1001 winner=attacker combat=25.4
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1002.csv
+[Scenario 01] SUMMARY | winner=attacker | march=31.5s | combat=25.4s | flee=81.9s | winner_strength=95.55 | winner_cohesion=88.86
+MATRIX_ROW test_cavalry>test_archer seed=1002 winner=attacker combat=25.4
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1003.csv
+[Scenario 01] SUMMARY | winner=attacker | march=31.5s | combat=25.4s | flee=81.9s | winner_strength=95.55 | winner_cohesion=88.86
+MATRIX_ROW test_cavalry>test_archer seed=1003 winner=attacker combat=25.4
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1004.csv
+[Scenario 01] SUMMARY | winner=attacker | march=31.5s | combat=25.4s | flee=81.9s | winner_strength=95.55 | winner_cohesion=88.86
+MATRIX_ROW test_cavalry>test_archer seed=1004 winner=attacker combat=25.4
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1005.csv
+[Scenario 01] SUMMARY | winner=attacker | march=31.5s | combat=25.4s | flee=81.9s | winner_strength=95.55 | winner_cohesion=88.86
+MATRIX_ROW test_cavalry>test_archer seed=1005 winner=attacker combat=25.4
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1006.csv
+[Scenario 01] SUMMARY | winner=attacker | march=31.5s | combat=25.4s | flee=81.9s | winner_strength=95.55 | winner_cohesion=88.86
+MATRIX_ROW test_cavalry>test_archer seed=1006 winner=attacker combat=25.4
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1007.csv
+[Scenario 01] SUMMARY | winner=attacker | march=31.5s | combat=25.4s | flee=81.9s | winner_strength=95.55 | winner_cohesion=88.86
+MATRIX_ROW test_cavalry>test_archer seed=1007 winner=attacker combat=25.4
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1008.csv
+[Scenario 01] SUMMARY | winner=attacker | march=31.5s | combat=25.4s | flee=81.9s | winner_strength=95.55 | winner_cohesion=88.86
+MATRIX_ROW test_cavalry>test_archer seed=1008 winner=attacker combat=25.4
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1009.csv
+[Scenario 01] SUMMARY | winner=attacker | march=31.5s | combat=25.4s | flee=81.9s | winner_strength=95.55 | winner_cohesion=88.86
+MATRIX_ROW test_cavalry>test_archer seed=1009 winner=attacker combat=25.4
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=attacker | march=31.5s | combat=25.4s | flee=81.9s | winner_strength=95.55 | winner_cohesion=88.86
+MATRIX_ROW test_cavalry>test_archer seed=12345 winner=attacker combat=25.4
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=31.6s | combat=60.6s | flee=36.1s | winner_strength=91.24 | winner_cohesion=78.10
+MATRIX_ROW test_cavalry>test_cavalry seed=1000 winner=attacker combat=60.6
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1001.csv
+[Scenario 01] SUMMARY | winner=attacker | march=31.6s | combat=60.6s | flee=36.1s | winner_strength=91.24 | winner_cohesion=78.10
+MATRIX_ROW test_cavalry>test_cavalry seed=1001 winner=attacker combat=60.6
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1002.csv
+[Scenario 01] SUMMARY | winner=attacker | march=31.6s | combat=60.6s | flee=36.1s | winner_strength=91.24 | winner_cohesion=78.10
+MATRIX_ROW test_cavalry>test_cavalry seed=1002 winner=attacker combat=60.6
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1003.csv
+[Scenario 01] SUMMARY | winner=attacker | march=31.6s | combat=60.4s | flee=36.1s | winner_strength=91.26 | winner_cohesion=78.16
+MATRIX_ROW test_cavalry>test_cavalry seed=1003 winner=attacker combat=60.4
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1004.csv
+[Scenario 01] SUMMARY | winner=attacker | march=31.6s | combat=60.6s | flee=36.1s | winner_strength=91.24 | winner_cohesion=78.10
+MATRIX_ROW test_cavalry>test_cavalry seed=1004 winner=attacker combat=60.6
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1005.csv
+[Scenario 01] SUMMARY | winner=attacker | march=31.6s | combat=60.4s | flee=36.1s | winner_strength=91.26 | winner_cohesion=78.16
+MATRIX_ROW test_cavalry>test_cavalry seed=1005 winner=attacker combat=60.4
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1006.csv
+[Scenario 01] SUMMARY | winner=attacker | march=31.6s | combat=60.6s | flee=36.1s | winner_strength=91.24 | winner_cohesion=78.10
+MATRIX_ROW test_cavalry>test_cavalry seed=1006 winner=attacker combat=60.6
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1007.csv
+[Scenario 01] SUMMARY | winner=attacker | march=31.6s | combat=60.6s | flee=36.1s | winner_strength=91.24 | winner_cohesion=78.10
+MATRIX_ROW test_cavalry>test_cavalry seed=1007 winner=attacker combat=60.6
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1008.csv
+[Scenario 01] SUMMARY | winner=attacker | march=31.6s | combat=60.4s | flee=36.1s | winner_strength=91.26 | winner_cohesion=78.16
+MATRIX_ROW test_cavalry>test_cavalry seed=1008 winner=attacker combat=60.4
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1009.csv
+[Scenario 01] SUMMARY | winner=attacker | march=31.6s | combat=60.6s | flee=36.1s | winner_strength=91.24 | winner_cohesion=78.10
+MATRIX_ROW test_cavalry>test_cavalry seed=1009 winner=attacker combat=60.6
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=attacker | march=31.6s | combat=60.6s | flee=36.1s | winner_strength=91.24 | winner_cohesion=78.10
+MATRIX_ROW test_cavalry>test_cavalry seed=12345 winner=attacker combat=60.6
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=31.7s | combat=30.8s | flee=66.4s | winner_strength=97.40 | winner_cohesion=93.50
+MATRIX_ROW test_cavalry>test_skirmisher seed=1000 winner=attacker combat=30.8
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1001.csv
+[Scenario 01] SUMMARY | winner=attacker | march=31.7s | combat=30.8s | flee=66.4s | winner_strength=97.40 | winner_cohesion=93.50
+MATRIX_ROW test_cavalry>test_skirmisher seed=1001 winner=attacker combat=30.8
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1002.csv
+[Scenario 01] SUMMARY | winner=attacker | march=31.7s | combat=30.8s | flee=66.4s | winner_strength=97.40 | winner_cohesion=93.50
+MATRIX_ROW test_cavalry>test_skirmisher seed=1002 winner=attacker combat=30.8
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1003.csv
+[Scenario 01] SUMMARY | winner=attacker | march=31.7s | combat=30.8s | flee=66.4s | winner_strength=97.40 | winner_cohesion=93.50
+MATRIX_ROW test_cavalry>test_skirmisher seed=1003 winner=attacker combat=30.8
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1004.csv
+[Scenario 01] SUMMARY | winner=attacker | march=31.7s | combat=30.8s | flee=66.4s | winner_strength=97.40 | winner_cohesion=93.50
+MATRIX_ROW test_cavalry>test_skirmisher seed=1004 winner=attacker combat=30.8
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1005.csv
+[Scenario 01] SUMMARY | winner=attacker | march=31.7s | combat=30.8s | flee=66.4s | winner_strength=97.40 | winner_cohesion=93.50
+MATRIX_ROW test_cavalry>test_skirmisher seed=1005 winner=attacker combat=30.8
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1006.csv
+[Scenario 01] SUMMARY | winner=attacker | march=31.7s | combat=30.8s | flee=66.4s | winner_strength=97.40 | winner_cohesion=93.50
+MATRIX_ROW test_cavalry>test_skirmisher seed=1006 winner=attacker combat=30.8
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1007.csv
+[Scenario 01] SUMMARY | winner=attacker | march=31.7s | combat=30.8s | flee=66.4s | winner_strength=97.40 | winner_cohesion=93.50
+MATRIX_ROW test_cavalry>test_skirmisher seed=1007 winner=attacker combat=30.8
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1008.csv
+[Scenario 01] SUMMARY | winner=attacker | march=31.7s | combat=30.8s | flee=66.4s | winner_strength=97.40 | winner_cohesion=93.50
+MATRIX_ROW test_cavalry>test_skirmisher seed=1008 winner=attacker combat=30.8
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1009.csv
+[Scenario 01] SUMMARY | winner=attacker | march=31.7s | combat=30.8s | flee=66.4s | winner_strength=97.40 | winner_cohesion=93.50
+MATRIX_ROW test_cavalry>test_skirmisher seed=1009 winner=attacker combat=30.8
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=attacker | march=31.7s | combat=30.8s | flee=66.4s | winner_strength=97.40 | winner_cohesion=93.50
+MATRIX_ROW test_cavalry>test_skirmisher seed=12345 winner=attacker combat=30.8
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.9s | combat=36.2s | flee=136.1s | winner_strength=97.44 | winner_cohesion=93.59
+MATRIX_ROW test_skirmisher>test_infantry seed=1000 winner=defender combat=36.2
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1001.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.9s | combat=36.2s | flee=136.1s | winner_strength=97.44 | winner_cohesion=93.59
+MATRIX_ROW test_skirmisher>test_infantry seed=1001 winner=defender combat=36.2
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1002.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.9s | combat=36.2s | flee=136.1s | winner_strength=97.44 | winner_cohesion=93.59
+MATRIX_ROW test_skirmisher>test_infantry seed=1002 winner=defender combat=36.2
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1003.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.9s | combat=36.2s | flee=136.1s | winner_strength=97.44 | winner_cohesion=93.59
+MATRIX_ROW test_skirmisher>test_infantry seed=1003 winner=defender combat=36.2
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1004.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.9s | combat=36.2s | flee=136.1s | winner_strength=97.44 | winner_cohesion=93.59
+MATRIX_ROW test_skirmisher>test_infantry seed=1004 winner=defender combat=36.2
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1005.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.9s | combat=36.2s | flee=136.1s | winner_strength=97.44 | winner_cohesion=93.59
+MATRIX_ROW test_skirmisher>test_infantry seed=1005 winner=defender combat=36.2
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1006.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.9s | combat=36.2s | flee=136.1s | winner_strength=97.44 | winner_cohesion=93.59
+MATRIX_ROW test_skirmisher>test_infantry seed=1006 winner=defender combat=36.2
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1007.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.9s | combat=36.2s | flee=136.1s | winner_strength=97.44 | winner_cohesion=93.59
+MATRIX_ROW test_skirmisher>test_infantry seed=1007 winner=defender combat=36.2
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1008.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.9s | combat=36.2s | flee=136.1s | winner_strength=97.44 | winner_cohesion=93.59
+MATRIX_ROW test_skirmisher>test_infantry seed=1008 winner=defender combat=36.2
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1009.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.9s | combat=36.2s | flee=136.1s | winner_strength=97.44 | winner_cohesion=93.59
+MATRIX_ROW test_skirmisher>test_infantry seed=1009 winner=defender combat=36.2
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.9s | combat=36.2s | flee=136.1s | winner_strength=97.44 | winner_cohesion=93.59
+MATRIX_ROW test_skirmisher>test_infantry seed=12345 winner=defender combat=36.2
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.9s | combat=36.2s | flee=136.1s | winner_strength=97.44 | winner_cohesion=93.59
+MATRIX_ROW test_skirmisher>test_infantry_charge seed=1000 winner=defender combat=36.2
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1001.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.9s | combat=36.2s | flee=136.1s | winner_strength=97.44 | winner_cohesion=93.59
+MATRIX_ROW test_skirmisher>test_infantry_charge seed=1001 winner=defender combat=36.2
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1002.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.9s | combat=36.2s | flee=136.1s | winner_strength=97.44 | winner_cohesion=93.59
+MATRIX_ROW test_skirmisher>test_infantry_charge seed=1002 winner=defender combat=36.2
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1003.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.9s | combat=36.2s | flee=136.1s | winner_strength=97.44 | winner_cohesion=93.59
+MATRIX_ROW test_skirmisher>test_infantry_charge seed=1003 winner=defender combat=36.2
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1004.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.9s | combat=36.2s | flee=136.1s | winner_strength=97.44 | winner_cohesion=93.59
+MATRIX_ROW test_skirmisher>test_infantry_charge seed=1004 winner=defender combat=36.2
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1005.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.9s | combat=36.2s | flee=136.1s | winner_strength=97.44 | winner_cohesion=93.59
+MATRIX_ROW test_skirmisher>test_infantry_charge seed=1005 winner=defender combat=36.2
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1006.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.9s | combat=36.2s | flee=136.1s | winner_strength=97.44 | winner_cohesion=93.59
+MATRIX_ROW test_skirmisher>test_infantry_charge seed=1006 winner=defender combat=36.2
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1007.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.9s | combat=36.2s | flee=136.1s | winner_strength=97.44 | winner_cohesion=93.59
+MATRIX_ROW test_skirmisher>test_infantry_charge seed=1007 winner=defender combat=36.2
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1008.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.9s | combat=36.2s | flee=136.1s | winner_strength=97.44 | winner_cohesion=93.59
+MATRIX_ROW test_skirmisher>test_infantry_charge seed=1008 winner=defender combat=36.2
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1009.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.9s | combat=36.2s | flee=136.1s | winner_strength=97.44 | winner_cohesion=93.59
+MATRIX_ROW test_skirmisher>test_infantry_charge seed=1009 winner=defender combat=36.2
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.9s | combat=36.2s | flee=136.1s | winner_strength=97.44 | winner_cohesion=93.59
+MATRIX_ROW test_skirmisher>test_infantry_charge seed=12345 winner=defender combat=36.2
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.9s | combat=104.2s | flee=136.1s | winner_strength=92.34 | winner_cohesion=80.85
+MATRIX_ROW test_skirmisher>test_spears seed=1000 winner=defender combat=104.2
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1001.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.9s | combat=104.2s | flee=136.1s | winner_strength=92.34 | winner_cohesion=80.85
+MATRIX_ROW test_skirmisher>test_spears seed=1001 winner=defender combat=104.2
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1002.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.9s | combat=104.0s | flee=136.1s | winner_strength=92.35 | winner_cohesion=80.88
+MATRIX_ROW test_skirmisher>test_spears seed=1002 winner=defender combat=104.0
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1003.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.9s | combat=104.2s | flee=136.1s | winner_strength=92.34 | winner_cohesion=80.85
+MATRIX_ROW test_skirmisher>test_spears seed=1003 winner=defender combat=104.2
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1004.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.9s | combat=104.2s | flee=136.1s | winner_strength=92.34 | winner_cohesion=80.85
+MATRIX_ROW test_skirmisher>test_spears seed=1004 winner=defender combat=104.2
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1005.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.9s | combat=104.2s | flee=136.1s | winner_strength=92.34 | winner_cohesion=80.85
+MATRIX_ROW test_skirmisher>test_spears seed=1005 winner=defender combat=104.2
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1006.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.9s | combat=104.2s | flee=136.1s | winner_strength=92.34 | winner_cohesion=80.85
+MATRIX_ROW test_skirmisher>test_spears seed=1006 winner=defender combat=104.2
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1007.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.9s | combat=104.2s | flee=136.1s | winner_strength=92.34 | winner_cohesion=80.85
+MATRIX_ROW test_skirmisher>test_spears seed=1007 winner=defender combat=104.2
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1008.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.9s | combat=104.2s | flee=136.1s | winner_strength=92.34 | winner_cohesion=80.85
+MATRIX_ROW test_skirmisher>test_spears seed=1008 winner=defender combat=104.2
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1009.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.9s | combat=104.2s | flee=136.1s | winner_strength=92.34 | winner_cohesion=80.85
+MATRIX_ROW test_skirmisher>test_spears seed=1009 winner=defender combat=104.2
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.9s | combat=104.0s | flee=136.1s | winner_strength=92.35 | winner_cohesion=80.88
+MATRIX_ROW test_skirmisher>test_spears seed=12345 winner=defender combat=104.0
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=86.3s | combat=151.3s | flee=83.4s | winner_strength=76.35 | winner_cohesion=32.26
+MATRIX_ROW test_skirmisher>test_archer seed=1000 winner=attacker combat=151.3
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1001.csv
+[Scenario 01] SUMMARY | winner=attacker | march=86.3s | combat=151.5s | flee=83.4s | winner_strength=76.33 | winner_cohesion=32.18
+MATRIX_ROW test_skirmisher>test_archer seed=1001 winner=attacker combat=151.5
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1002.csv
+[Scenario 01] SUMMARY | winner=attacker | march=86.3s | combat=151.5s | flee=83.3s | winner_strength=76.39 | winner_cohesion=32.26
+MATRIX_ROW test_skirmisher>test_archer seed=1002 winner=attacker combat=151.5
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1003.csv
+[Scenario 01] SUMMARY | winner=attacker | march=86.3s | combat=150.6s | flee=83.4s | winner_strength=76.37 | winner_cohesion=32.41
+MATRIX_ROW test_skirmisher>test_archer seed=1003 winner=attacker combat=150.6
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1004.csv
+[Scenario 01] SUMMARY | winner=attacker | march=86.3s | combat=151.4s | flee=83.4s | winner_strength=76.33 | winner_cohesion=32.17
+MATRIX_ROW test_skirmisher>test_archer seed=1004 winner=attacker combat=151.4
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1005.csv
+[Scenario 01] SUMMARY | winner=attacker | march=86.3s | combat=150.4s | flee=83.4s | winner_strength=76.37 | winner_cohesion=32.56
+MATRIX_ROW test_skirmisher>test_archer seed=1005 winner=attacker combat=150.4
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1006.csv
+[Scenario 01] SUMMARY | winner=attacker | march=86.3s | combat=151.3s | flee=83.4s | winner_strength=76.34 | winner_cohesion=32.26
+MATRIX_ROW test_skirmisher>test_archer seed=1006 winner=attacker combat=151.3
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1007.csv
+[Scenario 01] SUMMARY | winner=attacker | march=86.3s | combat=151.0s | flee=83.4s | winner_strength=76.38 | winner_cohesion=32.34
+MATRIX_ROW test_skirmisher>test_archer seed=1007 winner=attacker combat=151.0
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1008.csv
+[Scenario 01] SUMMARY | winner=attacker | march=86.3s | combat=151.5s | flee=83.4s | winner_strength=76.30 | winner_cohesion=32.09
+MATRIX_ROW test_skirmisher>test_archer seed=1008 winner=attacker combat=151.5
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1009.csv
+[Scenario 01] SUMMARY | winner=attacker | march=86.3s | combat=151.1s | flee=83.4s | winner_strength=76.34 | winner_cohesion=32.34
+MATRIX_ROW test_skirmisher>test_archer seed=1009 winner=attacker combat=151.1
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=attacker | march=86.3s | combat=151.8s | flee=83.4s | winner_strength=76.33 | winner_cohesion=32.05
+MATRIX_ROW test_skirmisher>test_archer seed=12345 winner=attacker combat=151.8
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=defender | march=86.6s | combat=73.0s | flee=136.7s | winner_strength=94.48 | winner_cohesion=86.20
+MATRIX_ROW test_skirmisher>test_cavalry seed=1000 winner=defender combat=73.0
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1001.csv
+[Scenario 01] SUMMARY | winner=defender | march=86.6s | combat=73.0s | flee=136.7s | winner_strength=94.48 | winner_cohesion=86.20
+MATRIX_ROW test_skirmisher>test_cavalry seed=1001 winner=defender combat=73.0
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1002.csv
+[Scenario 01] SUMMARY | winner=defender | march=86.6s | combat=73.0s | flee=136.7s | winner_strength=94.48 | winner_cohesion=86.20
+MATRIX_ROW test_skirmisher>test_cavalry seed=1002 winner=defender combat=73.0
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1003.csv
+[Scenario 01] SUMMARY | winner=defender | march=86.6s | combat=73.0s | flee=136.7s | winner_strength=94.48 | winner_cohesion=86.20
+MATRIX_ROW test_skirmisher>test_cavalry seed=1003 winner=defender combat=73.0
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1004.csv
+[Scenario 01] SUMMARY | winner=defender | march=86.6s | combat=73.0s | flee=136.7s | winner_strength=94.48 | winner_cohesion=86.20
+MATRIX_ROW test_skirmisher>test_cavalry seed=1004 winner=defender combat=73.0
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1005.csv
+[Scenario 01] SUMMARY | winner=defender | march=86.6s | combat=73.2s | flee=136.7s | winner_strength=94.47 | winner_cohesion=86.17
+MATRIX_ROW test_skirmisher>test_cavalry seed=1005 winner=defender combat=73.2
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1006.csv
+[Scenario 01] SUMMARY | winner=defender | march=86.6s | combat=73.0s | flee=136.7s | winner_strength=94.48 | winner_cohesion=86.20
+MATRIX_ROW test_skirmisher>test_cavalry seed=1006 winner=defender combat=73.0
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1007.csv
+[Scenario 01] SUMMARY | winner=defender | march=86.6s | combat=73.0s | flee=136.7s | winner_strength=94.48 | winner_cohesion=86.20
+MATRIX_ROW test_skirmisher>test_cavalry seed=1007 winner=defender combat=73.0
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1008.csv
+[Scenario 01] SUMMARY | winner=defender | march=86.6s | combat=73.0s | flee=136.7s | winner_strength=94.48 | winner_cohesion=86.20
+MATRIX_ROW test_skirmisher>test_cavalry seed=1008 winner=defender combat=73.0
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1009.csv
+[Scenario 01] SUMMARY | winner=defender | march=86.6s | combat=73.0s | flee=136.7s | winner_strength=94.48 | winner_cohesion=86.20
+MATRIX_ROW test_skirmisher>test_cavalry seed=1009 winner=defender combat=73.0
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=defender | march=86.6s | combat=73.0s | flee=136.7s | winner_strength=94.48 | winner_cohesion=86.20
+MATRIX_ROW test_skirmisher>test_cavalry seed=12345 winner=defender combat=73.0
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=87.0s | combat=127.9s | flee=68.9s | winner_strength=67.38 | winner_cohesion=17.82
+MATRIX_ROW test_skirmisher>test_skirmisher seed=1000 winner=attacker combat=127.9
+[RNG] Battle seed set: 1001
+[Scenario 01] Battle seed: 1001
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1001.csv
+[Scenario 01] SUMMARY | winner=attacker | march=87.0s | combat=125.8s | flee=68.1s | winner_strength=69.80 | winner_cohesion=24.09
+MATRIX_ROW test_skirmisher>test_skirmisher seed=1001 winner=attacker combat=125.8
+[RNG] Battle seed set: 1002
+[Scenario 01] Battle seed: 1002
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1002.csv
+[Scenario 01] SUMMARY | winner=defender | march=87.0s | combat=122.3s | flee=137.6s | winner_strength=71.67 | winner_cohesion=28.89
+MATRIX_ROW test_skirmisher>test_skirmisher seed=1002 winner=defender combat=122.3
+[RNG] Battle seed set: 1003
+[Scenario 01] Battle seed: 1003
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1003.csv
+[Scenario 01] SUMMARY | winner=attacker | march=87.0s | combat=129.2s | flee=69.1s | winner_strength=66.29 | winner_cohesion=14.97
+MATRIX_ROW test_skirmisher>test_skirmisher seed=1003 winner=attacker combat=129.2
+[RNG] Battle seed set: 1004
+[Scenario 01] Battle seed: 1004
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1004.csv
+[Scenario 01] SUMMARY | winner=attacker | march=87.0s | combat=125.7s | flee=68.0s | winner_strength=69.97 | winner_cohesion=24.47
+MATRIX_ROW test_skirmisher>test_skirmisher seed=1004 winner=attacker combat=125.7
+[RNG] Battle seed set: 1005
+[Scenario 01] Battle seed: 1005
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1005.csv
+[Scenario 01] SUMMARY | winner=attacker | march=87.0s | combat=122.1s | flee=67.3s | winner_strength=71.79 | winner_cohesion=29.22
+MATRIX_ROW test_skirmisher>test_skirmisher seed=1005 winner=attacker combat=122.1
+[RNG] Battle seed set: 1006
+[Scenario 01] Battle seed: 1006
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1006.csv
+[Scenario 01] SUMMARY | winner=attacker | march=87.0s | combat=122.5s | flee=67.5s | winner_strength=71.35 | winner_cohesion=28.06
+MATRIX_ROW test_skirmisher>test_skirmisher seed=1006 winner=attacker combat=122.5
+[RNG] Battle seed set: 1007
+[Scenario 01] Battle seed: 1007
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1007.csv
+[Scenario 01] SUMMARY | winner=defender | march=87.0s | combat=123.4s | flee=137.6s | winner_strength=70.80 | winner_cohesion=26.67
+MATRIX_ROW test_skirmisher>test_skirmisher seed=1007 winner=defender combat=123.4
+[RNG] Battle seed set: 1008
+[Scenario 01] Battle seed: 1008
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1008.csv
+[Scenario 01] SUMMARY | winner=attacker | march=87.0s | combat=125.8s | flee=68.1s | winner_strength=69.80 | winner_cohesion=24.10
+MATRIX_ROW test_skirmisher>test_skirmisher seed=1008 winner=attacker combat=125.8
+[RNG] Battle seed set: 1009
+[Scenario 01] Battle seed: 1009
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1009.csv
+[Scenario 01] SUMMARY | winner=attacker | march=87.0s | combat=127.1s | flee=68.2s | winner_strength=69.20 | winner_cohesion=22.54
+MATRIX_ROW test_skirmisher>test_skirmisher seed=1009 winner=attacker combat=127.1
+[RNG] Battle seed set: 12345
+[Scenario 01] Battle seed: 12345
+[Scenario 01] Trace written: res://tests/traces/scenario_01_12345.csv
+[Scenario 01] SUMMARY | winner=defender | march=87.0s | combat=124.5s | flee=137.7s | winner_strength=70.35 | winner_cohesion=25.49
+MATRIX_ROW test_skirmisher>test_skirmisher seed=12345 winner=defender combat=124.5
+MATRIX_CSV res://docs/reports/evidence_wo023/matchup_matrix.csv
+MATRIX_MD res://docs/reports/evidence_wo023/matchup_matrix.md
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=124.1s | combat=75.8s | flee=100.5s | winner_strength=71.28 | winner_cohesion=28.08
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=124.1s | combat=75.8s | flee=100.5s | winner_strength=71.28 | winner_cohesion=28.08
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=124.1s | combat=54.0s | flee=105.9s | winner_strength=96.99 | winner_cohesion=92.29
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=124.5s | combat=35.4s | flee=80.9s | winner_strength=90.68 | winner_cohesion=76.69
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=125.1s | combat=47.4s | flee=36.4s | winner_strength=95.77 | winner_cohesion=89.43
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=125.8s | combat=36.2s | flee=65.7s | winner_strength=97.44 | winner_cohesion=93.59
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=52.8s | flee=98.8s | winner_strength=80.38 | winner_cohesion=50.94
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=52.8s | flee=98.8s | winner_strength=80.38 | winner_cohesion=50.94
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.5s | combat=56.4s | flee=106.3s | winner_strength=95.27 | winner_cohesion=85.09
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=79.6s | combat=28.0s | flee=81.4s | winner_strength=95.09 | winner_cohesion=87.71
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=80.0s | combat=39.8s | flee=36.5s | winner_strength=96.52 | winner_cohesion=91.31
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=80.3s | combat=30.6s | flee=66.2s | winner_strength=97.83 | winner_cohesion=94.58
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=defender | march=132.9s | combat=54.1s | flee=213.2s | winner_strength=96.99 | winner_cohesion=92.26
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=defender | march=132.9s | combat=54.1s | flee=213.2s | winner_strength=96.99 | winner_cohesion=92.26
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=defender | march=132.9s | combat=387.0s | flee=215.6s | winner_strength=70.35 | winner_cohesion=23.70
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=133.3s | combat=102.6s | flee=71.9s | winner_strength=87.71 | winner_cohesion=69.27
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=defender | march=133.9s | combat=281.6s | flee=255.5s | winner_strength=82.08 | winner_cohesion=29.65
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=134.7s | combat=110.1s | flee=59.2s | winner_strength=91.94 | winner_cohesion=79.67
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=defender | march=123.8s | combat=35.4s | flee=80.9s | winner_strength=90.67 | winner_cohesion=76.69
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=defender | march=78.9s | combat=28.0s | flee=81.4s | winner_strength=95.08 | winner_cohesion=87.71
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=defender | march=132.6s | combat=102.6s | flee=71.9s | winner_strength=87.70 | winner_cohesion=69.26
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=103.6s | combat=88.0s | flee=165.4s | winner_strength=97.11 | winner_cohesion=82.76
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=defender | march=28.2s | combat=25.4s | flee=81.9s | winner_strength=95.55 | winner_cohesion=88.87
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.6s | combat=151.5s | flee=83.4s | winner_strength=76.32 | winner_cohesion=32.16
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=defender | march=31.5s | combat=52.7s | flee=75.0s | winner_strength=93.51 | winner_cohesion=37.13
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=defender | march=31.5s | combat=52.7s | flee=75.0s | winner_strength=93.51 | winner_cohesion=37.13
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=defender | march=31.5s | combat=90.4s | flee=74.6s | winner_strength=92.50 | winner_cohesion=81.24
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=31.5s | combat=25.4s | flee=81.9s | winner_strength=95.55 | winner_cohesion=88.86
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=31.6s | combat=60.6s | flee=36.1s | winner_strength=91.24 | winner_cohesion=78.10
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=31.7s | combat=30.8s | flee=66.4s | winner_strength=97.40 | winner_cohesion=93.50
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.9s | combat=36.2s | flee=136.1s | winner_strength=97.44 | winner_cohesion=93.59
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.9s | combat=36.2s | flee=136.1s | winner_strength=97.44 | winner_cohesion=93.59
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=defender | march=85.9s | combat=104.2s | flee=136.1s | winner_strength=92.34 | winner_cohesion=80.85
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=86.3s | combat=151.3s | flee=83.4s | winner_strength=76.35 | winner_cohesion=32.26
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=defender | march=86.6s | combat=73.0s | flee=136.7s | winner_strength=94.48 | winner_cohesion=86.20
+[RNG] Battle seed set: 1000
+[Scenario 01] Battle seed: 1000
+[Scenario 01] Trace written: res://tests/traces/scenario_01_1000.csv
+[Scenario 01] SUMMARY | winner=attacker | march=87.0s | combat=127.9s | flee=68.9s | winner_strength=67.38 | winner_cohesion=17.82
+MATRIX_DETERMINISM PASS
+MATRIX_DONE rows=396
