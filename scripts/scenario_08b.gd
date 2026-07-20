@@ -1,21 +1,19 @@
-class_name Scenario08
+class_name Scenario08b
 extends Scenario01
 
-## S8 — Frontage blob (WO-030 restage): attackers side-by-side on one FRONT edge.
-## ContactFrontage% is edge-interval allocated (Σ occupied ≤ defender front).
+## S8b — Sequential depth-column check (WO-030).
+## Attackers stack in depth on the approach axis (legacy S8 layout).
+## Asserts sequential contact: defender never has 2+ partners at once.
 
-const TRACE_PREFIX := "scenario_08"
+const TRACE_PREFIX := "scenario_08b"
 
-@export var attacker_count: int = 1
-## Lateral spacing between attackers along the defender's front (meters).
-## Small vs formation_frontage so three blocks heavily overlap one 40 m front.
-@export var side_by_side_spacing_m: float = 12.0
+@export var attacker_count: int = 3
 
 var _defender: Unit = null
 var _attackers: Array[Unit] = []
 var _defender_strength_start: float = 0.0
-## Instrumentation: peak concurrent partners on the defender (expect ≥2 for triple).
 var max_defender_partners: int = 0
+var multi_partner_ticks: int = 0
 
 
 func _spawn_units() -> void:
@@ -23,7 +21,7 @@ func _spawn_units() -> void:
 	var px_per_meter := Constants.get_float("px_per_meter")
 	var depth_m := float(profile.get("formation_depth_m", Constants.get_float("default_infantry_block_depth_m")))
 	var half_depth_px := depth_m * 0.5 * px_per_meter
-	var spacing_px := side_by_side_spacing_m * px_per_meter
+	var stack_gap_px := depth_m * px_per_meter * 2.5
 
 	_defender = UNIT_SCENE.instantiate()
 	add_child(_defender)
@@ -32,15 +30,13 @@ func _spawn_units() -> void:
 	_units.append(_defender)
 	_defender_strength_start = _defender.strength
 
-	var spawn_x := half_depth_px * 2.0 + depth_m * px_per_meter
 	for i in attacker_count:
 		var attacker: Unit = UNIT_SCENE.instantiate()
 		add_child(attacker)
 		var attacker_id := "attacker_%d" % (i + 1)
-		var lane: float = float(i) - float(attacker_count - 1) * 0.5
-		var spawn_y := lane * spacing_px
-		attacker.configure(attacker_id, "red", profile, Vector2(spawn_x, spawn_y), Vector2.LEFT)
-		attacker.set_march_to(Vector2(-half_depth_px, spawn_y))
+		var spawn_x := half_depth_px * 2.0 + float(i) * stack_gap_px
+		attacker.configure(attacker_id, "red", profile, Vector2(spawn_x, 0.0), Vector2.LEFT)
+		attacker.set_march_to(Vector2(-half_depth_px, 0.0))
 		_units.append(attacker)
 		_attackers.append(attacker)
 
@@ -62,6 +58,8 @@ func _observe_partner_peak() -> void:
 	else:
 		n = _defender.get_contact_partners().size()
 	max_defender_partners = maxi(max_defender_partners, n)
+	if n >= 2:
+		multi_partner_ticks += 1
 
 
 func _write_trace_file() -> void:
@@ -76,7 +74,7 @@ func _write_trace_file() -> void:
 		return
 	for line in _trace_lines:
 		file.store_line(line)
-	print("[Scenario 08] Trace written: %s" % file_path)
+	print("[Scenario 08b] Trace written: %s" % file_path)
 
 
 func get_defender_damage_taken() -> float:
