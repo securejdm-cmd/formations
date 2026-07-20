@@ -89,5 +89,15 @@
   "slope_speed_bonus": 0.35,
   "quality_of_day_enabled": true,
   "quality_of_day_sigma": 0.045,
-  "flank_arc_offset_m": 100.0
+  "flank_arc_offset_m": 100.0,
+  "forest_detect_radius_m": 10.0,
+  "shrub_detect_radius_m": 20.0,
+  "concealment_profile_mult_low": 0.75,
+  "concealment_profile_mult_medium": 1.0,
+  "concealment_profile_mult_high": 1.5,
+  "concealment_moving_detect_mult": 2.0,
+  "forest_missile_penalty": 0.25,
+  "forest_cavalry_speed_mult": 0.6,
+  "forest_overwide_frontage_m": 40.0,
+  "forest_overwide_cohesion_drain_per_sec": 2.0
 }

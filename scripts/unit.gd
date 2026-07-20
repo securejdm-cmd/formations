@@ -90,6 +90,10 @@ var slope_push_mod: float = 1.0
 ## WO-031 order definition (copied to sim proxy once).
 var order_queue_steps: Array = []
 var starting_posture: String = "normal"
+## WO-032 — mirrored from sim for gallery/render; authoritative state is on SimUnitProxy.
+var concealed: bool = false
+var concealment_patch_type: String = ""
+var ever_revealed: bool = false
 var absolute_hold: bool = false
 
 

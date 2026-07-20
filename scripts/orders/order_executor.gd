@@ -528,6 +528,13 @@ func _is_living_enemy(self_unit, other) -> bool:
 	var st = other.get_state()
 	if st == Unit.State.REMOVED or st == Unit.State.ROUTING:
 		return false
+	# WO-032: enemy order triggers (enemy_within) and attack_* seek cannot see
+	# concealed units. Own-side still sees living enemies (asymmetric).
+	if _core != null and _core.has_method("is_visible_enemy"):
+		if not _core.is_visible_enemy(self_unit, other):
+			return false
+	elif other.concealed and str(other.team_id) != str(self_unit.team_id):
+		return false
 	return true
 
 

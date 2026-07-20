@@ -85,6 +85,10 @@ var feign_start_pos: Vector2 = Vector2.ZERO
 var flank_waypoints: Array = []
 var flank_wp_index: int = 0
 var starting_posture: String = "normal"
+## WO-032 concealment (Sec 10). Revealed is permanent for the battle.
+var concealed: bool = false
+var concealment_patch_type: String = ""
+var ever_revealed: bool = false
 
 
 static func from_unit(unit: Unit) -> SimUnitProxy:
@@ -136,6 +140,12 @@ static func from_unit(unit: Unit) -> SimUnitProxy:
 		p.order_queue_steps = unit.order_queue_steps.duplicate(true)
 	if "starting_posture" in unit:
 		p.starting_posture = str(unit.starting_posture)
+	if "concealed" in unit:
+		p.concealed = bool(unit.concealed)
+	if "concealment_patch_type" in unit:
+		p.concealment_patch_type = str(unit.concealment_patch_type)
+	if "ever_revealed" in unit:
+		p.ever_revealed = bool(unit.ever_revealed)
 	p.post_anchor = unit.position
 	for partner in unit.get_contact_partners():
 		if partner != null:
@@ -191,6 +201,7 @@ func refresh_from_unit(unit: Unit) -> void:
 			order_queue_steps = unit.order_queue_steps.duplicate(true)
 	if "starting_posture" in unit:
 		starting_posture = str(unit.starting_posture)
+	# WO-032: concealment runtime is sim-owned — do not clobber from Unit each tick.
 	_partner_ids.clear()
 	_contact_partners.clear()
 	for partner in unit.get_contact_partners():
@@ -251,6 +262,10 @@ func duplicate_render_state() -> SimUnitProxy:
 	p.order_phase = order_phase
 	p.order_primitive = order_primitive
 	p.order_step_index = order_step_index
+	p.starting_posture = starting_posture
+	p.concealed = concealed
+	p.concealment_patch_type = concealment_patch_type
+	p.ever_revealed = ever_revealed
 	return p
 
 
@@ -300,6 +315,9 @@ func apply_to_unit(unit: Unit, all_units: Array = []) -> void:
 	unit.slope_speed_mult = slope_speed_mult
 	unit.slope_push_mod = slope_push_mod
 	unit.absolute_hold = absolute_hold
+	unit.concealed = concealed
+	unit.concealment_patch_type = concealment_patch_type
+	unit.ever_revealed = ever_revealed
 	if unit.has_method("_update_brace_visual"):
 		unit._update_brace_visual()
 	unit.set_active_contact_edges(_active_contact_edges)

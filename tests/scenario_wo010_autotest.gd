@@ -59,8 +59,8 @@ const SCENARIO_EXTRA_TICKS := 120
 ## Gated PASS lines emitted when every check is green (WO-015).
 ## Compass, Fast+Threaded cert, S1×11, S2×11, Determinism, S3, Overlap, S4, S5–S8, S8b, S9,
 ## S10–S11, S12, S13×3, S14×2, S15, S16×2, S17×2 retired, S17b, S18, S19, S20×2, S21, S22,
-## S23–S26, S27–S29, S30–S34, S35, S36–S39, S40, S41–S44 = 78
-const EXPECTED_GREEN_PASS_COUNT := 78
+## S23–S26, S27–S29, S30–S34, S35, S36–S39, S40, S41–S44, S45–S48 = 82
+const EXPECTED_GREEN_PASS_COUNT := 82
 
 var _scenario: Scenario01 = null
 var _exit_code := 0
@@ -94,6 +94,12 @@ var _s43_ctrl_str: Array = []
 var _s44_ok_count: int = 0
 var _s44_abs_max: float = 0.0
 var _s44_hold_max: float = 0.0
+## WO-032 S45–S48
+var _s45_ambush_ok: int = 0
+var _s45_tier3: int = 0
+var _s45_ambush_coh: Array = []
+var _s45_ctrl_coh: Array = []
+var _s45_reveal_samples: Array = []
 var _perf_stats: Dictionary = {}
 var _perf_main_tick_stats: Dictionary = {}
 var _perf_scale_results: Array[Dictionary] = []
@@ -407,6 +413,21 @@ func _spawn_and_run() -> void:
 		"s44_abs_hold":
 			scene = "scenario_44"
 			seed_value = ALL_SEEDS[_seed_idx]
+		"s45_ambush":
+			scene = "scenario_45"
+			seed_value = ALL_SEEDS[_seed_idx]
+		"s45_control":
+			scene = "scenario_45"
+			seed_value = ALL_SEEDS[_seed_idx]
+		"s46_detection":
+			scene = "scenario_46"
+			seed_value = 1000
+		"s47_fit":
+			scene = "scenario_47"
+			seed_value = 1000
+		"s48_forest":
+			scene = "scenario_48"
+			seed_value = 1000
 
 	if _scenario != null:
 		_scenario.free()
@@ -471,6 +492,8 @@ func _spawn_and_run() -> void:
 	elif scene == "scenario_43":
 		_scenario.set("use_horn", _mode == "s43_horn")
 		_scenario.set("horn_at_sec", 35.0)
+	elif scene == "scenario_45":
+		_scenario.set("use_concealment", _mode == "s45_ambush")
 
 	root.add_child(_scenario)
 	_pending_ready = true
@@ -562,8 +585,16 @@ func _run_when_ready() -> void:
 		"s43_horn",
 		"s43_control",
 		"s44_abs_hold",
+		"s45_ambush",
+		"s45_control",
+		"s47_fit",
 	]:
 		_sim_harness.run_ticks(_scenario, 4500)
+	elif _mode == "s46_detection":
+		# Probe matrix — no long battle.
+		pass
+	elif _mode == "s48_forest":
+		pass
 	elif _mode == "s40_mixed":
 		# Stop once Gate-2 showcase flags are up — full 8000-tick grind floods
 		# overlap asserts and can stall the subsequent threaded perf_40 on cloud.
@@ -917,8 +948,44 @@ func _finish() -> void:
 				_spawn_and_run()
 			else:
 				_finalize_s44()
-				_mode = "perf_40"
+				_mode = "s45_ambush"
+				_seed_idx = 0
+				_s45_ambush_ok = 0
+				_s45_tier3 = 0
+				_s45_ambush_coh.clear()
+				_s45_ctrl_coh.clear()
+				_s45_reveal_samples.clear()
 				_spawn_and_run()
+		"s45_ambush":
+			_accumulate_s45_ambush(ALL_SEEDS[_seed_idx])
+			_seed_idx += 1
+			if _seed_idx < ALL_SEEDS.size():
+				_spawn_and_run()
+			else:
+				_mode = "s45_control"
+				_seed_idx = 0
+				_spawn_and_run()
+		"s45_control":
+			_s45_ctrl_coh.append(float(_scenario.column_cohesion()))
+			_seed_idx += 1
+			if _seed_idx < ALL_SEEDS.size():
+				_spawn_and_run()
+			else:
+				_finalize_s45()
+				_mode = "s46_detection"
+				_spawn_and_run()
+		"s46_detection":
+			_check_s46()
+			_mode = "s47_fit"
+			_spawn_and_run()
+		"s47_fit":
+			_check_s47()
+			_mode = "s48_forest"
+			_spawn_and_run()
+		"s48_forest":
+			_check_s48()
+			_mode = "perf_40"
+			_spawn_and_run()
 		"perf_40":
 			_check_perf_40()
 			_mode = "perf_scale"
@@ -1054,6 +1121,116 @@ func _finalize_s44() -> void:
 		ok,
 		"ok=%d/11 abs_max_disp_m=%.2f hold_max_disp_m=%.2f"
 		% [_s44_ok_count, _s44_abs_max, _s44_hold_max],
+	)
+
+
+func _accumulate_s45_ambush(seed_value: int) -> void:
+	var tier: int = int(_scenario.get_brace_tier())
+	var edge: String = str(_scenario.get_charge_edge())
+	var rev: float = float(_scenario.get_reveal_time())
+	var coh: float = float(_scenario.column_cohesion())
+	_s45_ambush_coh.append(coh)
+	_s45_reveal_samples.append({"seed": seed_value, "t": rev, "reason": str(_scenario.reveal_reason), "tier": tier, "edge": edge})
+	var ok := tier == 3
+	if ok:
+		_s45_tier3 += 1
+	var edge_ok := (
+		edge == "left" or edge == "right" or edge == "rear"
+		or edge.contains("left") or edge.contains("right") or edge.contains("rear")
+	)
+	if ok and edge_ok:
+		_s45_ambush_ok += 1
+	print(
+		"[WO-032] S45 ambush seed=%d brace_tier=%d edge=%s reveal_t=%.1f coh=%.1f"
+		% [seed_value, tier, edge, rev, coh]
+	)
+
+
+func _finalize_s45() -> void:
+	var n: int = mini(_s45_ambush_coh.size(), _s45_ctrl_coh.size())
+	var total_margin := 0.0
+	var beat := 0
+	for i in n:
+		var a: float = float(_s45_ambush_coh[i])
+		var c: float = float(_s45_ctrl_coh[i])
+		# Lower cohesion on the victim = better ambush. Margin = control_coh - ambush_coh.
+		var margin: float = c - a
+		total_margin += margin
+		if margin > 1.0:
+			beat += 1
+		print("[WO-032] S45 seed_i=%d ambush_coh=%.1f ctrl_coh=%.1f stealth_margin=%.1f" % [i, a, c, margin])
+	var avg_margin: float = total_margin / float(maxi(n, 1))
+	var ok := _s45_tier3 >= 8 and beat >= 7 and avg_margin > 0.0 and _s45_ambush_ok >= 8
+	if not ok:
+		push_error(
+			"S45 Teutoburg failed: tier3=%d/11 flank_rear=%d/11 beat=%d/11 avg_stealth_margin=%.1f"
+			% [_s45_tier3, _s45_ambush_ok, beat, avg_margin]
+		)
+	_record_check(
+		"[WO-032] S45",
+		ok,
+		"tier3=%d/11 flank_rear=%d/11 beat=%d/11 avg_stealth_margin=%.2f reveals=%s"
+		% [_s45_tier3, _s45_ambush_ok, beat, avg_margin, str(_s45_reveal_samples)],
+	)
+
+
+func _check_s46() -> void:
+	var result: Dictionary = _scenario.run_full_matrix()
+	var ok: bool = bool(result.get("all_ok", false))
+	if not ok:
+		push_error("S46 detection matrix failed: %s" % str(result))
+	for row in result.get("rows", []):
+		print(
+			"[WO-032] S46 %s/%s moving=%s expected=%.2f got=%.2f ok=%s"
+			% [
+				str(row.get("profile")),
+				str(row.get("patch")),
+				str(row.get("moving")),
+				float(row.get("expected_m")),
+				float(row.get("got_m")),
+				str(row.get("ok")),
+			]
+		)
+	print("[WO-032] S46 massive_rejected=%s" % str(result.get("massive_rejected")))
+	_record_check(
+		"[WO-032] S46",
+		ok,
+		"rows=%d massive_rejected=%s (center-to-center)"
+		% [int((result.get("rows", []) as Array).size()), str(result.get("massive_rejected"))],
+	)
+
+
+func _check_s47() -> void:
+	_scenario.evaluate_after_ticks()
+	var fit_ok: bool = bool(_scenario.fit_half_out_rejected)
+	var perm_ok: bool = bool(_scenario.reveal_permanence_ok)
+	var ok := fit_ok and perm_ok
+	if not ok:
+		push_error("S47 fit/permanence failed fit=%s permanence=%s" % [str(fit_ok), str(perm_ok)])
+	_record_check(
+		"[WO-032] S47",
+		ok,
+		"fit_half_out_rejected=%s reveal_permanence=%s" % [str(fit_ok), str(perm_ok)],
+	)
+
+
+func _check_s48() -> void:
+	var result: Dictionary = _scenario.run_penalty_probes()
+	var ok: bool = bool(result.get("all_ok", false))
+	if not ok:
+		push_error("S48 forest penalties failed: %s" % str(result))
+	print("[WO-032] S48 %s" % str(result))
+	_record_check(
+		"[WO-032] S48",
+		ok,
+		"speed_ok=%s drain_ok=%s missile_ok=%s cav_in=%.3f cav_flat=%.3f"
+		% [
+			str(result.get("speed_ok")),
+			str(result.get("drain_ok")),
+			str(result.get("missile_ok")),
+			float(result.get("cav_speed_in_forest", -1)),
+			float(result.get("cav_speed_on_flat", -1)),
+		],
 	)
 
 

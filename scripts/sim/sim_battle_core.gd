@@ -8,6 +8,7 @@ const SimRng := preload("res://scripts/sim/sim_rng.gd")
 const _Charge := preload("res://scripts/charge_combat.gd")
 const _OrderExecutor := preload("res://scripts/orders/order_executor.gd")
 const _OrderSchema := preload("res://scripts/orders/order_schema.gd")
+const _Concealment := preload("res://scripts/concealment.gd")
 
 ## Last charge-impact telemetry for scenario probes.
 var last_charge_events: Array = []
@@ -47,9 +48,16 @@ var horn_sounded: Dictionary = {}  # team -> bool
 var horn_disengage_start_str: Dictionary = {}
 var horn_disengage_cost: Dictionary = {}
 var order_started_flags: Dictionary = {}
+## WO-032: sticky arm — skip executor entirely when army-wide zero queues/horns.
+var orders_armed: bool = false
+## One-shot scan latch so empty armies never pay per-tick queue walks.
+var orders_scan_done: bool = false
 var battle_type: String = "pitched"
 var deployment_zones: Dictionary = {}
 var victory_spec: Dictionary = {"mode": "rout"}
+## WO-032: FOREST/SHRUB axis-aligned rects in meters {type,x,y,w,h}.
+var terrain_patches: Array = []
+var _concealment_initialized: bool = false
 var volley_visual_callback: Callable = Callable()
 ## WO-029b: plain-data visual events for main-thread drain (worker must not touch Nodes).
 var pending_shock_floaters: Array = []
@@ -69,9 +77,12 @@ func configure_rng(seed_value: int) -> void:
 	_rng.set_seed(seed_value)
 	battle_seed = seed_value
 	_quality_of_day_assigned = false
+	_concealment_initialized = false
+	orders_armed = false
+	orders_scan_done = false
 	# Drop any stale bridge pointer from a prior battle (static on SimRngBridge).
 	SimRngBridge.clear_worker_rng()
-	_ensure_order_executor()
+	# WO-032: do not eagerly construct executor — sticky orders_armed gates it.
 
 
 func _ensure_order_executor() -> void:
@@ -81,9 +92,26 @@ func _ensure_order_executor() -> void:
 	order_executor.bind(self)
 
 
+func arm_orders_if_present() -> void:
+	if orders_armed:
+		orders_scan_done = true
+		return
+	if orders_scan_done:
+		return
+	orders_scan_done = true
+	if not horn_schedule.is_empty() or not horn_sounded.is_empty():
+		orders_armed = true
+		return
+	for unit in units:
+		if unit != null and not unit.order_queue_steps.is_empty():
+			orders_armed = true
+			return
+
+
 func schedule_horn(team: String, after_seconds: float) -> void:
-	_ensure_order_executor()
 	horn_schedule[team] = after_seconds
+	orders_armed = true
+	_ensure_order_executor()
 	order_executor.activate_if_needed()
 
 
@@ -139,6 +167,8 @@ func begin_sim_tick(tick_interval: float) -> void:
 	_invalidate_march_radius_cache()
 	SimRngBridge.set_worker_rng(_rng)
 	assign_quality_of_day_if_needed()
+	apply_starting_concealment_if_needed()
+	arm_orders_if_present()
 	EdgeContact.begin_tick(sim_tick_count)
 	capture_tick_start_positions()
 
@@ -182,6 +212,7 @@ func advance_one_tick_fast(tick_interval: float) -> void:
 	refresh_slope_mods()
 	_tick_orders(tick_interval)
 	update_movement(tick_interval)
+	tick_concealment(tick_interval)
 	process_rout_events()
 	ranged_volley_tick(tick_interval)
 	resolve_allied_overlaps()
@@ -200,27 +231,112 @@ func advance_one_tick_fast(tick_interval: float) -> void:
 
 
 func _tick_orders(tick_interval: float) -> void:
+	## WO-032: skip executor entirely when zero queues/horns exist army-wide.
+	## Scan at most once per battle; empty armies pay zero per-tick cost after that.
+	if not orders_armed:
+		arm_orders_if_present()
+		if not orders_armed:
+			return
 	_ensure_order_executor()
 	order_executor.tick(tick_interval)
 
 
 func refresh_slope_mods() -> void:
-	## Sample height/gradient once per unit per tick; identical in fast/threaded/realtime.
+	## Sample height/gradient once per unit per tick; compose forest cav slowdown.
 	for unit in units:
 		if unit == null or unit.get_state() == Unit.State.REMOVED:
 			continue
-		if height_field == null:
-			unit.slope_speed_mult = 1.0
-			unit.slope_push_mod = 1.0
-			continue
-		unit.slope_speed_mult = height_field.speed_mult_at(unit.position, unit.facing)
-		unit.slope_push_mod = height_field.push_mod_at(unit.position, unit.facing)
+		var slope: float = 1.0
+		var push: float = 1.0
+		if height_field != null:
+			slope = height_field.speed_mult_at(unit.position, unit.facing)
+			push = height_field.push_mod_at(unit.position, unit.facing)
+		var forest: float = _Concealment.forest_speed_mult(unit, terrain_patches)
+		unit.slope_speed_mult = slope * forest
+		unit.slope_push_mod = push
 
 
 func slope_range_mult(shooter: SimUnitProxy, target: SimUnitProxy) -> float:
 	if height_field == null or shooter == null or target == null:
 		return 1.0
 	return height_field.range_mult_toward(shooter.position, target.position)
+
+
+func forest_missile_mult(shooter: SimUnitProxy, target: SimUnitProxy) -> float:
+	return _Concealment.forest_missile_mult(shooter, target, terrain_patches)
+
+
+func apply_starting_concealment_if_needed() -> void:
+	if _concealment_initialized:
+		return
+	_concealment_initialized = true
+	if terrain_patches.is_empty():
+		# Pitched / no patches: posture concealed is rejected (nowhere to fit).
+		for unit in units:
+			if unit == null:
+				continue
+			unit.concealed = false
+			unit.concealment_patch_type = ""
+		return
+	for unit in units:
+		if unit == null:
+			continue
+		_Concealment.try_begin_concealed(unit, terrain_patches)
+
+
+func reveal_unit(unit: SimUnitProxy, reason: String) -> void:
+	if unit == null or not unit.concealed:
+		return
+	unit.concealed = false
+	unit.ever_revealed = true
+	unit.concealment_patch_type = ""
+	log_trace_event(
+		"reveal",
+		"unit=%s,reason=%s" % [unit.unit_id, reason]
+	)
+
+
+func tick_concealment(delta: float) -> void:
+	## Detection, leave-patch reveal, forest over-wide drain. No-op when no patches.
+	if terrain_patches.is_empty():
+		return
+	var overwide_m: float = Constants.get_float("forest_overwide_frontage_m")
+	var drain_rate: float = Constants.get_float("forest_overwide_cohesion_drain_per_sec")
+	for unit in units:
+		if unit == null or unit.get_state() == Unit.State.REMOVED:
+			continue
+		# Over-wide forest cohesion drain (anti-exploit).
+		if _Concealment.is_in_forest(unit, terrain_patches):
+			if unit.effective_frontage_m() > overwide_m + 0.001:
+				unit.apply_cohesion_drain(drain_rate * delta, "front")
+		if not unit.concealed:
+			continue
+		# Leave patch → permanent reveal.
+		var cover: Dictionary = _Concealment.find_covering_patch(unit, terrain_patches)
+		if cover.is_empty():
+			# Still partially in some patch by center? Fit broken → leave.
+			reveal_unit(unit, "left_patch")
+			continue
+		# Detection: any living enemy within effective radius (center-to-center).
+		var radius: float = _Concealment.effective_detect_radius_m(
+			unit, unit.concealment_patch_type
+		)
+		for other in units:
+			if other == null or other == unit:
+				continue
+			if other.get_state() == Unit.State.REMOVED:
+				continue
+			if str(other.team_id) == str(unit.team_id):
+				continue
+			if other.get_state() == Unit.State.ROUTING:
+				continue
+			if _Concealment.distance_m(unit, other) <= radius:
+				reveal_unit(unit, "detection")
+				break
+
+
+func is_visible_enemy(viewer: SimUnitProxy, other: SimUnitProxy) -> bool:
+	return not _Concealment.is_concealed_from(viewer, other)
 
 
 func advance_one_tick_profiled(tick_interval: float) -> void:
@@ -240,6 +356,7 @@ func advance_one_tick_profiled(tick_interval: float) -> void:
 	t0 = _TickProfiler.begin_section("movement")
 	_tick_orders(tick_interval)
 	update_movement(tick_interval)
+	tick_concealment(tick_interval)
 	process_rout_events()
 	ranged_volley_tick(tick_interval)
 	_TickProfiler.end_section("movement", t0)
@@ -497,6 +614,10 @@ func enemies_for(unit: SimUnitProxy) -> Array:
 			continue
 		if other.team_id == unit.team_id:
 			continue
+		# WO-032: concealed units invisible to enemy auto-behaviors (brace clock,
+		# gravity, charge commit, march targeting) until reveal.
+		if _Concealment.is_concealed_from(unit, other):
+			continue
 		enemies.append(other)
 	return enemies
 
@@ -626,6 +747,8 @@ func try_passive_engagement() -> void:
 
 
 func apply_charge_impacts(attacker: SimUnitProxy, defender: SimUnitProxy) -> void:
+	# Attacking reveals concealed chargers (Sec 10).
+	reveal_unit(attacker, "attack")
 	var pair_key := "%s>%s" % [attacker.unit_id, defender.unit_id]
 	if _charge_pair_done.has(pair_key):
 		return
@@ -803,6 +926,8 @@ func check_dead_zone_panic(shooter: SimUnitProxy) -> void:
 			continue
 		if enemy.team_id == shooter.team_id:
 			continue
+		if _Concealment.is_concealed_from(shooter, enemy):
+			continue
 		if CombatResolver.center_distance_m(shooter, enemy) >= min_range_m:
 			continue
 		var shock := Constants.get_float("dead_zone_panic_shock")
@@ -832,10 +957,14 @@ func try_fire_volley(shooter: SimUnitProxy) -> void:
 	if target == null:
 		return
 
+	# Firing reveals concealed shooters instantly.
+	reveal_unit(shooter, "fire")
+
 	var distance_m := CombatResolver.center_distance_m(shooter, target)
 	var damage := CombatResolver.calc_ranged_volley_damage(
 		shooter, target, distance_m, slope_range_mult(shooter, target)
 	)
+	damage *= forest_missile_mult(shooter, target)
 	var applied := CombatResolver.apply_strength_loss(target, damage)
 	shooter.record_damage_dealt(applied)
 	shooter.consume_ammo_volley()
@@ -863,6 +992,8 @@ func pick_volley_target(shooter: SimUnitProxy) -> SimUnitProxy:
 		if enemy == shooter or enemy.get_state() == Unit.State.REMOVED:
 			continue
 		if enemy.team_id == shooter.team_id:
+			continue
+		if _Concealment.is_concealed_from(shooter, enemy):
 			continue
 		if not volley_target_permitted(shooter, enemy):
 			continue
@@ -1045,6 +1176,11 @@ func combat_tick() -> void:
 		partner.record_damage_dealt(applied_to_unit)
 		var applied_to_partner := CombatResolver.apply_strength_loss(partner, result.damage_b)
 		unit.record_damage_dealt(applied_to_partner)
+		# Melee attack reveals concealed combatants.
+		if applied_to_partner > 0.0:
+			reveal_unit(unit, "attack")
+		if applied_to_unit > 0.0:
+			reveal_unit(partner, "attack")
 
 		unit.set_bump_state(result.gap_ratio, result.a_is_winner)
 		partner.set_bump_state(result.gap_ratio, not result.a_is_winner)
@@ -1564,6 +1700,10 @@ func capture_from_units(unit_nodes: Array) -> void:
 			next.append(SimUnitProxy.from_unit(node))
 	units = next
 	resolve_partner_links()
+	# Queues arrive via capture — allow one arming scan after the roster is known.
+	if not orders_armed:
+		orders_scan_done = false
+		arm_orders_if_present()
 
 func resolve_partner_links() -> void:
 	var by_id: Dictionary = {}

@@ -55,6 +55,7 @@ var _shock_floater_layer: CanvasLayer = null
 @onready var _results_overlay = $ResultsOverlay
 ## WO-021: per-scenario height field (null = absent / flat world).
 var _height_field = null
+var _pending_terrain_patches: Array = []
 var _relief_sprite: Sprite2D = null
 
 
@@ -147,6 +148,57 @@ func _ensure_sim_core() -> void:
 	_sim_core.shock_floater_callback = Callable()
 	_sim_core.volley_visual_callback = Callable()
 	_sim_core.height_field = _height_field
+	if not _pending_terrain_patches.is_empty():
+		_sim_core.terrain_patches = _pending_terrain_patches.duplicate(true)
+
+
+func set_terrain_patches(patches: Array) -> void:
+	## WO-032: FOREST/SHRUB rects in meters. Apply before first tick.
+	_pending_terrain_patches = patches.duplicate(true)
+	if _sim_core != null:
+		_sim_core.terrain_patches = _pending_terrain_patches.duplicate(true)
+		_sim_core._concealment_initialized = false
+	if is_node_ready():
+		_render_terrain_patches()
+
+
+func get_terrain_patches() -> Array:
+	if _sim_core != null:
+		return _sim_core.terrain_patches
+	return _pending_terrain_patches
+
+
+func _render_terrain_patches() -> void:
+	## K&G-flat darker green fills (render-only).
+	for child in get_children():
+		if child is ColorRect and str(child.name).begins_with("TerrainPatch_"):
+			child.queue_free()
+	var patches: Array = get_terrain_patches()
+	if patches.is_empty() or headless_mode:
+		return
+	var px: float = Constants.get_float("px_per_meter")
+	var i := 0
+	for patch in patches:
+		if typeof(patch) != TYPE_DICTIONARY:
+			continue
+		var rect := ColorRect.new()
+		rect.name = "TerrainPatch_%d" % i
+		i += 1
+		var x: float = float(patch.get("x", 0.0)) * px
+		var y: float = float(patch.get("y", 0.0)) * px
+		var w: float = float(patch.get("w", 0.0)) * px
+		var h: float = float(patch.get("h", 0.0)) * px
+		rect.position = Vector2(x, y)
+		rect.size = Vector2(w, h)
+		rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		rect.z_index = -5
+		var ptype: String = str(patch.get("type", "FOREST")).to_upper()
+		if ptype == "SHRUB":
+			rect.color = Color(0.28, 0.42, 0.22, 0.85)
+		else:
+			rect.color = Color(0.18, 0.32, 0.14, 0.9)
+		add_child(rect)
+		move_child(rect, 0 if _ground == null else _ground.get_index() + 1)
 
 
 func _dispatch_core_event_hooks() -> void:

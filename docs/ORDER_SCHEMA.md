@@ -91,7 +91,7 @@ Scenario metadata (GDScript / future JSON):
 |-------|--------|-------|
 | `battle_type` | `pitched` (default) | more types later |
 | `deployment_zones` | per-side axis-aligned rects (meters) | UI later; schema only |
-| `posture` | `normal` \| `concealed` | concealment **mechanics** later WO |
+| `posture` | `normal` \| `concealed` | WO-032 Sec 10 concealment |
 | `victory` | existing rout conditions | extensible object |
 
 No new mechanics in this schema task.
