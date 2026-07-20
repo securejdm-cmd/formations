@@ -38,10 +38,13 @@
 | S8 restaged side-by-side on one FRONT edge | PASS |
 | S8 DIRECTION n=500 ge3=0 (QoD σ=0.045) | PASS — see numbers |
 | S8b sequential: max_partners≤1 | PASS (suite + smoke) |
-| Full suite Meta PASS=74 FAIL=0 | (run on branch / main) |
+| Full suite Meta PASS=74 FAIL=0 | PASS (branch) |
 
 ### S8 n=500 numbers (post-fix)
 `ratio n=500 mean=0.877121 sd=0.322595 cv=0.3678 min=0.504600 max=1.633570 ge3=0`
+
+### Suite (branch)
+`Meta PASS=74 FAIL=0 exit=0`
 
 ## Assumptions made
 NONE.
