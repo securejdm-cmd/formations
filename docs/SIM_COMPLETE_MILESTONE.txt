@@ -1,0 +1,89 @@
+SIMULATION COMPLETE - MILESTONE RECORD
+Project: FORMATIONS
+Tag: v0.3-sim-complete
+Signed: Designer + Technical Director
+Suite at milestone: PASS=88 FAIL=0 exit=0
+
+=====================================================================
+WHAT THIS MILESTONE MEANS
+
+Every combat and command MECHANIC the game will ship is now built, tuned,
+and trace-proven. From here forward the project builds INTERFACE and CONTENT
+on a frozen simulation. There is no combat or command mechanic left to invent.
+
+The simulation is deterministic (seeded), sim/render thread-separated, and
+runs the 40-block reference battle at 60 FPS on designer hardware.
+
+=====================================================================
+THE COMPLETE SIMULATION (WO-001 .. WO-033)
+
+Core model (Phase 1):
+- Three pillars: Strength (bodies), Cohesion (morale/will), Push (the shove).
+  Battles are won by breaking will - units rout ~67% strength remaining.
+- Edge-based contact: front/left/right/rear classification (32-case compass),
+  per-channel morale multipliers, corner blending. Flanks kill by terror.
+- Hybrid rout/RALLY, neighbor-rout shock cascade, blob-proof frontage caps,
+  R19 pinning.
+
+Combat systems (Phase 2):
+- Real damage: 9 stats, armor-class x damage-type matrix, anti-armor, 20%
+  chip floor, time-domain-correct scale constants (melee/ranged separate).
+- Ranged: volleys, falloff, ammo tiers, 3 fire doctrines, 15m dead-zone
+  panic, 70% friendly fire.
+- Mounted: momentum charge (Impact = mass x REAL closing velocity x Str%),
+  physical charge gait/gallop (no hidden constants), mass/inertia via Profile,
+  directional charge shock, three-tier brace (instinctive/set/unaware).
+- Magnetism: surface-gap gravity, live Agility (rotation/disengage), fighting-
+  withdrawal, rotation-under-contact drain (phalanx wheels cost real cohesion).
+- Slope: general height field; push/range/speed modifiers emerge; charges gain
+  downhill velocity with ZERO slope-specific charge code (R6 vindicated twice).
+- Quality of the Day (R21): persistent per-battle variance sigma=0.045, tuned
+  to the designer's curve (0%->50, 3%->63, 5%->73, 10%->86, 20%->98). Maneuver
+  advantages remain decisive - no good day saves a unit from a rear charge.
+
+Command layer (Phase 3, sim side):
+- Order system: 3-step queues, primitives (advance/hold/absolute_hold/attack/
+  feign/flank/swing_and_charge), triggers (proximity/engage/rout/cohesion/
+  timer/order_started/horn). Executes Cannae from a data file (S42, 11/11).
+- Concealment & ambush (Sec 10): forest/shrub detection, Profile multipliers,
+  fit rule, permanent reveal, brace-clock-from-reveal. Ambush worth a measured
+  53 cohesion points vs a visible flank (Teutoburg S45).
+- Feigned retreat: fighting-withdrawal + a 2s deception window shown to the
+  enemy without contaminating enemy logic. Baits the pursuer (S52, 11/11);
+  low-skill feints self-rout (S53).
+
+=====================================================================
+STANDING DEBT (carried, do not lose)
+
+1. MOBILE MOVEMENT OPTIMIZATION - REQUIRED before mobile export. The GAMEPLAY_
+   TICK residual is isolated (WO-033 Task 0): movement ~9.4ms + allied_
+   separation ~10.3ms at 40 units. Order system is ~0.0009ms (not the cost).
+   Desktop fine at ~32/50ms; mobile at 2-3x slower needs this. Phase 6/7.
+2. Balance matrix must be CONFIGURATION-AWARE in Phase 5 (frontal/flank/rear/
+   braced/unaware/engaged). Runner schema already carries the config column.
+3. inf_charge gait_mult and charge amplification are the strongest single
+   levers - Phase 5 tunes with real profiles.
+4. R26 General's Command - DRAFTED, confirmed by designer, appends when Phase 4
+   opens. Planning free; command points in-battle only; capability never sold.
+   Backlog ideas logged: deployment-zone expansion, enemy-intel/scouting (needs
+   an asymmetric-info ruling), ability list (steady line/rally/second horn),
+   general traits as AI personality, veterancy -> better quality-of-day floor.
+5. Crack-band texture fidelity, unit symbols, casualty hatching - Phase 6.
+6. Deployment-reset-after-horn - backlog (R24).
+7. Re-hiding after reveal; passable/impassable terrain, water, roads - backlog.
+
+=====================================================================
+WHAT COMES NEXT - PHASE 3 UI (the designer gets a controller)
+
+1. Deployment screen: drag placement, facing, formation width (wide-vs-deep
+   goes live), deployment zones, preset formations.
+2. Assignment screen: order-queue editor, conditional trigger builder,
+   multi-select, fire doctrines + rally contingency exposed.
+3. Battle screen v1: orders execute, pause, order-arrow visualization.
+4. Gate 3: the designer scripts hammer-and-anvil AND a Cannae double
+   envelopment using ONLY the order UI; a first-time tester understands the
+   UI in under 5 minutes.
+
+The sim already proves these battles run (S41 hammer-and-anvil, S42 Cannae).
+The UI's only job is to let the designer author what those scenario files
+author today.
