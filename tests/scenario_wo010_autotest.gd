@@ -59,8 +59,8 @@ const SCENARIO_EXTRA_TICKS := 120
 ## Gated PASS lines emitted when every check is green (WO-015).
 ## Compass, Fast+Threaded cert, S1×11, S2×11, Determinism, S3, Overlap, S4, S5–S8, S8b, S9,
 ## S10–S11, S12, S13×3, S14×2, S15, S16×2, S17×2 retired, S17b, S18, S19, S20×2, S21, S22,
-## S23–S26, S27–S29, S30–S34, S35, S36–S39, S40, S41–S44, S45–S48, S49–S54 = 88
-const EXPECTED_GREEN_PASS_COUNT := 88
+## S23–S26, S27–S29, S30–S34, S35, S36–S39, S40, S41–S44, S45–S48, S49–S54, WO-034 deploy, WO-035 ui-launch = 90
+const EXPECTED_GREEN_PASS_COUNT := 90
 
 var _scenario: Scenario01 = null
 var _exit_code := 0
@@ -1166,6 +1166,8 @@ func _finish() -> void:
 				_spawn_and_run()
 		"s54_deception":
 			_check_s54()
+			_check_wo034_deploy_roundtrip()
+			_check_wo035_ui_launch_smoke()
 			_mode = "perf_40"
 			_spawn_and_run()
 		"perf_40":
@@ -1580,6 +1582,157 @@ func _check_s54() -> void:
 		ok,
 		"enemy_routs_fired=%s window_samples=%d" % [str(fired), _scenario.window_samples.size()],
 	)
+
+
+func _check_wo034_deploy_roundtrip() -> void:
+	## UI-deploy placements == hand-authored → identical serialize + tick-0 core state.
+	var BD = load("res://scripts/battle_scenario_data.gd")
+	var battle: Dictionary = BD.load_path()
+	var hand: Array = battle.get("hand_authored_placements", [])
+	var ui: Array = []
+	for p in hand:
+		ui.append(p.duplicate(true))
+	var hand_m: Dictionary = BD.merge_deployed_battle(battle, hand)
+	var ui_m: Dictionary = BD.merge_deployed_battle(battle, ui)
+	var ok: bool = BD.canonical_units_fingerprint(hand_m) == BD.canonical_units_fingerprint(ui_m)
+	var v: Dictionary = BD.validate_placements(battle, ui)
+	ok = ok and bool(v.ok)
+	var packed = load("res://tests/scenario_from_data.tscn")
+	var fp_a: String = ""
+	var fp_b: String = ""
+	if ok:
+		fp_a = _wo034_core_fp(packed, hand_m)
+		fp_b = _wo034_core_fp(packed, ui_m)
+		ok = (not fp_a.is_empty()) and fp_a == fp_b
+	if not ok:
+		push_error("WO-034 deploy roundtrip failed validate=%s fp_match=%s" % [str(v), str(fp_a == fp_b)])
+	_record_check(
+		"[WO-034] deploy roundtrip",
+		ok,
+		"units_fp_match tick0_chars=%d presets=LINE,COLUMN,REFUSED_FLANK" % fp_a.length(),
+	)
+
+
+func _check_wo035_ui_launch_smoke() -> void:
+	## UI data path + full-encirclement: no-overlap + contact coherence for whole battle.
+	var BD = load("res://scripts/battle_scenario_data.gd")
+	var battle: Dictionary = BD.load_path("res://data/battles/wo034_pitched_deploy.json")
+	var placements: Array = battle.get("hand_authored_placements", [])
+	var merged: Dictionary = BD.merge_deployed_battle(battle, placements)
+	var ok_ui: bool = _wo035_simulate_integrity(merged, "ui_deploy", false)
+	var enc_raw := FileAccess.get_file_as_string("res://data/battles/wo035_encirclement.json")
+	var enc = JSON.parse_string(enc_raw)
+	var ok_enc: bool = typeof(enc) == TYPE_DICTIONARY and _wo035_simulate_integrity(enc, "encirclement", true)
+	var ok: bool = ok_ui and ok_enc
+	if not ok:
+		push_error("WO-035 ui-launch smoke failed ui=%s enc=%s" % [str(ok_ui), str(ok_enc)])
+	_record_check(
+		"[WO-035] UI-launch smoke",
+		ok,
+		"ui_path=%s encirclement=%s (no-overlap+coherence)" % [str(ok_ui), str(ok_enc)],
+	)
+
+
+func _wo035_simulate_integrity(merged: Dictionary, label: String, require_multi_edge: bool) -> bool:
+	var packed = load("res://tests/scenario_from_data.tscn")
+	var sc = packed.instantiate()
+	sc.headless_mode = true
+	sc.fast_sim_mode = true
+	sc.auto_run = false
+	sc.use_sim_thread = false
+	sc.suppress_io = true
+	sc.set_battle_data(merged)
+	root.add_child(sc)
+	var spins := 0
+	while not sc.is_node_ready() and spins < 512:
+		OS.delay_usec(1000)
+		spins += 1
+	if sc.has_method("stop_sim_thread_for_harness"):
+		sc.stop_sim_thread_for_harness()
+	sc._ensure_sim_core()
+	sc._sim_core.capture_from_units(sc._units)
+	sc._sim_core.headless_mode = true
+	sc._sim_core.fast_sim_mode = true
+	var saw_multi := false
+	var max_edges := 0
+	var ticks := 0
+	while ticks < 4000 and not sc.is_battle_over():
+		sc.advance_one_tick()
+		ticks += 1
+		if sc.had_overlap_failure() or sc.had_adhesion_invariant_failure():
+			print("[WO-035] %s FAIL tick=%d ov=%s ad=%s" % [
+				label, ticks, str(sc.had_overlap_failure()), str(sc.had_adhesion_invariant_failure())
+			])
+			sc.free()
+			return false
+		if require_multi_edge:
+			var edges: int = _wo035_victim_edges(sc)
+			var partners: int = _wo035_victim_partners(sc)
+			max_edges = maxi(max_edges, maxi(edges, partners))
+			if edges >= 3 or partners >= 3:
+				saw_multi = true
+	var ok: bool = (not sc.had_overlap_failure()) and (not sc.had_adhesion_invariant_failure())
+	if require_multi_edge and not saw_multi:
+		print("[WO-035] %s missing 3+ edges/partners (max=%d)" % [label, max_edges])
+		ok = false
+	print("[WO-035] %s ok=%s ticks=%d max_edges=%d" % [label, str(ok), ticks, max_edges])
+	sc.free()
+	return ok
+
+
+func _wo035_victim_partners(sc) -> int:
+	var core = sc._sim_core
+	if core == null:
+		return 0
+	for u in core.units:
+		if str(u.unit_id) != "victim":
+			continue
+		return u.get_contact_partners().size()
+	return 0
+
+
+func _wo035_victim_edges(sc) -> int:
+	var core = sc._sim_core
+	if core == null:
+		return 0
+	for u in core.units:
+		if str(u.unit_id) != "victim":
+			continue
+		var uniq: Dictionary = {}
+		var label: String = str(u.get_active_contact_edges()).to_lower()
+		if not label.is_empty():
+			for part in label.split(";"):
+				var s := str(part).strip_edges()
+				for channel in ["front", "left", "right", "rear"]:
+					if s.contains(channel):
+						uniq[channel] = true
+		for k in ["front", "left", "right", "rear"]:
+			if float(u._edge_cohesion_drain_totals.get(k, 0.0)) > 0.01:
+				uniq[k] = true
+		if not uniq.is_empty():
+			return uniq.size()
+		return u.get_contact_partners().size()
+	return 0
+
+
+func _wo034_core_fp(packed: PackedScene, merged: Dictionary) -> String:
+	var sc = packed.instantiate()
+	sc.headless_mode = true
+	sc.fast_sim_mode = true
+	sc.auto_run = false
+	sc.use_sim_thread = false
+	sc.suppress_io = true
+	sc.set_battle_data(merged)
+	root.add_child(sc)
+	var spins := 0
+	while not sc.is_node_ready() and spins < 512:
+		OS.delay_usec(1000)
+		spins += 1
+	if sc.has_method("stop_sim_thread_for_harness"):
+		sc.stop_sim_thread_for_harness()
+	var fp: String = sc.get_initial_core_fingerprint()
+	sc.free()
+	return fp
 
 
 func _check_s1_regression(seed_value: int) -> void:

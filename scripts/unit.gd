@@ -443,12 +443,15 @@ func _update_brace_visual() -> void:
 		_instinctive_indicator.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var frontage_px := effective_frontage_m() * Constants.get_float("px_per_meter")
 	var depth_px := 3.0
-	var y := -effective_depth_m() * Constants.get_float("px_per_meter") * 0.5 - depth_px
 	# Tier 2 (set) takes priority visually.
 	if _braced:
 		_brace_indicator.visible = true
-		_brace_indicator.size = Vector2(frontage_px, depth_px)
-		_brace_indicator.position = Vector2(-frontage_px * 0.5, y)
+		# Local +X = depth (along facing); +Y = frontage. Thin strip on the FRONT face.
+		_brace_indicator.size = Vector2(depth_px, frontage_px)
+		_brace_indicator.position = Vector2(
+			effective_depth_m() * Constants.get_float("px_per_meter") * 0.5 - depth_px,
+			-frontage_px * 0.5
+		)
 		_instinctive_indicator.visible = false
 		return
 	_brace_indicator.visible = false
@@ -458,8 +461,11 @@ func _update_brace_visual() -> void:
 	)
 	if instinctive_ready:
 		_instinctive_indicator.visible = true
-		_instinctive_indicator.size = Vector2(frontage_px, depth_px)
-		_instinctive_indicator.position = Vector2(-frontage_px * 0.5, y)
+		_instinctive_indicator.size = Vector2(depth_px, frontage_px)
+		_instinctive_indicator.position = Vector2(
+			effective_depth_m() * Constants.get_float("px_per_meter") * 0.5 - depth_px,
+			-frontage_px * 0.5
+		)
 	else:
 		_instinctive_indicator.visible = false
 
@@ -893,9 +899,12 @@ func _update_bump_visual(delta: float) -> void:
 		* Constants.get_float("px_per_meter")
 	)
 	var direction := 1.0 if _bump_is_winner else -1.0
-	var bump_offset := facing.normalized() * wave * amp_px * direction
+	# Local +X == facing (Unit.rotation = facing.angle()). World-space facing
+	# assigned to local position skews the visual root off-axis ("bent joint").
+	var bump_offset := Vector2(wave * amp_px * direction, 0.0)
 	_visual_root.position = bump_offset
-	_update_grind_band(bump_offset)
+	# Grind lives under VisualRoot — do not re-add bump in local coords.
+	_update_grind_band(Vector2.ZERO)
 
 
 func _update_crack_band() -> void:
