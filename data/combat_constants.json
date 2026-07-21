@@ -99,5 +99,6 @@
   "forest_missile_penalty": 0.25,
   "forest_cavalry_speed_mult": 0.6,
   "forest_overwide_frontage_m": 40.0,
-  "forest_overwide_cohesion_drain_per_sec": 2.0
+  "forest_overwide_cohesion_drain_per_sec": 2.0,
+  "feign_deception_window_s": 2.0
 }

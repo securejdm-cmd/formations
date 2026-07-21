@@ -82,6 +82,9 @@ var post_anchor: Vector2 = Vector2.ZERO
 var horn_retreating: bool = false
 var feign_dist_m: float = 0.0
 var feign_start_pos: Vector2 = Vector2.ZERO
+## WO-033: feign active + deception window (Combat Core §5).
+var feign_active: bool = false
+var feign_deception_remaining_s: float = 0.0
 var flank_waypoints: Array = []
 var flank_wp_index: int = 0
 var starting_posture: String = "normal"
@@ -382,6 +385,27 @@ func _sync_unit_partners(unit: Unit) -> void:
 
 func get_state() -> Unit.State:
 	return _state
+
+
+func get_enemy_visible_state() -> Unit.State:
+	## WO-033 deception: for feign_deception_window_s after feign begins, the
+	## OPPOSING side sees ROUTING. True sim state stays ordered (never ROUTING
+	## unless cohesion actually breaks). unit_routs checks get_state() only.
+	if feign_active and feign_deception_remaining_s > 0.0:
+		return Unit.State.ROUTING
+	return _state
+
+
+func get_enemy_visible_state_name() -> String:
+	match get_enemy_visible_state():
+		Unit.State.MARCHING: return "marching"
+		Unit.State.ENGAGED: return "engaged"
+		Unit.State.WAVERING: return "wavering"
+		Unit.State.ROUTING: return "routing"
+		Unit.State.RALLYING: return "rallying"
+		Unit.State.HOLD: return "hold"
+		Unit.State.REMOVED: return "removed"
+	return "unknown"
 
 
 func get_state_name() -> String:

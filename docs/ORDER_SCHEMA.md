@@ -26,7 +26,7 @@ Steps run in sequence. A step with a trigger **waits** until the trigger fires, 
 | `absolute_hold` | — | HOLD at post; see Absolute Hold below |
 | `attack_nearest` | — | seek nearest **non-routing** enemy; on engage, grind |
 | `attack_target` | `unit: "<id>"` | seek named enemy; on engage, grind |
-| `feign_retreat` | `dist: <m>` | after retire+turn: attack_nearest terminal |
+| `feign_retreat` | `dist: <m>` | fighting-withdrawal if engaged; retire `dist` m (ordered-retreat drain × Retreating Skill); deception window exposes enemy-visible ROUTING while true state stays ordered; then turn & fight (`attack_nearest`). `unit_routs` uses true state only |
 | `flank_move` | `side: "left"\|"right"`, `point: {x,y}`, optional `flank_arc_offset_m` | HOLD at point |
 | `swing_and_charge` | `side: "left"\|"right"`, `target: "<id>"`, optional `flank_arc_offset_m` | charge-commit target (R17); terminal HOLD if target gone |
 

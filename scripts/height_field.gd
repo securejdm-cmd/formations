@@ -45,17 +45,106 @@ static func make_flat(cell_m_in: float = -1.0):
 static func make_test_hill(cell_m_in: float = -1.0):
 	## Constant 10% grade ramp (west low → east high). Sec 7 reference grade everywhere on-ramp.
 	## ∇h ≈ (+0.10, 0): facing west = downhill, facing east = uphill.
+	return make_from_features(
+		[
+			{
+				"type": "ramp_x",
+				"x0": TEST_HILL_X0_M,
+				"x1": TEST_HILL_X1_M,
+				"grade": TEST_HILL_GRADE,
+			}
+		],
+		cell_m_in,
+		"test_hill"
+	)
+
+
+static func make_from_features(features: Array, cell_m_in: float = -1.0, label_in: String = "composite"):
+	## WO-033: compose multiple elevation features onto a 20m (default) grid.
+	## Sampling remains bilinear (WO-021) — smooth along-axis grades; nearest would
+	## stair-step Sec 7 modifiers at cell boundaries and break 10% calibration.
 	var hf = (load(SELF_PATH) as GDScript).new()
-	hf.label = "test_hill"
+	hf.label = label_in
 	hf._init_grid(cell_m_in)
 	hf.heights.resize(hf.cols * hf.rows)
-	var grade: float = TEST_HILL_GRADE
-	var x0: float = TEST_HILL_X0_M
-	var x1: float = TEST_HILL_X1_M
+	hf.heights.fill(0.0)
+	for feat in features:
+		if typeof(feat) != TYPE_DICTIONARY:
+			continue
+		hf._apply_feature(feat)
+	return hf
+
+
+static func make_ridge_line(crest_x_m: float = 0.0, half_width_m: float = 80.0, crest_h_m: float = 16.0, cell_m_in: float = -1.0):
+	## North-south ridge: crest at crest_x, linear slopes to both sides.
+	return make_from_features(
+		[{"type": "ridge_x", "crest_x": crest_x_m, "half_width": half_width_m, "height": crest_h_m}],
+		cell_m_in,
+		"ridge_line"
+	)
+
+
+static func make_valley(floor_x_m: float = 0.0, half_width_m: float = 100.0, wall_h_m: float = 20.0, cell_m_in: float = -1.0):
+	## Valley floor at floor_x; walls rise linearly to ±half_width.
+	return make_from_features(
+		[{"type": "valley_x", "floor_x": floor_x_m, "half_width": half_width_m, "wall_height": wall_h_m}],
+		cell_m_in,
+		"valley"
+	)
+
+
+static func make_cross_slope(grade: float = 0.10, cell_m_in: float = -1.0):
+	## Constant grade along +Y (north high). Flank facing north = uphill.
+	return make_from_features(
+		[{"type": "ramp_y", "y0": -200.0, "y1": 200.0, "grade": grade}],
+		cell_m_in,
+		"cross_slope"
+	)
+
+
+func _apply_feature(feat: Dictionary) -> void:
+	var ftype: String = str(feat.get("type", ""))
+	match ftype:
+		"ramp_x":
+			_apply_ramp_x(
+				float(feat.get("x0", TEST_HILL_X0_M)),
+				float(feat.get("x1", TEST_HILL_X1_M)),
+				float(feat.get("grade", TEST_HILL_GRADE))
+			)
+		"ramp_y":
+			_apply_ramp_y(
+				float(feat.get("y0", -200.0)),
+				float(feat.get("y1", 200.0)),
+				float(feat.get("grade", TEST_HILL_GRADE))
+			)
+		"ridge_x":
+			_apply_ridge_x(
+				float(feat.get("crest_x", 0.0)),
+				float(feat.get("half_width", 80.0)),
+				float(feat.get("height", 16.0))
+			)
+		"valley_x":
+			_apply_valley_x(
+				float(feat.get("floor_x", 0.0)),
+				float(feat.get("half_width", 100.0)),
+				float(feat.get("wall_height", 20.0))
+			)
+		"gaussian_hill":
+			_apply_gaussian_hill(
+				float(feat.get("cx", 0.0)),
+				float(feat.get("cy", 0.0)),
+				float(feat.get("sigma", 40.0)),
+				float(feat.get("peak", 12.0))
+			)
+		_:
+			pass
+
+
+func _apply_ramp_x(x0: float, x1: float, grade: float) -> void:
 	var h_peak: float = grade * (x1 - x0)
-	for r in hf.rows:
-		for c in hf.cols:
-			var p: Vector2 = hf.cell_center_m(c, r)
+	for r in rows:
+		for c in cols:
+			var p: Vector2 = cell_center_m(c, r)
 			var h: float = 0.0
 			if p.x <= x0:
 				h = 0.0
@@ -63,8 +152,59 @@ static func make_test_hill(cell_m_in: float = -1.0):
 				h = h_peak
 			else:
 				h = grade * (p.x - x0)
-			hf.heights[r * hf.cols + c] = h
-	return hf
+			heights[r * cols + c] = maxf(heights[r * cols + c], h)
+
+
+func _apply_ramp_y(y0: float, y1: float, grade: float) -> void:
+	var h_peak: float = grade * (y1 - y0)
+	for r in rows:
+		for c in cols:
+			var p: Vector2 = cell_center_m(c, r)
+			var h: float = 0.0
+			if p.y <= y0:
+				h = 0.0
+			elif p.y >= y1:
+				h = h_peak
+			else:
+				h = grade * (p.y - y0)
+			heights[r * cols + c] = maxf(heights[r * cols + c], h)
+
+
+func _apply_ridge_x(crest_x: float, half_width: float, height: float) -> void:
+	if half_width <= 0.0:
+		return
+	for r in rows:
+		for c in cols:
+			var p: Vector2 = cell_center_m(c, r)
+			var d: float = absf(p.x - crest_x)
+			var h: float = 0.0
+			if d < half_width:
+				h = height * (1.0 - d / half_width)
+			heights[r * cols + c] = maxf(heights[r * cols + c], h)
+
+
+func _apply_valley_x(floor_x: float, half_width: float, wall_height: float) -> void:
+	if half_width <= 0.0:
+		return
+	for r in rows:
+		for c in cols:
+			var p: Vector2 = cell_center_m(c, r)
+			var d: float = absf(p.x - floor_x)
+			var h: float = wall_height
+			if d < half_width:
+				h = wall_height * (d / half_width)
+			heights[r * cols + c] = maxf(heights[r * cols + c], h)
+
+
+func _apply_gaussian_hill(cx: float, cy: float, sigma: float, peak: float) -> void:
+	var s2: float = maxf(sigma * sigma, 0.0001)
+	for r in rows:
+		for c in cols:
+			var p: Vector2 = cell_center_m(c, r)
+			var dx: float = p.x - cx
+			var dy: float = p.y - cy
+			var h: float = peak * exp(-(dx * dx + dy * dy) / (2.0 * s2))
+			heights[r * cols + c] = maxf(heights[r * cols + c], h)
 
 
 func _init_grid(cell_m_in: float = -1.0) -> void:
