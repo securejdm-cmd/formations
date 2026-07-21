@@ -4,6 +4,8 @@
 - **Built:** Diagnosed UI battle vs certified tick; deferred sim-thread start until battle metadata applied; permanent UI-launch smoke + encirclement integrity; brace/bump render fixes; deploy click-select + drag-to-move.
 - **Files changed:** `docs/work_orders/WORK_ORDER_035.md`, this report; `scripts/scenario_from_data.gd`; `scripts/unit.gd` (brace axes + local bump); `scripts/ui/deployment_screen.gd` (reposition); `data/battles/wo035_encirclement.json`; `tests/wo035_ui_launch_smoke.gd`; suite expect **90**.
 - **Tests:** Suite **PASS=90 FAIL=0 exit=0**; UI-launch smoke PASS; encirclement 3+ edges PASS; GAMEPLAY_TICK p95 ≈ **47.1ms** @ 40u (cloud)
+- **Assumptions made:** NONE
+- **Known issues:** none blocking
 
 ## Task 1 — Line-by-line handoff vs certified tick
 
