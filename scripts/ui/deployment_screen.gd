@@ -172,6 +172,9 @@ func _spawn_enemy_visuals() -> void:
 		var u: Unit = _BattleData.spawn_unit_node(self, rec, UNIT_SCENE)
 		u.set_process(false)
 		u.set_physics_process(false)
+		u.input_pickable = false
+		u.monitoring = false
+		u.monitorable = false
 		_enemy_visuals.append(u)
 
 
@@ -419,6 +422,7 @@ func _sanitize_placements() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	# Kept for keys; pointer handled in _input so Area2D units cannot steal clicks.
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_R:
 			_rotate_selected()
@@ -428,6 +432,15 @@ func _unhandled_input(event: InputEvent) -> void:
 			_remove_selected()
 			get_viewport().set_input_as_handled()
 			return
+
+
+func _input(event: InputEvent) -> void:
+	## WO-035: click-to-select + drag-to-move must beat Unit Area2D picking.
+	if event is InputEventKey:
+		return
+	# Ignore pointer over HUD panels (left/right chrome).
+	if _pointer_over_hud(event):
+		return
 	if event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
 		if mb.button_index == MOUSE_BUTTON_LEFT and mb.pressed:
@@ -436,7 +449,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif mb.button_index == MOUSE_BUTTON_LEFT and not mb.pressed:
 			_drag_placed_id = ""
 		elif mb.button_index == MOUSE_BUTTON_RIGHT and mb.pressed:
-			# Right-drag rotate selected toward cursor.
 			if not selected_id.is_empty():
 				_face_toward_screen(mb.position)
 				get_viewport().set_input_as_handled()
@@ -448,6 +460,19 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif selected_id != "" and Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
 			_face_toward_screen(mm.position)
 			get_viewport().set_input_as_handled()
+
+
+func _pointer_over_hud(event: InputEvent) -> bool:
+	if not (event is InputEventMouse):
+		return false
+	var p: Vector2 = (event as InputEventMouse).position
+	var vp := get_viewport().get_visible_rect().size
+	# Left chrome ~360px, right chrome ~360px (matches panel layout).
+	if p.x < 360.0:
+		return true
+	if p.x > vp.x - 360.0 and p.y < 280.0:
+		return true
+	return false
 
 
 func _screen_to_world_m(screen_pos: Vector2) -> Vector2:
@@ -702,6 +727,9 @@ func _refresh_placed_visuals() -> void:
 		u.set_process(false)
 		u.set_physics_process(false)
 		u.set_order_queue([])
+		u.input_pickable = false
+		u.monitoring = false
+		u.monitorable = false
 		# Facing chevron label.
 		var tag := Label.new()
 		tag.text = "%s\n%.0fm" % [uid, float(p.get("formation_frontage_m"))]

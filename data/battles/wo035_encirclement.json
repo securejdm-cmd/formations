@@ -1,0 +1,70 @@
+{
+  "id": "wo035_encirclement",
+  "display_name": "Full Encirclement Integrity",
+  "battle_type": "pitched",
+  "battle_seed": 2001,
+  "player_team": "blue",
+  "snap_m": 5.0,
+  "formation_bounds": { "frontage_min_m": 20.0, "frontage_max_m": 80.0 },
+  "deployment_zones": {
+    "blue": { "x": -200.0, "y": -150.0, "w": 120.0, "h": 300.0 },
+    "red": { "x": 80.0, "y": -150.0, "w": 120.0, "h": 300.0 }
+  },
+  "victory": { "mode": "rout", "extensible": true },
+  "height_field": { "label": "flat", "features": [] },
+  "terrain_patches": [],
+  "units": [
+    {
+      "id": "victim",
+      "team": "blue",
+      "profile": "test_infantry",
+      "posture": "normal",
+      "position_m": { "x": 0.0, "y": 0.0 },
+      "facing": { "x": 1.0, "y": 0.0 },
+      "formation_frontage_m": 40.0,
+      "formation_depth_m": 15.0,
+      "order_queue": [
+        { "primitive": "absolute_hold", "params": {}, "trigger": { "type": "at_start" } }
+      ]
+    },
+    {
+      "id": "atk_front",
+      "team": "red",
+      "profile": "test_infantry",
+      "posture": "normal",
+      "position_m": { "x": 28.0, "y": 0.0 },
+      "facing": { "x": -1.0, "y": 0.0 },
+      "formation_frontage_m": 24.0,
+      "formation_depth_m": 12.0,
+      "order_queue": [
+        { "primitive": "attack_target", "params": { "unit": "victim" }, "trigger": { "type": "at_start" } }
+      ]
+    },
+    {
+      "id": "atk_left",
+      "team": "red",
+      "profile": "test_infantry",
+      "posture": "normal",
+      "position_m": { "x": 0.0, "y": -36.0 },
+      "facing": { "x": 0.0, "y": 1.0 },
+      "formation_frontage_m": 24.0,
+      "formation_depth_m": 12.0,
+      "order_queue": [
+        { "primitive": "attack_target", "params": { "unit": "victim" }, "trigger": { "type": "at_start" } }
+      ]
+    },
+    {
+      "id": "atk_right",
+      "team": "red",
+      "profile": "test_infantry",
+      "posture": "normal",
+      "position_m": { "x": 0.0, "y": 36.0 },
+      "facing": { "x": 0.0, "y": -1.0 },
+      "formation_frontage_m": 24.0,
+      "formation_depth_m": 12.0,
+      "order_queue": [
+        { "primitive": "attack_target", "params": { "unit": "victim" }, "trigger": { "type": "at_start" } }
+      ]
+    }
+  ]
+}
