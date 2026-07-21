@@ -59,8 +59,8 @@ const SCENARIO_EXTRA_TICKS := 120
 ## Gated PASS lines emitted when every check is green (WO-015).
 ## Compass, Fast+Threaded cert, S1×11, S2×11, Determinism, S3, Overlap, S4, S5–S8, S8b, S9,
 ## S10–S11, S12, S13×3, S14×2, S15, S16×2, S17×2 retired, S17b, S18, S19, S20×2, S21, S22,
-## S23–S26, S27–S29, S30–S34, S35, S36–S39, S40, S41–S44, S45–S48, S49–S54 = 88
-const EXPECTED_GREEN_PASS_COUNT := 88
+## S23–S26, S27–S29, S30–S34, S35, S36–S39, S40, S41–S44, S45–S48, S49–S54, WO-034 deploy = 89
+const EXPECTED_GREEN_PASS_COUNT := 89
 
 var _scenario: Scenario01 = null
 var _exit_code := 0
@@ -1166,6 +1166,7 @@ func _finish() -> void:
 				_spawn_and_run()
 		"s54_deception":
 			_check_s54()
+			_check_wo034_deploy_roundtrip()
 			_mode = "perf_40"
 			_spawn_and_run()
 		"perf_40":
@@ -1580,6 +1581,55 @@ func _check_s54() -> void:
 		ok,
 		"enemy_routs_fired=%s window_samples=%d" % [str(fired), _scenario.window_samples.size()],
 	)
+
+
+func _check_wo034_deploy_roundtrip() -> void:
+	## UI-deploy placements == hand-authored → identical serialize + tick-0 core state.
+	var BD = load("res://scripts/battle_scenario_data.gd")
+	var battle: Dictionary = BD.load_path()
+	var hand: Array = battle.get("hand_authored_placements", [])
+	var ui: Array = []
+	for p in hand:
+		ui.append(p.duplicate(true))
+	var hand_m: Dictionary = BD.merge_deployed_battle(battle, hand)
+	var ui_m: Dictionary = BD.merge_deployed_battle(battle, ui)
+	var ok := BD.canonical_units_fingerprint(hand_m) == BD.canonical_units_fingerprint(ui_m)
+	var v: Dictionary = BD.validate_placements(battle, ui)
+	ok = ok and bool(v.ok)
+	var packed = load("res://tests/scenario_from_data.tscn")
+	var fp_a := ""
+	var fp_b := ""
+	if ok:
+		fp_a = _wo034_core_fp(packed, hand_m)
+		fp_b = _wo034_core_fp(packed, ui_m)
+		ok = (not fp_a.is_empty()) and fp_a == fp_b
+	if not ok:
+		push_error("WO-034 deploy roundtrip failed validate=%s fp_match=%s" % [str(v), str(fp_a == fp_b)])
+	_record_check(
+		"[WO-034] deploy roundtrip",
+		ok,
+		"units_fp_match tick0_chars=%d presets=LINE,COLUMN,REFUSED_FLANK" % fp_a.length(),
+	)
+
+
+func _wo034_core_fp(packed: PackedScene, merged: Dictionary) -> String:
+	var sc = packed.instantiate()
+	sc.headless_mode = true
+	sc.fast_sim_mode = true
+	sc.auto_run = false
+	sc.use_sim_thread = false
+	sc.suppress_io = true
+	sc.set_battle_data(merged)
+	root.add_child(sc)
+	var spins := 0
+	while not sc.is_node_ready() and spins < 512:
+		OS.delay_usec(1000)
+		spins += 1
+	if sc.has_method("stop_sim_thread_for_harness"):
+		sc.stop_sim_thread_for_harness()
+	var fp: String = sc.get_initial_core_fingerprint()
+	sc.free()
+	return fp
 
 
 func _check_s1_regression(seed_value: int) -> void:

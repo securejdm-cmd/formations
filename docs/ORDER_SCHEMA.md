@@ -81,6 +81,10 @@ Scenario metadata (GDScript / future JSON):
       "team": "blue",
       "profile": "test_infantry",
       "posture": "normal",
+      "position_m": { "x": 0.0, "y": 0.0 },
+      "facing": { "x": 1.0, "y": 0.0 },
+      "formation_frontage_m": 40.0,
+      "formation_depth_m": 15.0,
       "order_queue": [ ... ]
     }
   ]
@@ -90,11 +94,14 @@ Scenario metadata (GDScript / future JSON):
 | field | values | notes |
 |-------|--------|-------|
 | `battle_type` | `pitched` (default) | more types later |
-| `deployment_zones` | per-side axis-aligned rects (meters) | UI later; schema only |
+| `deployment_zones` | per-side axis-aligned rects (meters) | WO-034 deployment UI enforces |
 | `posture` | `normal` \| `concealed` | WO-032 Sec 10 concealment |
 | `victory` | existing rout conditions | extensible object |
+| `position_m` | `{x,y}` meters | same spawn coords headless scenarios use |
+| `facing` | `{x,y}` unit vector | same facing headless scenarios use |
+| `formation_frontage_m` / `formation_depth_m` | meters | profile defaults; WO-034 width edits hold area (Combat Core 3.7) |
 
-No new mechanics in this schema task.
+WO-034 deployment UI reads/writes this structure (via `data/battles/*.json` + merge). No new sim mechanics.
 
 ---
 
