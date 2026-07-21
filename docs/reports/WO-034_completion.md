@@ -14,7 +14,8 @@
   - Deployment scene smoke load → **PASS**; deploy static (no sim on render thread)
   - Presets shipped: **LINE, COLUMN, REFUSED_FLANK**
   - Sampling/footprint: width holds area (Combat Core 3.7); frontage clamps from battle `formation_bounds` 20–80m
-  - Headless suite meta expected **PASS=89**; GAMEPLAY_TICK unchanged path (perf_40 after WO-034 check)
+  - Headless suite meta **PASS=89 FAIL=0 exit=0**; GAMEPLAY_TICK p95 ≈ **45.4ms** at 40 units (cloud; gate unchanged path)
+  - WO-034 deploy roundtrip check in suite → **PASS** (tick0_chars=695)
   - frontend-design: `/mnt/skills/public/frontend-design/SKILL.md` **not present in environment**; styling followed project frontend-design user-rule constraints (earth campaign palette, brand-first FORMATIONS hero, map as dominant plane, no purple/cream AI defaults)
 - **Assumptions made:** NONE (frontage min/max and snap_m are **battle-authored** in the provided battle JSON, not silent globals)
 - **Known issues:** Designer hand-confirm checklist is the real gate (TD cannot see UI). Touch not the gate.
