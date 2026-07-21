@@ -1593,12 +1593,12 @@ func _check_wo034_deploy_roundtrip() -> void:
 		ui.append(p.duplicate(true))
 	var hand_m: Dictionary = BD.merge_deployed_battle(battle, hand)
 	var ui_m: Dictionary = BD.merge_deployed_battle(battle, ui)
-	var ok := BD.canonical_units_fingerprint(hand_m) == BD.canonical_units_fingerprint(ui_m)
+	var ok: bool = BD.canonical_units_fingerprint(hand_m) == BD.canonical_units_fingerprint(ui_m)
 	var v: Dictionary = BD.validate_placements(battle, ui)
 	ok = ok and bool(v.ok)
 	var packed = load("res://tests/scenario_from_data.tscn")
-	var fp_a := ""
-	var fp_b := ""
+	var fp_a: String = ""
+	var fp_b: String = ""
 	if ok:
 		fp_a = _wo034_core_fp(packed, hand_m)
 		fp_b = _wo034_core_fp(packed, ui_m)
