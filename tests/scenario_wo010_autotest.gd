@@ -59,8 +59,8 @@ const SCENARIO_EXTRA_TICKS := 120
 ## Gated PASS lines emitted when every check is green (WO-015).
 ## Compass, Fast+Threaded cert, S1×11, S2×11, Determinism, S3, Overlap, S4, S5–S8, S8b, S9,
 ## S10–S11, S12, S13×3, S14×2, S15, S16×2, S17×2 retired, S17b, S18, S19, S20×2, S21, S22,
-## S23–S26, S27–S29, S30–S34, S35, S36–S39, S40, S41–S44, S45–S48 = 82
-const EXPECTED_GREEN_PASS_COUNT := 82
+## S23–S26, S27–S29, S30–S34, S35, S36–S39, S40, S41–S44, S45–S48, S49–S54 = 88
+const EXPECTED_GREEN_PASS_COUNT := 88
 
 var _scenario: Scenario01 = null
 var _exit_code := 0
@@ -100,6 +100,19 @@ var _s45_tier3: int = 0
 var _s45_ambush_coh: Array = []
 var _s45_ctrl_coh: Array = []
 var _s45_reveal_samples: Array = []
+## WO-033 S49–S54
+var _s49_ridge_combat: Array = []
+var _s49_flat_combat: Array = []
+var _s49_ridge_wins: int = 0
+var _s50_valley_v: Array = []
+var _s50_valley_i: Array = []
+var _s50_flat_v: Array = []
+var _s50_flat_i: Array = []
+var _s52_feint_sprung: int = 0
+var _s52_ctrl_sprung: int = 0
+var _s52_feint_pursuer_coh: Array = []
+var _s52_ctrl_pursuer_coh: Array = []
+var _s53_rout_count: int = 0
 var _perf_stats: Dictionary = {}
 var _perf_main_tick_stats: Dictionary = {}
 var _perf_scale_results: Array[Dictionary] = []
@@ -428,6 +441,33 @@ func _spawn_and_run() -> void:
 		"s48_forest":
 			scene = "scenario_48"
 			seed_value = 1000
+		"s49_ridge":
+			scene = "scenario_49"
+			seed_value = ALL_SEEDS[_seed_idx]
+		"s49_flat":
+			scene = "scenario_49"
+			seed_value = ALL_SEEDS[_seed_idx]
+		"s50_valley":
+			scene = "scenario_50"
+			seed_value = ALL_SEEDS[_seed_idx]
+		"s50_flat":
+			scene = "scenario_50"
+			seed_value = ALL_SEEDS[_seed_idx]
+		"s51_cross":
+			scene = "scenario_51"
+			seed_value = 1000
+		"s52_feint":
+			scene = "scenario_52"
+			seed_value = ALL_SEEDS[_seed_idx]
+		"s52_control":
+			scene = "scenario_52"
+			seed_value = ALL_SEEDS[_seed_idx]
+		"s53_backfire":
+			scene = "scenario_53"
+			seed_value = ALL_SEEDS[_seed_idx]
+		"s54_deception":
+			scene = "scenario_54"
+			seed_value = 1000
 
 	if _scenario != null:
 		_scenario.free()
@@ -494,6 +534,12 @@ func _spawn_and_run() -> void:
 		_scenario.set("horn_at_sec", 35.0)
 	elif scene == "scenario_45":
 		_scenario.set("use_concealment", _mode == "s45_ambush")
+	elif scene == "scenario_49":
+		_scenario.set("use_ridge", _mode == "s49_ridge")
+	elif scene == "scenario_50":
+		_scenario.set("use_valley", _mode == "s50_valley")
+	elif scene == "scenario_52":
+		_scenario.set("use_feint", _mode == "s52_feint")
 
 	root.add_child(_scenario)
 	_pending_ready = true
@@ -588,6 +634,15 @@ func _run_when_ready() -> void:
 		"s45_ambush",
 		"s45_control",
 		"s47_fit",
+		"s49_ridge",
+		"s49_flat",
+		"s50_valley",
+		"s50_flat",
+		"s51_cross",
+		"s52_feint",
+		"s52_control",
+		"s53_backfire",
+		"s54_deception",
 	]:
 		_sim_harness.run_ticks(_scenario, 4500)
 	elif _mode == "s46_detection":
@@ -984,6 +1039,133 @@ func _finish() -> void:
 			_spawn_and_run()
 		"s48_forest":
 			_check_s48()
+			_mode = "s49_ridge"
+			_seed_idx = 0
+			_s49_ridge_combat.clear()
+			_s49_flat_combat.clear()
+			_s49_ridge_wins = 0
+			_spawn_and_run()
+		"s49_ridge":
+			_s49_ridge_combat.append(float(_scenario.combat_sec()))
+			if bool(_scenario.defender_won()):
+				_s49_ridge_wins += 1
+			print(
+				"[WO-033] S49 ridge seed=%d win=%s combat=%.1f str_rout=%.1f"
+				% [
+					ALL_SEEDS[_seed_idx],
+					str(_scenario.defender_won()),
+					float(_scenario.combat_sec()),
+					float(_scenario.strength_at_rout),
+				]
+			)
+			_seed_idx += 1
+			if _seed_idx < ALL_SEEDS.size():
+				_spawn_and_run()
+			else:
+				_mode = "s49_flat"
+				_seed_idx = 0
+				_spawn_and_run()
+		"s49_flat":
+			_s49_flat_combat.append(float(_scenario.combat_sec()))
+			_seed_idx += 1
+			if _seed_idx < ALL_SEEDS.size():
+				_spawn_and_run()
+			else:
+				_finalize_s49()
+				_mode = "s50_valley"
+				_seed_idx = 0
+				_s50_valley_v.clear()
+				_s50_valley_i.clear()
+				_s50_flat_v.clear()
+				_s50_flat_i.clear()
+				_spawn_and_run()
+		"s50_valley":
+			_s50_valley_v.append(float(_scenario.closing_speed()))
+			_s50_valley_i.append(float(_scenario.impact()))
+			print(
+				"[WO-033] S50 valley seed=%d v=%.3f i=%.3f"
+				% [ALL_SEEDS[_seed_idx], float(_scenario.closing_speed()), float(_scenario.impact())]
+			)
+			_seed_idx += 1
+			if _seed_idx < ALL_SEEDS.size():
+				_spawn_and_run()
+			else:
+				_mode = "s50_flat"
+				_seed_idx = 0
+				_spawn_and_run()
+		"s50_flat":
+			_s50_flat_v.append(float(_scenario.closing_speed()))
+			_s50_flat_i.append(float(_scenario.impact()))
+			_seed_idx += 1
+			if _seed_idx < ALL_SEEDS.size():
+				_spawn_and_run()
+			else:
+				_finalize_s50()
+				_mode = "s51_cross"
+				_spawn_and_run()
+		"s51_cross":
+			_check_s51()
+			_mode = "s52_feint"
+			_seed_idx = 0
+			_s52_feint_sprung = 0
+			_s52_ctrl_sprung = 0
+			_s52_feint_pursuer_coh.clear()
+			_s52_ctrl_pursuer_coh.clear()
+			_spawn_and_run()
+		"s52_feint":
+			if bool(_scenario.trap_sprung):
+				_s52_feint_sprung += 1
+			_s52_feint_pursuer_coh.append(float(_scenario.pursuer_cohesion_end))
+			print(
+				"[WO-033] S52 feint seed=%d sprung=%s edge=%s pursuer_coh=%.1f"
+				% [
+					ALL_SEEDS[_seed_idx],
+					str(_scenario.trap_sprung),
+					str(_scenario.pursuer_flank_edge),
+					float(_scenario.pursuer_cohesion_end),
+				]
+			)
+			_seed_idx += 1
+			if _seed_idx < ALL_SEEDS.size():
+				_spawn_and_run()
+			else:
+				_mode = "s52_control"
+				_seed_idx = 0
+				_spawn_and_run()
+		"s52_control":
+			if bool(_scenario.trap_sprung):
+				_s52_ctrl_sprung += 1
+			_s52_ctrl_pursuer_coh.append(float(_scenario.pursuer_cohesion_end))
+			_seed_idx += 1
+			if _seed_idx < ALL_SEEDS.size():
+				_spawn_and_run()
+			else:
+				_finalize_s52()
+				_mode = "s53_backfire"
+				_seed_idx = 0
+				_s53_rout_count = 0
+				_spawn_and_run()
+		"s53_backfire":
+			if bool(_scenario.did_rout):
+				_s53_rout_count += 1
+			print(
+				"[WO-033] S53 seed=%d rout=%s t=%.1f samples=%d"
+				% [
+					ALL_SEEDS[_seed_idx],
+					str(_scenario.did_rout),
+					float(_scenario.rout_time_sec),
+					_scenario.cohesion_samples.size(),
+				]
+			)
+			_seed_idx += 1
+			if _seed_idx < ALL_SEEDS.size():
+				_spawn_and_run()
+			else:
+				_finalize_s53()
+				_mode = "s54_deception"
+				_spawn_and_run()
+		"s54_deception":
+			_check_s54()
 			_mode = "perf_40"
 			_spawn_and_run()
 		"perf_40":
@@ -1231,6 +1413,172 @@ func _check_s48() -> void:
 			float(result.get("cav_speed_in_forest", -1)),
 			float(result.get("cav_speed_on_flat", -1)),
 		],
+	)
+
+
+func _finalize_s49() -> void:
+	var n: int = mini(_s49_ridge_combat.size(), _s49_flat_combat.size())
+	var sum_r := 0.0
+	var sum_f := 0.0
+	for i in n:
+		sum_r += float(_s49_ridge_combat[i])
+		sum_f += float(_s49_flat_combat[i])
+	# Crest majority + combat duration not shorter than flat control (compounded climb).
+	var ok := (
+		_s49_ridge_wins >= 7
+		and n >= 8
+		and (sum_r / float(maxi(n, 1))) >= (sum_f / float(maxi(n, 1))) - 2.0
+	)
+	if not ok:
+		push_error(
+			"S49 ridge failed: wins=%d/11 avg_ridge=%.1f avg_flat=%.1f"
+			% [_s49_ridge_wins, sum_r / float(maxi(n, 1)), sum_f / float(maxi(n, 1))]
+		)
+	_record_check(
+		"[WO-033] S49",
+		ok,
+		"ridge_wins=%d/11 avg_combat_ridge=%.1f avg_combat_flat=%.1f"
+		% [_s49_ridge_wins, sum_r / float(maxi(n, 1)), sum_f / float(maxi(n, 1))],
+	)
+
+
+func _finalize_s50() -> void:
+	var n: int = mini(_s50_valley_v.size(), _s50_flat_v.size())
+	var beat_v := 0
+	var beat_i := 0
+	var sum_dv := 0.0
+	var sum_di := 0.0
+	for i in n:
+		var vv: float = float(_s50_valley_v[i])
+		var fv: float = float(_s50_flat_v[i])
+		var vi: float = float(_s50_valley_i[i])
+		var fi: float = float(_s50_flat_i[i])
+		if vv > fv + 0.05:
+			beat_v += 1
+		if vi > fi + 0.05:
+			beat_i += 1
+		sum_dv += vv - fv
+		sum_di += vi - fi
+		print(
+			"[WO-033] S50 seed_i=%d valley_v=%.3f flat_v=%.3f valley_i=%.3f flat_i=%.3f"
+			% [i, vv, fv, vi, fi]
+		)
+	var ok := beat_v >= 8 and beat_i >= 8
+	if not ok:
+		push_error("S50 valley charge failed: beat_v=%d beat_i=%d/11" % [beat_v, beat_i])
+	_record_check(
+		"[WO-033] S50",
+		ok,
+		"beat_v=%d/11 beat_i=%d/11 mean_dv=%.3f mean_di=%.3f"
+		% [beat_v, beat_i, sum_dv / float(maxi(n, 1)), sum_di / float(maxi(n, 1))],
+	)
+
+
+func _check_s51() -> void:
+	var edge: String = str(_scenario.observed_edge)
+	var push_m: float = float(_scenario.slope_push_mod_attacker)
+	var spd_m: float = float(_scenario.slope_speed_mult_attacker)
+	var edge_ok := (
+		edge == "left" or edge == "right" or edge == "rear"
+		or edge.contains("left") or edge.contains("right") or edge.contains("rear")
+	)
+	# Cross-slope 10%: mods should deviate from identity (composition present).
+	var slope_ok := absf(push_m - 1.0) > 0.01 or absf(spd_m - 1.0) > 0.01
+	# Calibration probe on general field at 10% grade (Sec 7 published).
+	var hf = _scenario.get_height_field()
+	var cal_ok := true
+	if hf != null:
+		# cross_slope: +Y high → facing UP (−Y) is downhill.
+		var facing_dn := Vector2.UP
+		var speed_dn: float = hf.speed_mult_at(Vector2.ZERO, facing_dn)
+		var push_dn: float = hf.push_mod_at(Vector2.ZERO, facing_dn)
+		var range_dn: float = hf.range_mult_toward(Vector2.ZERO, Vector2(0.0, -100.0))
+		# Sec 7 @ 10%: speed +35%, push +10%, range +15%.
+		cal_ok = (
+			absf(speed_dn - 1.35) < 0.02
+			and absf(push_dn - 1.10) < 0.02
+			and absf(range_dn - 1.15) < 0.02
+		)
+		print(
+			"[WO-033] S51 calibration speed=%.3f push=%.3f range=%.3f (expect 1.35/1.10/1.15)"
+			% [speed_dn, push_dn, range_dn]
+		)
+	var ok := edge_ok and slope_ok and cal_ok
+	if not ok:
+		push_error(
+			"S51 cross-slope failed edge=%s push=%.3f speed=%.3f cal=%s"
+			% [edge, push_m, spd_m, str(cal_ok)]
+		)
+	_record_check(
+		"[WO-033] S51",
+		ok,
+		"edge=%s slope_push=%.3f slope_speed=%.3f cal_ok=%s"
+		% [edge, push_m, spd_m, str(cal_ok)],
+	)
+
+
+func _finalize_s52() -> void:
+	var n: int = mini(_s52_feint_pursuer_coh.size(), _s52_ctrl_pursuer_coh.size())
+	var better := 0
+	var sum_m := 0.0
+	for i in n:
+		var f: float = float(_s52_feint_pursuer_coh[i])
+		var c: float = float(_s52_ctrl_pursuer_coh[i])
+		var margin: float = c - f
+		sum_m += margin
+		if margin > 1.0 or (_s52_feint_sprung > _s52_ctrl_sprung):
+			better += 1
+	var ok := _s52_feint_sprung >= 8 and better >= 7
+	if not ok:
+		push_error(
+			"S52 feint failed: sprung=%d/%d ctrl_sprung=%d better=%d"
+			% [_s52_feint_sprung, n, _s52_ctrl_sprung, better]
+		)
+	_record_check(
+		"[WO-033] S52",
+		ok,
+		"feint_sprung=%d/11 ctrl_sprung=%d avg_pursuer_coh_margin=%.2f"
+		% [_s52_feint_sprung, _s52_ctrl_sprung, sum_m / float(maxi(n, 1))],
+	)
+
+
+func _finalize_s53() -> void:
+	var ok := _s53_rout_count >= 8
+	if not ok:
+		push_error("S53 backfire failed: routs=%d/11 (low skill should rout)" % _s53_rout_count)
+	_record_check(
+		"[WO-033] S53",
+		ok,
+		"routs=%d/11 (low Retreating Skill feign → genuine rout)" % _s53_rout_count,
+	)
+
+
+func _check_s54() -> void:
+	var ok: bool = bool(_scenario.deception_ok())
+	var fired: bool = bool(_scenario.enemy_routs_fired)
+	if not ok:
+		push_error(
+			"S54 deception failed fired=%s samples=%s"
+			% [str(fired), str(_scenario.window_samples.slice(0, mini(8, _scenario.window_samples.size())))]
+		)
+	# Print first ~2.5s of exposed state.
+	for s in _scenario.window_samples:
+		if float(s.get("t", 0.0)) > 2.5:
+			break
+		print(
+			"[WO-033] S54 t=%.1f true=%s enemy_vis=%s feign=%s left=%.2f"
+			% [
+				float(s.get("t")),
+				str(s.get("true_state")),
+				str(s.get("enemy_visible")),
+				str(s.get("feign_active")),
+				float(s.get("deception_left")),
+			]
+		)
+	_record_check(
+		"[WO-033] S54",
+		ok,
+		"enemy_routs_fired=%s window_samples=%d" % [str(fired), _scenario.window_samples.size()],
 	)
 
 

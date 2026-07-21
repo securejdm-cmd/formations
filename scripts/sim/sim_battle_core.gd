@@ -353,8 +353,11 @@ func advance_one_tick_profiled(tick_interval: float) -> void:
 	refresh_slope_mods()
 	_TickProfiler.end_section("slope_sampling", t0)
 
-	t0 = _TickProfiler.begin_section("movement")
+	t0 = _TickProfiler.begin_section("orders")
 	_tick_orders(tick_interval)
+	_TickProfiler.end_section("orders", t0)
+
+	t0 = _TickProfiler.begin_section("movement")
 	update_movement(tick_interval)
 	tick_concealment(tick_interval)
 	process_rout_events()

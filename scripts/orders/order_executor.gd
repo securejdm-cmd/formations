@@ -6,9 +6,24 @@ extends RefCounted
 const _Schema := preload("res://scripts/orders/order_schema.gd")
 const _Charge := preload("res://scripts/charge_combat.gd")
 
+## WO-033 Task 0 micro-profile counters (accumulate while TickProfiler.enabled).
+static var prof_tick_entries: int = 0
+static var prof_trigger_evals: int = 0
+static var prof_step_checks: int = 0
+static var prof_order_state_emits: int = 0
+static var prof_per_unit_allocs: int = 0
+
 var _core = null  # SimBattleCore
 var _active: bool = false
 var _last_trace_sec: int = -1
+
+
+static func reset_profile_counters() -> void:
+	prof_tick_entries = 0
+	prof_trigger_evals = 0
+	prof_step_checks = 0
+	prof_order_state_emits = 0
+	prof_per_unit_allocs = 0
 
 
 func bind(core) -> void:
@@ -40,6 +55,7 @@ func tick(delta: float) -> void:
 	activate_if_needed()
 	if not _active:
 		return
+	prof_tick_entries += 1
 	_tick_horn_schedule()
 	for unit in _core.units:
 		if unit == null:
@@ -94,6 +110,7 @@ func _enter_step(unit, idx: int) -> void:
 
 
 func _tick_unit(unit, delta: float) -> void:
+	prof_step_checks += 1
 	match unit.order_phase:
 		_Schema.PHASE_WAITING:
 			unit.order_trigger_live = _eval_trigger(unit, unit.order_trigger)
@@ -254,9 +271,17 @@ func _tick_attack_seek(unit, nearest: bool) -> void:
 
 
 func _start_feign(unit) -> void:
+	## Combat Core §5 / WO-033: fighting withdrawal if engaged, then retire dist,
+	## deception window hides "still ordered" from enemy-visible state.
 	var dist: float = float(unit.order_params.get("dist", 40.0))
 	unit.feign_dist_m = dist
 	unit.feign_start_pos = unit.position
+	unit.feign_active = true
+	unit.feign_deception_remaining_s = Constants.get_float("feign_deception_window_s")
+	# Sec 5 fighting-withdrawal cost when breaking contact.
+	if not unit.get_contact_partners().is_empty() and not unit.disengaging:
+		if unit.has_method("begin_disengage"):
+			unit.begin_disengage()
 	var away: Vector2 = -unit.facing.normalized()
 	if away.length_squared() < 0.0001:
 		away = Vector2.LEFT if str(unit.team_id) == "red" else Vector2.RIGHT
@@ -267,17 +292,31 @@ func _start_feign(unit) -> void:
 
 
 func _tick_feign(unit, delta: float) -> void:
+	if unit.feign_deception_remaining_s > 0.0:
+		unit.feign_deception_remaining_s = maxf(0.0, unit.feign_deception_remaining_s - delta)
 	var drain: float = _Schema.ordered_retreat_drain_per_sec(unit) * delta
 	unit.apply_cohesion_drain(drain)
+	# Genuine rout can interrupt a low-skill feign (counter-play).
+	if unit.get_state() == Unit.State.ROUTING:
+		unit.feign_active = false
+		unit.feign_deception_remaining_s = 0.0
+		unit.order_phase = _Schema.PHASE_TERMINAL
+		return
 	if unit.order_prim_phase == "retreating":
 		var px := Constants.get_float("px_per_meter")
 		var travelled: float = unit.feign_start_pos.distance_to(unit.position) / px
 		if travelled >= unit.feign_dist_m - 0.5 or unit.get_state() == Unit.State.HOLD:
-			unit.order_prim_phase = "turned"
-			unit.order_primitive = _Schema.PRIM_ATTACK_NEAREST
-			unit.order_phase = _Schema.PHASE_TERMINAL
-			unit.order_prim_phase = "seeking"
-			_seek_nearest(unit)
+			_finish_feign_turn(unit)
+
+
+func _finish_feign_turn(unit) -> void:
+	## Turn and fight: clear feign flags (enemy now sees ordered state).
+	unit.feign_active = false
+	unit.feign_deception_remaining_s = 0.0
+	unit.order_primitive = _Schema.PRIM_ATTACK_NEAREST
+	unit.order_phase = _Schema.PHASE_TERMINAL
+	unit.order_prim_phase = "seeking"
+	_seek_nearest(unit)
 
 
 func _flank_offset_m(params: Dictionary) -> float:
@@ -446,6 +485,7 @@ func _own_edge_point(unit) -> Vector2:
 
 
 func _eval_trigger(unit, trigger: Dictionary) -> bool:
+	prof_trigger_evals += 1
 	var t: String = str(trigger.get("type", _Schema.TRIG_AT_START))
 	match t:
 		_Schema.TRIG_AT_START:
@@ -566,6 +606,8 @@ func _maybe_log_order_traces() -> void:
 			continue
 		if not unit.order_runtime_ready and not unit.horn_retreating:
 			continue
+		prof_order_state_emits += 1
+		prof_per_unit_allocs += 1
 		_core.log_trace_event(
 			"order_state",
 			"unit=%s,step=%d,phase=%s,primitive=%s,trigger=%s,trigger_live=%s,prim_phase=%s"
