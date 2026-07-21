@@ -49,6 +49,15 @@ Every Completion Report and Escalation Report must be written as a **markdown fi
 
 The `.md` file is the **report of record** and must be **committed with the work**. Chat output may summarize, but the committed file is authoritative.
 
+## Evidence Delivery — Raw Report URL (required — governance amendment)
+
+The **FINAL content** of every work-order chat reply must include the **raw report URL** (`raw.githubusercontent.com`, current branch) for the report of record, alongside the branch / SHA / suite attestation.
+
+- Completion: `https://raw.githubusercontent.com/<owner>/<repo>/<branch>/docs/reports/WO-XXX_completion.md`
+- Escalation: `https://raw.githubusercontent.com/<owner>/<repo>/<branch>/docs/reports/WO-XXX_escalation.md`
+
+The designer must never have to dig through GitHub for a report. This is **in addition to** committing the report file itself.
+
 ## Completion Report Format (required at the end of every work order)
 
 Write the full report to `/docs/reports/WO-XXX_completion.md` using this structure:
