@@ -60,4 +60,4 @@ Logged here; not implemented in this WO.
 - `[WO-036] rotated-contact smoke` PASS (static OBB+contact, engaged, combat, obb_march=false, off_x≈39.3°)
 - `[WO-035] UI-launch smoke` PASS
 - S1 seed 1000 combat=54.8s; Fast-mode cert PASS; Threaded cert PASS; Determinism PASS
-- GAMEPLAY_TICK p95: see suite line `Perf40 GATE_50MS` in run log (cloud)
+- GAMEPLAY_TICK p95=**34.782ms** @ 40u (GATE_50MS PASS)

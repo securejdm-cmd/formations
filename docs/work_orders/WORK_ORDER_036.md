@@ -38,5 +38,5 @@ ACCEPTANCE
 [x] Geometry report; contact unified on oriented footprint
 [x] Angled-contact smoke PASS (engage + OBB no-overlap)
 [x] Permanent assertions in suite
-[ ] Head-on byte-identical; suite exit 0
-[ ] Designer build; Assumptions NONE; raw report URL
+[x] Head-on byte-identical; suite exit 0 (PASS=91)
+[x] Designer build; Assumptions NONE; raw report URL
