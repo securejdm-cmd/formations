@@ -1691,7 +1691,13 @@ func _check_wo036_rotated_contact_smoke() -> void:
 func _wo036_static_obb_contact_predicate() -> bool:
 	var SimProxy = load("res://scripts/sim/sim_unit_proxy.gd")
 	var inf: Dictionary = UnitProfileLoader.load_profile("test_infantry")
-	var px: float = float(Constants.get_float("px_per_meter"))
+	# Bare `Constants` is unavailable while this file compiles as a `-s` SceneTree
+	# entry script; use the autoload node instead.
+	var constants: Node = root.get_node_or_null("Constants")
+	if constants == null:
+		push_error("WO-036 Constants autoload missing")
+		return false
+	var px: float = float(constants.call("get_float", "px_per_meter"))
 	var a = SimProxy.new()
 	var b = SimProxy.new()
 	a.unit_id = "a"

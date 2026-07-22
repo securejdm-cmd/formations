@@ -104,12 +104,11 @@ static func units_overlap(unit_a: Variant, unit_b: Variant) -> bool:
 		return false
 	if unit_a.team_id == unit_b.team_id:
 		return FormationGeometry.rectangles_overlap(unit_a, unit_b)
-	if is_head_on_pair(unit_a, unit_b):
-		return units_penetrating(unit_a, unit_b)
-	if (
-		EdgeContact.units_have_contact(unit_a, unit_b)
-		or EdgeContact.units_have_contact(unit_b, unit_a)
-	):
+	# WO-036: enemy OBB merge is a defect only when neither partnered (resolving)
+	# nor auto_engage_locked (intentional break-off / horn walk-away).
+	if unit_a.has_contact_with(unit_b) or unit_b.has_contact_with(unit_a):
+		return false
+	if bool(unit_a.auto_engage_locked) or bool(unit_b.auto_engage_locked):
 		return false
 	return FormationGeometry.rectangles_overlap(unit_a, unit_b)
 

@@ -181,7 +181,14 @@ func complete_disengage() -> void:
 			partner.remove_contact_partner(self)
 			partner.clear_bump_state()
 	clear_bump_state()
-	# Break-off: do not instantly re-stick while still geometrically overlapping.
+	# WO-036: never clobber rout/rally into MARCHING.
+	if (
+		_state == State.ROUTING
+		or _state == State.RALLYING
+		or _state == State.REMOVED
+	):
+		auto_engage_locked = false
+		return
 	auto_engage_locked = true
 	if current_order == Order.MARCH_TO:
 		var to_target: Vector2 = march_target - position
