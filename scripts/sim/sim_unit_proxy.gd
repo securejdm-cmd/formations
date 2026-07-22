@@ -618,6 +618,14 @@ func complete_disengage() -> void:
 			if partner.has_method("clear_bump_state"):
 				partner.clear_bump_state()
 	clear_bump_state()
+	# WO-036: never clobber rout/rally into MARCHING (false revive + tunnel).
+	if (
+		_state == Unit.State.ROUTING
+		or _state == Unit.State.RALLYING
+		or _state == Unit.State.REMOVED
+	):
+		auto_engage_locked = false
+		return
 	auto_engage_locked = true
 	if current_order == Unit.Order.MARCH_TO:
 		var to_target: Vector2 = march_target - position

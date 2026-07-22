@@ -104,12 +104,11 @@ static func units_overlap(unit_a: Variant, unit_b: Variant) -> bool:
 		return false
 	if unit_a.team_id == unit_b.team_id:
 		return FormationGeometry.rectangles_overlap(unit_a, unit_b)
-	if is_head_on_pair(unit_a, unit_b):
-		return units_penetrating(unit_a, unit_b)
-	if (
-		EdgeContact.units_have_contact(unit_a, unit_b)
-		or EdgeContact.units_have_contact(unit_b, unit_a)
-	):
+	# WO-036: enemy OBB merge is a defect only when neither partnered (resolving)
+	# nor auto_engage_locked (intentional break-off / horn walk-away).
+	if unit_a.has_contact_with(unit_b) or unit_b.has_contact_with(unit_a):
+		return false
+	if bool(unit_a.auto_engage_locked) or bool(unit_b.auto_engage_locked):
 		return false
 	return FormationGeometry.rectangles_overlap(unit_a, unit_b)
 
@@ -472,16 +471,23 @@ static func is_head_on_pair(unit_a: Variant, unit_b: Variant) -> bool:
 
 
 static func units_have_any_contact(unit_a: Variant, unit_b: Variant) -> bool:
-	# Head-on classifier is the center-gap band (incl. penetration per WO-023).
+	## WO-036: true rotated footprints (OBB SAT) are the contact floor.
+	## Center-gap / edge-slab tests remain the primary classifiers for axis-aligned
+	## and edge-labeled combat, but OBB interpenetration MUST register as contact
+	## so angled approaches never stay MARCHING while visually merged.
 	if (
 		is_head_on_pair(unit_a, unit_b)
 		and not EdgeContact.has_non_front_segment_contact(unit_a, unit_b)
 	):
-		return units_have_front_contact(unit_a, unit_b)
-	return (
+		if units_have_front_contact(unit_a, unit_b):
+			return true
+		return FormationGeometry.rectangles_overlap(unit_a, unit_b)
+	if (
 		EdgeContact.units_have_contact(unit_a, unit_b)
 		or EdgeContact.units_have_contact(unit_b, unit_a)
-	)
+	):
+		return true
+	return FormationGeometry.rectangles_overlap(unit_a, unit_b)
 
 
 static func resolve_contact_segment(attacker: Variant, defender: Variant, contact: Dictionary) -> Dictionary:

@@ -59,8 +59,8 @@ const SCENARIO_EXTRA_TICKS := 120
 ## Gated PASS lines emitted when every check is green (WO-015).
 ## Compass, Fast+Threaded cert, S1×11, S2×11, Determinism, S3, Overlap, S4, S5–S8, S8b, S9,
 ## S10–S11, S12, S13×3, S14×2, S15, S16×2, S17×2 retired, S17b, S18, S19, S20×2, S21, S22,
-## S23–S26, S27–S29, S30–S34, S35, S36–S39, S40, S41–S44, S45–S48, S49–S54, WO-034 deploy, WO-035 ui-launch = 90
-const EXPECTED_GREEN_PASS_COUNT := 90
+## S23–S26, S27–S29, S30–S34, S35, S36–S39, S40, S41–S44, S45–S48, S49–S54, WO-034 deploy, WO-035 ui-launch, WO-036 rotated-contact = 91
+const EXPECTED_GREEN_PASS_COUNT := 91
 
 var _scenario: Scenario01 = null
 var _exit_code := 0
@@ -1168,6 +1168,7 @@ func _finish() -> void:
 			_check_s54()
 			_check_wo034_deploy_roundtrip()
 			_check_wo035_ui_launch_smoke()
+			_check_wo036_rotated_contact_smoke()
 			_mode = "perf_40"
 			_spawn_and_run()
 		"perf_40":
@@ -1631,6 +1632,97 @@ func _check_wo035_ui_launch_smoke() -> void:
 		ok,
 		"ui_path=%s encirclement=%s (no-overlap+coherence)" % [str(ok_ui), str(ok_enc)],
 	)
+
+
+func _check_wo036_rotated_contact_smoke() -> void:
+	## Angled OBB contact must engage; never MARCHING while footprints overlap.
+	var packed = load("res://tests/scenario_55.tscn")
+	var sc = packed.instantiate()
+	sc.headless_mode = true
+	sc.fast_sim_mode = true
+	sc.auto_run = false
+	sc.use_sim_thread = false
+	sc.suppress_io = true
+	sc.set_battle_seed(1000)
+	root.add_child(sc)
+	var spins := 0
+	while not sc.is_node_ready() and spins < 512:
+		OS.delay_usec(1000)
+		spins += 1
+	if sc.has_method("stop_sim_thread_for_harness"):
+		sc.stop_sim_thread_for_harness()
+	sc._ensure_sim_core()
+	sc._sim_core.capture_from_units(sc._units)
+	sc._sim_core.headless_mode = true
+	sc._sim_core.fast_sim_mode = true
+
+	# Static predicate: rotated OBB clip with open center-gap must still contact.
+	var static_ok: bool = _wo036_static_obb_contact_predicate()
+
+	var ticks := 0
+	while ticks < 2500 and not sc.is_battle_over():
+		sc.advance_one_tick()
+		ticks += 1
+		if sc.had_adhesion_invariant_failure():
+			push_error("WO-036 adhesion fail tick=%d" % ticks)
+			sc.free()
+			_record_check("[WO-036] rotated-contact smoke", false, "adhesion fail t=%d" % ticks)
+			return
+
+	var angled_ok: bool = bool(sc.angled_contact_ok())
+	var ok: bool = static_ok and angled_ok
+	_record_check(
+		"[WO-036] rotated-contact smoke",
+		ok,
+		"static=%s engaged=%s combat=%s obb_march=%s streak=%d off_x=%.1f° ticks=%d"
+		% [
+			str(static_ok),
+			str(sc.observed_engaged),
+			str(sc.combat_resolved),
+			str(sc.observed_left_marching_while_obb),
+			sc.max_obb_marching_ticks,
+			float(sc.first_contact_facing_off_x_deg),
+			ticks,
+		],
+	)
+	sc.free()
+
+
+func _wo036_static_obb_contact_predicate() -> bool:
+	var SimProxy = load("res://scripts/sim/sim_unit_proxy.gd")
+	var inf: Dictionary = UnitProfileLoader.load_profile("test_infantry")
+	# Bare `Constants` is unavailable while this file compiles as a `-s` SceneTree
+	# entry script; use the autoload node instead.
+	var constants: Node = root.get_node_or_null("Constants")
+	if constants == null:
+		push_error("WO-036 Constants autoload missing")
+		return false
+	var px: float = float(constants.call("get_float", "px_per_meter"))
+	var a = SimProxy.new()
+	var b = SimProxy.new()
+	a.unit_id = "a"
+	b.unit_id = "b"
+	a.team_id = "red"
+	b.team_id = "blue"
+	a.profile = inf.duplicate(true)
+	b.profile = inf.duplicate(true)
+	a.strength = 100.0
+	b.strength = 100.0
+	a.position = Vector2(18.0 * px, -14.0 * px)
+	b.position = Vector2.ZERO
+	a.facing = Vector2(-1.0, 0.65).normalized()
+	b.facing = Vector2.RIGHT
+	a._state = Unit.State.MARCHING
+	b._state = Unit.State.HOLD
+	var obb: bool = FormationGeometry.rectangles_overlap(a, b)
+	var contact: bool = CombatResolver.units_have_any_contact(a, b)
+	if not obb:
+		push_error("WO-036 static fixture does not OBB-overlap")
+		return false
+	if not contact:
+		push_error("WO-036 static OBB overlap missed by contact path")
+		return false
+	return true
 
 
 func _wo035_simulate_integrity(merged: Dictionary, label: String, require_multi_edge: bool) -> bool:
