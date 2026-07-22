@@ -36,10 +36,14 @@ static func classify_contact(attacker: Variant, defender: Variant) -> Dictionary
 
 
 static func _classify_contact_impl(attacker: Variant, defender: Variant) -> Dictionary:
-	# Head-on pairs defer to legacy center-gap contact until aligned.
+	## Head-on pairs defer to center-gap until aligned — UNLESS true OBB footprints
+	## already interpenetrate (WO-036). Angled corner clips must not return empty
+	## while FormationGeometry.rectangles_overlap is true.
+	var obb_hit: bool = FormationGeometry.rectangles_overlap(attacker, defender)
 	if (
 		CombatResolver.is_head_on_pair(attacker, defender)
 		and not CombatResolver.units_have_front_contact(attacker, defender)
+		and not obb_hit
 	):
 		return _empty_contact()
 
@@ -108,8 +112,22 @@ static func _classify_contact_impl(attacker: Variant, defender: Variant) -> Dict
 		if right_len > eps:
 			edge_lengths[EDGE_RIGHT] = right_len
 
+	# WO-036: OBB interpenetration with no edge-slab hit (interior / deep angled
+	# clip) — assign the dominant defender edge from attacker-center projection
+	# so combat/adhesion can resolve instead of leaving MARCHING+merged.
 	if edge_lengths.is_empty():
-		return _empty_contact()
+		if not obb_hit:
+			return _empty_contact()
+		var fallback_edge: String = EDGE_FRONT
+		if absf(center_along) >= absf(center_across):
+			fallback_edge = EDGE_FRONT if center_along >= 0.0 else EDGE_REAR
+		else:
+			fallback_edge = EDGE_LEFT if center_across >= 0.0 else EDGE_RIGHT
+		var fallback_span: float = maxf(
+			minf(attacker.effective_frontage_m(), defender.effective_frontage_m()) * 0.35,
+			eps * 4.0
+		)
+		edge_lengths[fallback_edge] = fallback_span
 
 	var total_contact_m: float = 0.0
 	for length_m in edge_lengths.values():

@@ -35,8 +35,8 @@ BATTLE SPEED (log only, non-blocking): presentation control for battle-view WO
 =========================================================
 ACCEPTANCE
 
-[ ] Geometry report; contact unified on oriented footprint
-[ ] Angled-contact smoke PASS (engage + OBB no-overlap)
-[ ] Permanent assertions in suite
+[x] Geometry report; contact unified on oriented footprint
+[x] Angled-contact smoke PASS (engage + OBB no-overlap)
+[x] Permanent assertions in suite
 [ ] Head-on byte-identical; suite exit 0
 [ ] Designer build; Assumptions NONE; raw report URL
