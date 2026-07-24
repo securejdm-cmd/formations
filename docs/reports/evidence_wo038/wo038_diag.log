@@ -1,0 +1,16 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+[WO-038] readout sample: Facing: (-0.707, -0.707) |len|=1.0000
+ERROR: String formatting error: unsupported format character.
+   at: validated_evaluate (core/variant/variant_op.h:956)
+[WO-038] historic-broken sample: Facing: %(%.3f, %.3f) |len|=%.4f
+[WO-038] readout format OK
+[WO-038] gate headless=false fast=false debug_integrity=false → enabled=true (expect true in debug build)
+[WO-038] assert gate OK (silent overlap_fail was (a) assert-off, not (b))
+[WO-038] FACING_LEN census samples=5000 min=0.99999994 max=1.00000000 first_dev_tick=-1 unit= len=0.00000000 ticks=2500 engaged=true wheeled=true
+[WO-038] UNNORMALIZED-FACING HYPOTHESIS FALSIFIED — magnitudes clean (min=0.99999994 max=1.00000000); no |len-1|>1e-4
+[WO-038] FACING-READOUT DIAG PASS
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+     at: cleanup (core/object/object.cpp:2378)
+ERROR: 4 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:614)

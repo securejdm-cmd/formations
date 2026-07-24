@@ -25,7 +25,7 @@ TASKS (in order — no further contact/facing theory patches until done)
 =========================================================
 ACCEPTANCE
 
-[ ] Facing readout correct (verified)
-[ ] Facing-length min/max report; hypothesis confirm/falsify
-[ ] Silent-invariant explanation + DEBUG realtime OBB fix
-[ ] WO-037 presence + re-diagnosis; Assumptions NONE; raw report URL
+[x] Facing readout correct (verified)
+[x] Facing-length min/max report; hypothesis confirm/falsify
+[x] Silent-invariant explanation + DEBUG realtime OBB fix
+[x] WO-037 presence + re-diagnosis; Assumptions NONE; raw report URL

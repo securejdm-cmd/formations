@@ -1,0 +1,7 @@
+samples=5000
+min=0.99999994
+max=1.00000000
+first_dev_tick=-1
+first_dev_unit=
+first_dev_len=0.00000000
+clean=true
