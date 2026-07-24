@@ -69,8 +69,9 @@ func _update_unit_panel() -> void:
 		_unit_panel.text = "Unit: (click a block)"
 		return
 
+	var f: Vector2 = _selected_unit.facing
 	_unit_panel.text = (
-		"Unit: %s (%s)\nStrength: %.1f (%.0f%%)\nCohesion: %.1f (%.0f%%)\nSoldiers defeated: %d\nState: %s\nPos: %s\nFacing: %s"
+		"Unit: %s (%s)\nStrength: %.1f (%.0f%%)\nCohesion: %.1f (%.0f%%)\nSoldiers defeated: %d\nState: %s\nPos: %s\nFacing: (%.3f, %.3f) |len|=%.4f"
 		% [
 			_selected_unit.unit_id,
 			_selected_unit.team_id,
@@ -81,12 +82,9 @@ func _update_unit_panel() -> void:
 			_selected_unit.soldiers_defeated(),
 			_selected_unit.get_state_name(),
 			str(_selected_unit.position.round()),
-			"%(%.3f, %.3f) |len|=%.4f"
-			% [
-				_selected_unit.facing.x,
-				_selected_unit.facing.y,
-				_selected_unit.facing.length(),
-			],
+			f.x,
+			f.y,
+			f.length(),
 		]
 	)
 
