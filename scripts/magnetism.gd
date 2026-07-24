@@ -91,6 +91,7 @@ static func find_gravity_target(unit: Variant, enemies: Array) -> Variant:
 
 static func rotate_toward(unit: Variant, desired: Vector2, delta: float) -> float:
 	## Rotate facing toward desired; returns abs angle moved this tick (rad).
+	## WO-037: always write a unit-length facing (setter also normalizes).
 	if desired.length_squared() <= 0.0001:
 		return 0.0
 	var want: Vector2 = desired.normalized()
@@ -103,7 +104,9 @@ static func rotate_toward(unit: Variant, desired: Vector2, delta: float) -> floa
 		unit.facing = want
 		stepped = absf(angled)
 	else:
-		unit.facing = unit.facing.rotated(signf(angled) * max_turn)
+		unit.facing = FormationGeometry.normalize_facing(
+			unit.facing.rotated(signf(angled) * max_turn)
+		)
 		stepped = max_turn
 	if "rotation" in unit:
 		unit.rotation = unit.facing.angle()

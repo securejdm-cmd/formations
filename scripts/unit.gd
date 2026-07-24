@@ -16,7 +16,10 @@ var profile: Dictionary = {}
 
 var strength: float = 100.0
 var cohesion: float = 100.0
-var facing: Vector2 = Vector2.RIGHT
+## WO-037: facing is always a unit vector (normalize-on-write).
+var facing: Vector2 = Vector2.RIGHT:
+	set(value):
+		facing = FormationGeometry.normalize_facing(value)
 var current_order: Order = Order.HOLD
 var march_target: Vector2 = Vector2.ZERO
 var engaged_partner: Unit = null
@@ -519,7 +522,9 @@ func _update_marching_step(delta: float, enemies: Array[Unit] = []) -> void:
 			if absf(angled) <= max_turn:
 				facing = desired
 			else:
-				facing = facing.rotated(signf(angled) * max_turn)
+				facing = FormationGeometry.normalize_facing(
+					facing.rotated(signf(angled) * max_turn)
+				)
 			rotation = facing.angle()
 		desired_move = desired
 	# Accelerate / decelerate toward target speed (gait or tactical).

@@ -59,8 +59,8 @@ const SCENARIO_EXTRA_TICKS := 120
 ## Gated PASS lines emitted when every check is green (WO-015).
 ## Compass, Fast+Threaded cert, S1×11, S2×11, Determinism, S3, Overlap, S4, S5–S8, S8b, S9,
 ## S10–S11, S12, S13×3, S14×2, S15, S16×2, S17×2 retired, S17b, S18, S19, S20×2, S21, S22,
-## S23–S26, S27–S29, S30–S34, S35, S36–S39, S40, S41–S44, S45–S48, S49–S54, WO-034 deploy, WO-035 ui-launch, WO-036 rotated-contact = 91
-const EXPECTED_GREEN_PASS_COUNT := 91
+## S23–S26, S27–S29, S30–S34, S35, S36–S39, S40, S41–S44, S45–S48, S49–S54, WO-034 deploy, WO-035 ui-launch, WO-036 rotated-contact, WO-037 facing = 92
+const EXPECTED_GREEN_PASS_COUNT := 92
 
 var _scenario: Scenario01 = null
 var _exit_code := 0
@@ -1169,6 +1169,7 @@ func _finish() -> void:
 			_check_wo034_deploy_roundtrip()
 			_check_wo035_ui_launch_smoke()
 			_check_wo036_rotated_contact_smoke()
+			_check_wo037_facing_normalize_smoke()
 			_mode = "perf_40"
 			_spawn_and_run()
 		"perf_40":
@@ -1682,6 +1683,62 @@ func _check_wo036_rotated_contact_smoke() -> void:
 			str(sc.observed_left_marching_while_obb),
 			sc.max_obb_marching_ticks,
 			float(sc.first_contact_facing_off_x_deg),
+			ticks,
+		],
+	)
+	sc.free()
+
+
+func _check_wo037_facing_normalize_smoke() -> void:
+	## Cavalry charge → engage → wheel under contact; facing stays unit-length.
+	var packed = load("res://tests/scenario_56.tscn")
+	var sc = packed.instantiate()
+	sc.headless_mode = true
+	sc.fast_sim_mode = true
+	sc.auto_run = false
+	sc.use_sim_thread = false
+	sc.suppress_io = true
+	sc.set_battle_seed(1000)
+	root.add_child(sc)
+	var spins := 0
+	while not sc.is_node_ready() and spins < 512:
+		OS.delay_usec(1000)
+		spins += 1
+	if sc.has_method("stop_sim_thread_for_harness"):
+		sc.stop_sim_thread_for_harness()
+	sc._ensure_sim_core()
+	sc._sim_core.capture_from_units(sc._units)
+	sc._sim_core.headless_mode = true
+	sc._sim_core.fast_sim_mode = true
+
+	var SimProxy = load("res://scripts/sim/sim_unit_proxy.gd")
+	var probe = SimProxy.new()
+	probe.facing = Vector2(-1.0, -1.0)
+	var static_ok: bool = FormationGeometry.facing_is_unit(probe.facing)
+
+	var ticks := 0
+	while ticks < 2500 and not sc.is_battle_over():
+		sc.advance_one_tick()
+		ticks += 1
+		if sc.had_facing_assertion_failure():
+			push_error("WO-037 facing fail tick=%d" % ticks)
+			sc.free()
+			_record_check("[WO-037] facing-normalize smoke", false, "facing invariant t=%d" % ticks)
+			return
+
+	var dyn_ok: bool = bool(sc.rotate_while_engaged_ok())
+	var ok: bool = static_ok and dyn_ok
+	_record_check(
+		"[WO-037] facing-normalize smoke",
+		ok,
+		"static=%s engaged=%s combat=%s wheeled=%s facing_ok=%s max_err=%.6f ticks=%d"
+		% [
+			str(static_ok),
+			str(sc.observed_engaged),
+			str(sc.combat_resolved),
+			str(sc.observed_rotate_while_engaged),
+			str(sc.facing_ok),
+			float(sc.max_facing_len_err),
 			ticks,
 		],
 	)

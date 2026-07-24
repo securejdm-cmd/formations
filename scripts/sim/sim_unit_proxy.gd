@@ -9,7 +9,10 @@ var unit_id: String = ""
 var team_id: String = ""
 var profile: Dictionary = {}
 var position: Vector2 = Vector2.ZERO
-var facing: Vector2 = Vector2.RIGHT
+## WO-037: facing is always a unit vector (normalize-on-write).
+var facing: Vector2 = Vector2.RIGHT:
+	set(value):
+		facing = FormationGeometry.normalize_facing(value)
 var strength: float = 100.0
 var cohesion: float = 100.0
 var current_order: Unit.Order = Unit.Order.HOLD
@@ -537,7 +540,9 @@ func _update_marching_step(delta: float, enemies: Array = []) -> void:
 			if absf(angled) <= max_turn:
 				facing = desired
 			else:
-				facing = facing.rotated(signf(angled) * max_turn)
+				facing = FormationGeometry.normalize_facing(
+					facing.rotated(signf(angled) * max_turn)
+				)
 			if _TickProfiler.enabled and t_rot2 >= 0:
 				_TickProfiler.move_auto_rotation_usec += Time.get_ticks_usec() - t_rot2
 		desired_move = desired

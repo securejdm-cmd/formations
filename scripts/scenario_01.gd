@@ -41,6 +41,7 @@ var _first_contact_tick: int = -1
 var _first_rout_tick: int = -1
 var _overlap_assertion_failed: bool = false
 var _adhesion_invariant_failed: bool = false
+var _facing_assertion_failed: bool = false
 var _current_tick_interval: float = 0.1
 var _sim_core = null
 var _sim_thread = null
@@ -268,6 +269,7 @@ func _sync_state_from_core() -> void:
 	_first_rout_tick = _sim_core.first_rout_tick
 	_overlap_assertion_failed = _sim_core.overlap_assertion_failed
 	_adhesion_invariant_failed = _sim_core.adhesion_invariant_failed
+	_facing_assertion_failed = _sim_core.facing_assertion_failed
 	_winner = null
 	if not _sim_core.winner_id.is_empty():
 		for unit in _units:
@@ -860,6 +862,10 @@ func had_overlap_failure() -> bool:
 
 func had_adhesion_invariant_failure() -> bool:
 	return _adhesion_invariant_failed
+
+
+func had_facing_assertion_failure() -> bool:
+	return _facing_assertion_failed
 
 
 func is_battle_over() -> bool:
