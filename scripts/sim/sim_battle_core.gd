@@ -31,6 +31,16 @@ var first_rout_tick: int = -1
 var overlap_assertion_failed: bool = false
 var adhesion_invariant_failed: bool = false
 var facing_assertion_failed: bool = false
+## WO-038: opt-in integrity checks for designer UI / diagnosis (not GAMEPLAY_TICK default).
+var debug_integrity_checks: bool = false
+## WO-038: emit per-unit facing.length rows + track min/max.
+var debug_facing_len_log: bool = false
+var facing_len_min: float = INF
+var facing_len_max: float = 0.0
+var facing_len_samples: int = 0
+var facing_len_first_dev_tick: int = -1
+var facing_len_first_dev_unit: String = ""
+var facing_len_first_dev_len: float = 0.0
 var grid_cell_size_px: float = 1.0
 var grid_cells: Dictionary = {}
 var current_tick_interval: float = 0.1
@@ -182,7 +192,15 @@ func _invalidate_march_radius_cache() -> void:
 func overlap_assert_enabled() -> bool:
 	# Verification equipment: autotest and fast-mode only — not realtime gameplay.
 	# WO-024: GAMEPLAY_TICK uses fast_sim_mode=false so this stays OFF.
-	return headless_mode and fast_sim_mode
+	if headless_mode and fast_sim_mode:
+		return true
+	# WO-038: DEBUG / designer UI must actually check OBB so overlap_fail is honest.
+	# (Previously UI printed overlap_fail=false forever because this gate was never open.)
+	if debug_integrity_checks:
+		return true
+	if OS.is_debug_build() and not headless_mode:
+		return true
+	return false
 
 
 func trace_logging_enabled() -> bool:
@@ -190,7 +208,8 @@ func trace_logging_enabled() -> bool:
 	## Default: only in fast_sim (test) mode — never part of GAMEPLAY_TICK.
 	## Certification may set force_trace_logging to compare byte traces on the
 	## gameplay/threaded path without enabling overlap asserts.
-	return fast_sim_mode or force_trace_logging
+	## WO-038: facing-length diagnosis may force traces on the UI path.
+	return fast_sim_mode or force_trace_logging or debug_facing_len_log
 
 
 func capture_tick_start_positions() -> void:
@@ -220,6 +239,7 @@ func advance_one_tick_fast(tick_interval: float) -> void:
 	try_passive_engagement()
 	apply_contact_adhesion()
 	run_overlap_assert_if_enabled()
+	sample_facing_lengths()
 	combat_tick()
 	pursuit_tick()
 	apply_contact_adhesion()
@@ -376,6 +396,7 @@ func advance_one_tick_profiled(tick_interval: float) -> void:
 
 	t0 = _TickProfiler.begin_section("overlap_assert")
 	run_overlap_assert_if_enabled()
+	sample_facing_lengths()
 	_TickProfiler.end_section("overlap_assert", t0)
 
 	t0 = _TickProfiler.begin_section("combat")
@@ -1668,6 +1689,42 @@ func run_overlap_assert_if_enabled() -> void:
 	assert_no_overlaps()
 
 
+func sample_facing_lengths() -> void:
+	## WO-038: every unit every tick — facing.length() for diagnosis.
+	if not debug_facing_len_log:
+		return
+	var time_sec := sim_tick_count * (1.0 / Constants.get_float("tick_rate_per_sec"))
+	for unit in units:
+		if unit == null:
+			continue
+		if unit.get_state() == Unit.State.REMOVED:
+			continue
+		var flen: float = unit.facing.length()
+		facing_len_samples += 1
+		facing_len_min = minf(facing_len_min, flen)
+		facing_len_max = maxf(facing_len_max, flen)
+		if facing_len_first_dev_tick < 0 and absf(flen - 1.0) > 1e-4:
+			facing_len_first_dev_tick = sim_tick_count
+			facing_len_first_dev_unit = str(unit.unit_id)
+			facing_len_first_dev_len = flen
+		if trace_logging_enabled():
+			trace_lines.append(
+				"%.1f,EVENT,FACING_LEN,unit=%s,len=%.8f,fx=%.6f,fy=%.6f"
+				% [time_sec, unit.unit_id, flen, unit.facing.x, unit.facing.y]
+			)
+
+
+func facing_len_report() -> Dictionary:
+	return {
+		"samples": facing_len_samples,
+		"min": facing_len_min if facing_len_samples > 0 else NAN,
+		"max": facing_len_max if facing_len_samples > 0 else NAN,
+		"first_dev_tick": facing_len_first_dev_tick,
+		"first_dev_unit": facing_len_first_dev_unit,
+		"first_dev_len": facing_len_first_dev_len,
+	}
+
+
 func assert_facing_unit_length() -> void:
 	## WO-037: every live unit must carry a unit-length facing every tick.
 	for unit in units:
@@ -1685,13 +1742,27 @@ func assert_facing_unit_length() -> void:
 
 
 func assert_no_overlaps() -> void:
-	# Non-routing pairs only (allied and enemy). Routing units are formless fugitives.
+	## WO-038: independent OBB audit — FormationGeometry.get_corners(pos, facing,
+	## extents) only. Does NOT reuse contact early-outs (could_have_contact /
+	## center-gap / edge slabs). Partnered / auto_engage_locked enemy merge is
+	## still a non-defect (WO-036); routing has no volume.
 	for pair in grid_sorted_pair_candidates():
 		var unit_a: SimUnitProxy = pair[0]
 		var unit_b: SimUnitProxy = pair[1]
+		if (
+			unit_a.get_state() == Unit.State.ROUTING
+			or unit_b.get_state() == Unit.State.ROUTING
+		):
+			continue
 		if not FormationGeometry.bounds_may_overlap(unit_a, unit_b):
 			continue
-		if not CombatResolver.units_overlap(unit_a, unit_b):
+		if unit_a.team_id != unit_b.team_id:
+			if unit_a.has_contact_with(unit_b) or unit_b.has_contact_with(unit_a):
+				continue
+			if bool(unit_a.auto_engage_locked) or bool(unit_b.auto_engage_locked):
+				continue
+		# Independent geometry: raw pos + facing + extents → OBB SAT.
+		if not FormationGeometry.rectangles_overlap(unit_a, unit_b):
 			continue
 		overlap_assertion_failed = true
 		var relation := "allied" if unit_a.team_id == unit_b.team_id else "enemy"

@@ -81,13 +81,14 @@ func _apply_battle_metadata_to_core() -> void:
 	_sim_core.victory_spec = battle_data.get("victory", {"mode": "rout"}).duplicate(true)
 	_sim_core.terrain_patches = battle_data.get("terrain_patches", []).duplicate(true)
 	_sim_core.height_field = _height_field
-	# Integrity watch uses the same assert_no_overlaps / adhesion invariant the
-	# cert path records — enabled under headless+fast in smoke; flag reserved
-	# for designer builds that opt into continuous watch without changing the
-	# GAMEPLAY_TICK gate (overlap_assert_enabled stays WO-024 rules).
+	# WO-038: designer UI must actually run OBB + facing checks. WO-024 kept
+	# overlap_assert_enabled() false whenever fast_sim=false, so the FPS strip
+	# forever printed overlap_fail=false with nothing checked. Opt-in here.
 	if ui_integrity_watch and not headless_mode:
+		_sim_core.debug_integrity_checks = true
+		_sim_core.debug_facing_len_log = true
 		print(
-			"[WO-035] UI battle on certified tick path (substep+adhesion+allied_sep+coherence); sim_thread=%s"
+			"[WO-035/038] UI battle on certified tick path; integrity+facing_len ON; sim_thread=%s"
 			% str(_sim_thread_enabled())
 		)
 
@@ -106,7 +107,22 @@ func _process(delta: float) -> void:
 	if Engine.get_frames_drawn() % 120 == 0:
 		var ov := had_overlap_failure()
 		var ad := had_adhesion_invariant_failure()
+		var fl_min := NAN
+		var fl_max := NAN
+		var fl_dev := -1
+		if _sim_core != null and _sim_core.facing_len_samples > 0:
+			fl_min = _sim_core.facing_len_min
+			fl_max = _sim_core.facing_len_max
+			fl_dev = _sim_core.facing_len_first_dev_tick
 		print(
-			"[WO-035] Battle FPS=%.1f sim_thread=%s overlap_fail=%s coherence_fail=%s"
-			% [Engine.get_frames_per_second(), str(use_sim_thread), str(ov), str(ad)]
+			"[WO-035/038] Battle FPS=%.1f sim_thread=%s overlap_fail=%s coherence_fail=%s facing_len[min=%.6f max=%.6f first_dev_tick=%d]"
+			% [
+				Engine.get_frames_per_second(),
+				str(use_sim_thread),
+				str(ov),
+				str(ad),
+				fl_min,
+				fl_max,
+				fl_dev,
+			]
 		)
