@@ -62,7 +62,7 @@ Artifact: `docs/reports/evidence_wo038/wo038_facing_census.txt`
 | Item | Value |
 |---|---|
 | This branch | `cursor/wo-038-facing-readout-fd84` |
-| This tip | **`b2ef079`** |
+| This tip | **`ff89b69`** |
 | WO-037 tip included | **`94f17d6`** — `WO-037: completion report suite attestation PASS=92` |
 | Normalize-on-write / S56 smoke | **present** in this build (ancestor commits `7718bae`, `cf52b12`) |
 | Designer build | Must include WO-037 (`94f17d6`+) **and** this WO-038 readout fix to see magnitudes; prior panel showed a **literal format string**, not a real vector |
@@ -98,7 +98,7 @@ DISPLAY=:99 godot -s res://tests/wo038_readout_visual.gd
 
 ## Attestation
 
-- Branch: `cursor/wo-038-facing-readout-fd84` @ `b2ef079`
+- Branch: `cursor/wo-038-facing-readout-fd84` @ `ff89b69`
 - Base: `cursor/wo-037-facing-normalize-fd84` @ `94f17d6`
 - Report: https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-038-facing-readout-fd84/docs/reports/WO-038_completion.md
 - Diag log: https://raw.githubusercontent.com/securejdm-cmd/formations/cursor/wo-038-facing-readout-fd84/docs/reports/evidence_wo038/wo038_diag.log
