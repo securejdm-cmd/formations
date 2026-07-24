@@ -29,8 +29,8 @@ TASKS
 =========================================================
 ACCEPTANCE
 
-[ ] Facing-write audit report
-[ ] Normalize-on-write + defensive OBB/SAT
-[ ] Facing unit-length invariant every tick
-[ ] Rotate-while-engaged smoke PASS
-[ ] Suite exit 0; Assumptions NONE; raw report URL
+[x] Facing-write audit report
+[x] Normalize-on-write + defensive OBB/SAT
+[x] Facing unit-length invariant every tick
+[x] Rotate-while-engaged smoke PASS
+[x] Suite exit 0 (PASS=92); Assumptions NONE; raw report URL
