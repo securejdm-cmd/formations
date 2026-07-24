@@ -81,7 +81,12 @@ func _update_unit_panel() -> void:
 			_selected_unit.soldiers_defeated(),
 			_selected_unit.get_state_name(),
 			str(_selected_unit.position.round()),
-			str(_selected_unit.facing.round()),
+			"%(%.3f, %.3f) |len|=%.4f"
+			% [
+				_selected_unit.facing.x,
+				_selected_unit.facing.y,
+				_selected_unit.facing.length(),
+			],
 		]
 	)
 

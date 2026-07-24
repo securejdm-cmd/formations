@@ -3,22 +3,37 @@ extends RefCounted
 
 ## Oriented formation rectangles: depth along facing, frontage perpendicular.
 
+## Facing must always be a unit vector. Zero / near-zero → +X fallback.
+const FACING_UNIT_EPS := 0.01
+
+
+static func normalize_facing(facing: Vector2) -> Vector2:
+	if facing.length_squared() <= 0.0001:
+		return Vector2.RIGHT
+	return facing.normalized()
+
+
+static func facing_is_unit(facing: Vector2) -> bool:
+	return absf(facing.length() - 1.0) <= FACING_UNIT_EPS
+
 
 static func left_vector(facing: Vector2) -> Vector2:
 	# Soldier's left: facing rotated +90° counterclockwise (Godot Y-down).
-	return Vector2(facing.y, -facing.x)
+	var f: Vector2 = normalize_facing(facing)
+	return Vector2(f.y, -f.x)
 
 
 static func right_vector(facing: Vector2) -> Vector2:
 	# Soldier's right: facing rotated -90° clockwise.
-	return Vector2(-facing.y, facing.x)
+	var f: Vector2 = normalize_facing(facing)
+	return Vector2(-f.y, f.x)
 
 
 static func get_corners(unit: Variant) -> PackedVector2Array:
 	var px_per_meter: float = Constants.get_float("px_per_meter")
 	var half_depth_px: float = unit.effective_depth_m() * 0.5 * px_per_meter
 	var half_frontage_px: float = unit.effective_frontage_m() * 0.5 * px_per_meter
-	var forward: Vector2 = unit.facing.normalized()
+	var forward: Vector2 = normalize_facing(unit.facing)
 	var right: Variant = right_vector(forward)
 
 	return PackedVector2Array([
@@ -35,7 +50,7 @@ static func get_corners(unit: Variant) -> PackedVector2Array:
 ## (WO-024 — Sec 5 is block surface gap, not center distance).
 static func surface_gap_along_facing_m(unit: Variant, other: Variant) -> float:
 	var px_per_meter: float = Constants.get_float("px_per_meter")
-	var forward: Vector2 = unit.facing.normalized()
+	var forward: Vector2 = normalize_facing(unit.facing)
 	if forward.length_squared() <= 0.0001:
 		return INF
 	var half_depth_m: float = unit.effective_depth_m() * 0.5
@@ -51,7 +66,7 @@ static func contains_world_point(unit: Variant, world_point: Vector2) -> bool:
 	var half_depth_px: float = unit.effective_depth_m() * 0.5 * px_per_meter
 	var half_frontage_px: float = unit.effective_frontage_m() * 0.5 * px_per_meter
 	var local: Vector2 = world_point - unit.position
-	var forward: Vector2 = unit.facing.normalized()
+	var forward: Vector2 = normalize_facing(unit.facing)
 	var right: Variant = right_vector(forward)
 	var along: float = local.dot(forward)
 	var across: float = local.dot(right)
@@ -79,6 +94,7 @@ static func rectangles_overlap(unit_a: Variant, unit_b: Variant) -> bool:
 
 
 static func _obb_overlap(corners_a: PackedVector2Array, corners_b: PackedVector2Array) -> bool:
+	## WO-037: SAT axes are always normalized (orthonormal projection).
 	var axes: Array[Vector2] = []
 	axes.append(_edge_normal(corners_a[0], corners_a[1]))
 	axes.append(_edge_normal(corners_a[1], corners_a[2]))

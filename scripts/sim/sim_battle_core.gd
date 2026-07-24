@@ -30,6 +30,7 @@ var first_contact_tick: int = -1
 var first_rout_tick: int = -1
 var overlap_assertion_failed: bool = false
 var adhesion_invariant_failed: bool = false
+var facing_assertion_failed: bool = false
 var grid_cell_size_px: float = 1.0
 var grid_cells: Dictionary = {}
 var current_tick_interval: float = 0.1
@@ -1663,7 +1664,24 @@ func pair_key(unit_a: SimUnitProxy, unit_b: SimUnitProxy) -> String:
 func run_overlap_assert_if_enabled() -> void:
 	if not overlap_assert_enabled():
 		return
+	assert_facing_unit_length()
 	assert_no_overlaps()
+
+
+func assert_facing_unit_length() -> void:
+	## WO-037: every live unit must carry a unit-length facing every tick.
+	for unit in units:
+		if unit == null:
+			continue
+		if unit.get_state() == Unit.State.REMOVED:
+			continue
+		if FormationGeometry.facing_is_unit(unit.facing):
+			continue
+		facing_assertion_failed = true
+		push_error(
+			"Facing not unit-length at tick %d unit=%s facing=%s |len|=%.6f"
+			% [sim_tick_count, unit.unit_id, str(unit.facing), unit.facing.length()]
+		)
 
 
 func assert_no_overlaps() -> void:
